@@ -103,53 +103,107 @@ export default function ReportsPage() {
         fetchRecords();
     }, [fetchRecords]);
 
-    const filteredRecords = React.useMemo(() => {
-        if (!searchTerm) return records;
-        return records.filter(r =>
-            r.employeeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            r.employeeId.includes(searchTerm) ||
-            r.deviceName.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-    }, [records, searchTerm]);
+    // Agrupar registos por data e funcionário
+    const dailySummaries = React.useMemo(() => {
+        const groups: Record<string, AttendanceRecord[]> = {};
 
-    // Estatísticas
-    const stats = React.useMemo(() => {
-        const uniqueEmployees = new Set(records.map(r => r.employeeId)).size;
-        const uniqueDevices = new Set(records.map(r => r.deviceSerial)).size;
-        const checkIns = records.filter(r => r.checktype === 0).length;
-        const checkOuts = records.filter(r => r.checktype === 1).length;
+        records.forEach(record => {
+            const dateKey = format(parseISO(record.checktime), 'yyyy-MM-dd');
+            const groupKey = `${dateKey}_${record.employeeId}`;
+            if (!groups[groupKey]) {
+                groups[groupKey] = [];
+            }
+            groups[groupKey].push(record);
+        });
 
-        return { uniqueEmployees, uniqueDevices, checkIns, checkOuts };
+        return Object.values(groups).map(group => {
+            // Ordenar por hora
+            const sorted = [...group].sort((a, b) =>
+                parseISO(a.checktime).getTime() - parseISO(b.checktime).getTime()
+            );
+
+            const first = sorted[0];
+            const last = sorted[sorted.length - 1];
+            const sameRecord = sorted.length === 1;
+
+            // Calcular duração total (entre o primeiro e o último do dia)
+            const start = parseISO(first.checktime);
+            const end = parseISO(last.checktime);
+            const durationMs = end.getTime() - start.getTime();
+
+            const hours = Math.floor(durationMs / (1000 * 60 * 60));
+            const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
+            const durationStr = sameRecord ? "-" : `${hours}h ${minutes}m`;
+
+            // Horas Extra: tudo o que passar de 9h (32400000 ms)
+            const overtimeMs = Math.max(0, durationMs - (9 * 60 * 60 * 1000));
+            const otHours = Math.floor(overtimeMs / (1000 * 60 * 60));
+            const otMinutes = Math.floor((overtimeMs % (1000 * 60 * 60)) / (1000 * 60));
+            const overtimeStr = overtimeMs > 0 ? `+${otHours}h ${otMinutes}m` : "-";
+
+            return {
+                id: `${first.employeeId}_${first.checktime}`,
+                date: format(parseISO(first.checktime), 'yyyy-MM-dd'),
+                employeeId: first.employeeId,
+                employeeName: first.employeeName,
+                firstIn: first.checktime,
+                lastOut: sameRecord ? null : last.checktime,
+                duration: durationStr,
+                durationMs: durationMs,
+                overtime: overtimeStr,
+                overtimeMs: overtimeMs,
+                recordCount: group.length,
+                allRecords: sorted
+            };
+        }).sort((a, b) => b.firstIn.localeCompare(a.firstIn));
     }, [records]);
 
+    const filteredSummaries = React.useMemo(() => {
+        if (!searchTerm) return dailySummaries;
+        return dailySummaries.filter(s =>
+            s.employeeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            s.employeeId.includes(searchTerm)
+        );
+    }, [dailySummaries, searchTerm]);
+
+    // Estatísticas (baseadas nos resumos diários)
+    const stats = React.useMemo(() => {
+        const uniqueEmployees = new Set(records.map(r => r.employeeId)).size;
+        const totalDaysWork = filteredSummaries.length;
+
+        // Calcular total de horas extra no período filtrado
+        const totalOtMs = filteredSummaries.reduce((acc, s) => acc + s.overtimeMs, 0);
+        const otHours = Math.floor(totalOtMs / (1000 * 60 * 60));
+        const otMinutes = Math.floor((totalOtMs % (1000 * 60 * 60)) / (1000 * 60));
+        const totalOvertimeStr = `${otHours}h ${otMinutes}m`;
+
+        return { uniqueEmployees, totalDaysWork, totalOvertimeStr };
+    }, [records, filteredSummaries]);
+
     const handleExportPDF = () => {
-        const dataToExport = filteredRecords.map(r => {
-            const checkInfo = getCheckTypeInfo(r.checktype);
-            return {
-                data: format(parseISO(r.checktime), 'dd/MM/yyyy HH:mm', { locale: pt }),
-                funcionario: r.employeeName,
-                id: r.employeeId,
-                tipo: checkInfo.label,
-                dispositivo: r.deviceName,
-                horasExtra: '-'
-            };
-        });
+        const dataToExport = filteredSummaries.map(s => ({
+            data: format(parseISO(s.firstIn), 'dd/MM/yyyy', { locale: pt }),
+            funcionario: s.employeeName,
+            id: s.employeeId,
+            entrada: format(parseISO(s.firstIn), 'HH:mm'),
+            saida: s.lastOut ? format(parseISO(s.lastOut), 'HH:mm') : '-',
+            duracao: s.duration,
+            horasExtra: s.overtime
+        }));
         exportToPDF(dataToExport, date?.from ? format(date.from, "MMMM yyyy", { locale: pt }) : "Geral");
     };
 
     const handleExportExcel = () => {
-        const dataToExport = filteredRecords.map(r => {
-            const checkInfo = getCheckTypeInfo(r.checktype);
-            return {
-                data: format(parseISO(r.checktime), 'dd/MM/yyyy', { locale: pt }),
-                hora: format(parseISO(r.checktime), 'HH:mm'),
-                funcionario: r.employeeName,
-                id_funcionario: r.employeeId,
-                tipo_registo: checkInfo.label,
-                dispositivo: r.deviceName,
-                serial_dispositivo: r.deviceSerial
-            };
-        });
+        const dataToExport = filteredSummaries.map(s => ({
+            data: format(parseISO(s.firstIn), 'dd/MM/yyyy', { locale: pt }),
+            funcionario: s.employeeName,
+            id_funcionario: s.employeeId,
+            entrada: format(parseISO(s.firstIn), 'HH:mm'),
+            saida: s.lastOut ? format(parseISO(s.lastOut), 'HH:mm') : '-',
+            duracao_total: s.duration,
+            horas_extra: s.overtime,
+            registos_no_dia: s.recordCount
+        }));
         exportToExcel(dataToExport);
     };
 
@@ -169,7 +223,7 @@ export default function ReportsPage() {
                         variant="outline"
                         className="shadow-sm"
                         onClick={handleExportPDF}
-                        disabled={loading || filteredRecords.length === 0}
+                        disabled={loading || filteredSummaries.length === 0}
                     >
                         <FileDown className="mr-2 h-4 w-4" />
                         Exportar PDF
@@ -178,7 +232,7 @@ export default function ReportsPage() {
                         variant="outline"
                         className="shadow-sm"
                         onClick={handleExportExcel}
-                        disabled={loading || filteredRecords.length === 0}
+                        disabled={loading || filteredSummaries.length === 0}
                     >
                         <FileDown className="mr-2 h-4 w-4" />
                         Exportar Excel
@@ -187,12 +241,12 @@ export default function ReportsPage() {
             </div>
 
             {/* Estatísticas */}
-            <div className="grid gap-4 md:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-3">
                 <Card className="border-none shadow-sm">
                     <CardHeader className="pb-2">
                         <CardDescription className="flex items-center gap-2">
                             <User className="h-4 w-4" />
-                            Colaboradores
+                            Colaboradores Ativos
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -202,34 +256,23 @@ export default function ReportsPage() {
                 <Card className="border-none shadow-sm">
                     <CardHeader className="pb-2">
                         <CardDescription className="flex items-center gap-2">
-                            <Smartphone className="h-4 w-4" />
-                            Dispositivos
+                            <CalendarIcon className="h-4 w-4" />
+                            Dias de Trabalho
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{stats.uniqueDevices}</div>
+                        <div className="text-2xl font-bold">{stats.totalDaysWork}</div>
                     </CardContent>
                 </Card>
                 <Card className="border-none shadow-sm">
                     <CardHeader className="pb-2">
                         <CardDescription className="flex items-center gap-2">
-                            <Clock className="h-4 w-4 text-green-600" />
-                            Check-Ins
+                            <Clock className="h-4 w-4 text-orange-600" />
+                            Total Horas Extra
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-green-600">{stats.checkIns}</div>
-                    </CardContent>
-                </Card>
-                <Card className="border-none shadow-sm">
-                    <CardHeader className="pb-2">
-                        <CardDescription className="flex items-center gap-2">
-                            <Clock className="h-4 w-4 text-red-600" />
-                            Check-Outs
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold text-red-600">{stats.checkOuts}</div>
+                        <div className="text-2xl font-bold text-orange-600">{stats.totalOvertimeStr}</div>
                     </CardContent>
                 </Card>
             </div>
@@ -240,7 +283,7 @@ export default function ReportsPage() {
                         <div>
                             <CardTitle>Registos de Ponto</CardTitle>
                             <CardDescription>
-                                {filteredRecords.length} {filteredRecords.length === 1 ? 'registo' : 'registos'} encontrados
+                                {filteredSummaries.length} {filteredSummaries.length === 1 ? 'relatório' : 'relatórios'} encontrados
                             </CardDescription>
                         </div>
                         <Button
@@ -298,7 +341,7 @@ export default function ReportsPage() {
                         <div className="relative w-full md:w-[300px]">
                             <Search className="absolute left-2 top-2.5 h-4 w-4 text-neutral-500" />
                             <Input
-                                placeholder="Pesquisar..."
+                                placeholder="Pesquisar funcionário..."
                                 className="pl-8"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -312,56 +355,79 @@ export default function ReportsPage() {
                         </div>
                     )}
 
-                    <div className="rounded-md border">
+                    <div className="rounded-md border overflow-hidden">
                         <Table>
                             <TableHeader>
                                 <TableRow className="bg-neutral-50 dark:bg-neutral-900 hover:bg-neutral-50">
-                                    <TableHead className="w-[180px]">Data e Hora</TableHead>
+                                    <TableHead className="w-[120px]">Data</TableHead>
                                     <TableHead>Funcionário</TableHead>
-                                    <TableHead>Tipo</TableHead>
-                                    <TableHead>Dispositivo</TableHead>
-                                    <TableHead className="text-right">Serial</TableHead>
+                                    <TableHead className="text-center">Entrada</TableHead>
+                                    <TableHead className="text-center">Saída</TableHead>
+                                    <TableHead className="text-center">Duração</TableHead>
+                                    <TableHead className="text-center">Horas Extra</TableHead>
+                                    <TableHead className="text-right">Registos</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {loading ? (
                                     <TableRow>
-                                        <TableCell colSpan={5} className="text-center py-8 text-neutral-500">
+                                        <TableCell colSpan={7} className="text-center py-8 text-neutral-500">
                                             <RefreshCw className="h-5 w-5 animate-spin mx-auto mb-2" />
-                                            A carregar registos...
+                                            A carregar relatórios agrupados...
                                         </TableCell>
                                     </TableRow>
-                                ) : filteredRecords.length === 0 ? (
+                                ) : filteredSummaries.length === 0 ? (
                                     <TableRow>
-                                        <TableCell colSpan={5} className="text-center py-8 text-neutral-500">
-                                            {searchTerm ? 'Nenhum registo encontrado' : 'Sem registos no período selecionado'}
+                                        <TableCell colSpan={7} className="text-center py-8 text-neutral-500">
+                                            {searchTerm ? 'Nenhum resultado para esta pesquisa' : 'Sem atividade no período selecionado'}
                                         </TableCell>
                                     </TableRow>
                                 ) : (
-                                    filteredRecords.map((record) => {
-                                        const checkInfo = getCheckTypeInfo(record.checktype);
-
+                                    filteredSummaries.map((summary) => {
+                                        const hasOvertime = summary.overtimeMs > 0;
                                         return (
-                                            <TableRow key={record.uuid}>
-                                                <TableCell className="font-medium text-neutral-700 dark:text-neutral-300">
-                                                    {format(parseISO(record.checktime), 'dd MMM yyyy, HH:mm', { locale: pt })}
+                                            <TableRow key={summary.id}>
+                                                <TableCell className="font-medium">
+                                                    {format(parseISO(summary.firstIn), 'dd MMM yyyy', { locale: pt })}
                                                 </TableCell>
                                                 <TableCell>
                                                     <div className="flex flex-col">
-                                                        <span className="font-medium">{record.employeeName}</span>
-                                                        <span className="text-xs text-neutral-500">ID: {record.employeeId}</span>
+                                                        <span className="font-semibold text-neutral-900 dark:text-neutral-100">{summary.employeeName}</span>
+                                                        <span className="text-xs text-neutral-500">ID: {summary.employeeId}</span>
                                                     </div>
                                                 </TableCell>
-                                                <TableCell>
-                                                    <Badge variant="outline" className={cn("font-normal", checkInfo.color)}>
-                                                        {checkInfo.label}
+                                                <TableCell className="text-center">
+                                                    <div className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700 border border-green-100">
+                                                        {format(parseISO(summary.firstIn), 'HH:mm')}
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell className="text-center">
+                                                    {summary.lastOut ? (
+                                                        <div className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-50 text-red-700 border border-red-100">
+                                                            {format(parseISO(summary.lastOut), 'HH:mm')}
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-[10px] text-neutral-400 italic">Sem saída</span>
+                                                    )}
+                                                </TableCell>
+                                                <TableCell className="text-center">
+                                                    <span className="text-sm font-medium text-neutral-600 dark:text-neutral-400">
+                                                        {summary.duration}
+                                                    </span>
+                                                </TableCell>
+                                                <TableCell className="text-center">
+                                                    {hasOvertime ? (
+                                                        <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200 font-bold">
+                                                            {summary.overtime}
+                                                        </Badge>
+                                                    ) : (
+                                                        <span className="text-neutral-300">-</span>
+                                                    )}
+                                                </TableCell>
+                                                <TableCell className="text-right">
+                                                    <Badge variant="secondary" className="font-mono text-[10px]">
+                                                        {summary.recordCount} logs
                                                     </Badge>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <span className="text-sm">{record.deviceName}</span>
-                                                </TableCell>
-                                                <TableCell className="text-right text-xs text-neutral-500 font-mono">
-                                                    {record.deviceSerial}
                                                 </TableCell>
                                             </TableRow>
                                         )
