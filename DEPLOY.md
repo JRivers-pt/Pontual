@@ -7,9 +7,32 @@ This project is built with Next.js and is optimized for deployment on [Vercel](h
 Since you have **3 clients**, the best secure practice is to deploy **3 separate instances** (one for each client). This ensures:
 1.  **Data Isolation:** Client A cannot accidentally access Client B's data.
 2.  **Custom Credentials:** Client A gets their own login; Client B gets theirs.
-3.  **Separate API Keys:** Each deployment connects to that specific client's CrossChex account.
+3.  **Separate API Keys:** Each deployment connects to that specific client's unique CrossChex account.
 
-### Step-by-Step Guide
+## 🔌 Client Onboarding Flow (How to add Equipment)
+
+This application **reads** data from the CrossChex Cloud. You do not "add equipment" to this app directly. You add it to the CrossChex system, and this app automatically sees it.
+
+### Step 1: Physical Setup (For each Client)
+1.  Create a **new** CrossChex Cloud account for the client (e.g., `client.a@gmail.com`).
+2.  Connect their W1Pro/Time Clock devices to **their** WiFi.
+3.  Add the devices to **their** CrossChex Cloud account.
+    *   *Result:* The devices are now sending data to *that specific cloud account*.
+
+### Step 2: Get API Keys
+1.  Log in to the Client's CrossChex Cloud.
+2.  Go to Settings -> Open API.
+3.  Generate a new **API Key** and **Secret**.
+    *   *Note:* Keep these safe! These are the keys that link the App to the Equipment.
+
+### Step 3: Deploy the App (Vercel)
+1.  Go to your Vercel Dashboard.
+2.  Create a new Project (or Deployment) for this client.
+3.  Use the **API Key** and **Secret** from Step 2.
+
+---
+
+## 🚀 Deployment Strategy (Step-by-Step)
 
 1.  **Create a Vercel Account** at [vercel.com](https://vercel.com).
 2.  **Import your Repository**:
