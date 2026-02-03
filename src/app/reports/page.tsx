@@ -78,7 +78,7 @@ export default function ReportsPage() {
             const beginTime = date.from.toISOString().replace('Z', '+00:00');
             const endTime = date.to.toISOString().replace('Z', '+00:00');
 
-            const response = await getAttendanceRecords(beginTime, endTime, 1, 100);
+            const response = await getAttendanceRecords(beginTime, endTime);
 
             const formattedRecords: AttendanceRecord[] = response.payload.list.map(item => ({
                 uuid: item.uuid,
@@ -103,7 +103,7 @@ export default function ReportsPage() {
         fetchRecords();
     }, [fetchRecords]);
 
-    // Agrupar registos por data e funcionário
+    // Agrupar registos por data e funcionário e calcular horas reais
     const dailySummaries = React.useMemo(() => {
         const groups: Record<string, AttendanceRecord[]> = {};
 
@@ -124,19 +124,40 @@ export default function ReportsPage() {
 
             const first = sorted[0];
             const last = sorted[sorted.length - 1];
-            const sameRecord = sorted.length === 1;
 
-            // Calcular duração total (entre o primeiro e o último do dia)
-            const start = parseISO(first.checktime);
-            const end = parseISO(last.checktime);
-            const durationMs = end.getTime() - start.getTime();
+            // Lógica de Soma de Intervalos (Entrada -> Saída)
+            // Tipos: 0 (CheckIn), 1 (CheckOut), 128 (OvertimeIn), 129 (OvertimeOut)
+            // Assumimos que CheckIn/OvertimeIn abrem turno, e CheckOut/OvertimeOut fecham.
 
-            const hours = Math.floor(durationMs / (1000 * 60 * 60));
-            const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
-            const durationStr = sameRecord ? "-" : `${hours}h ${minutes}m`;
+            let workDurationMs = 0;
+            let lastInTime: number | null = null;
 
-            // Horas Extra: tudo o que passar de 9h (32400000 ms)
-            const overtimeMs = Math.max(0, durationMs - (9 * 60 * 60 * 1000));
+            sorted.forEach(record => {
+                const time = parseISO(record.checktime).getTime();
+                const isEntry = record.checktype === 0 || record.checktype === 128; // In or OT-In
+                const isExit = record.checktype === 1 || record.checktype === 129;  // Out or OT-Out
+
+                if (isEntry) {
+                    // Se já havia uma entrada sem saída (erro de marcação), reiniciamos o intervalo ou ignoramos
+                    // Aqui vamos assumir que a nova entrada inicia um novo bloco.
+                    lastInTime = time;
+                } else if (isExit && lastInTime !== null) {
+                    // Fechou um par válido
+                    workDurationMs += (time - lastInTime);
+                    lastInTime = null;
+                }
+            });
+
+            const hours = Math.floor(workDurationMs / (1000 * 60 * 60));
+            const minutes = Math.floor((workDurationMs % (1000 * 60 * 60)) / (1000 * 60));
+            // Se duração zero (ex: só marcou entrada), mostra traço ou alerta
+            const durationStr = workDurationMs > 0 ? `${hours}h ${minutes}m` : "-";
+
+            // Horas Extra: tudo o que passar de 8h trabalhadas (não 9h no local!)
+            // Standard: 8 horas (28800000 ms)
+            const standardWorkDayMs = 8 * 60 * 60 * 1000;
+            const overtimeMs = Math.max(0, workDurationMs - standardWorkDayMs);
+
             const otHours = Math.floor(overtimeMs / (1000 * 60 * 60));
             const otMinutes = Math.floor((overtimeMs % (1000 * 60 * 60)) / (1000 * 60));
             const overtimeStr = overtimeMs > 0 ? `+${otHours}h ${otMinutes}m` : "-";
@@ -147,9 +168,9 @@ export default function ReportsPage() {
                 employeeId: first.employeeId,
                 employeeName: first.employeeName,
                 firstIn: first.checktime,
-                lastOut: sameRecord ? null : last.checktime,
+                lastOut: (sorted.length > 1 && lastInTime === null) ? last.checktime : null, // Só mostra saída se fechou o ciclo
                 duration: durationStr,
-                durationMs: durationMs,
+                durationMs: workDurationMs,
                 overtime: overtimeStr,
                 overtimeMs: overtimeMs,
                 recordCount: group.length,

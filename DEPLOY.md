@@ -1,98 +1,43 @@
-# Pontual - Instruções de Deploy para GitHub
+# Deploying Pontual
 
-## 📦 Preparar para Push
+This project is built with Next.js and is optimized for deployment on [Vercel](https://vercel.com).
 
-### 1. Inicializar Git (se ainda não estiver inicializado)
-```bash
-cd "c:\Users\Portatil HP\.gemini\antigravity\playground\cobalt-curie"
-git init
-```
+## 🚀 Deployment Strategy (Multiple Clients)
 
-### 2. Adicionar .gitignore
-Certifica-te que tens um `.gitignore` com:
-```
-node_modules/
-.next/
-.env.local
-*.log
-.DS_Store
-```
+Since you have **3 clients**, the best secure practice is to deploy **3 separate instances** (one for each client). This ensures:
+1.  **Data Isolation:** Client A cannot accidentally access Client B's data.
+2.  **Custom Credentials:** Client A gets their own login; Client B gets theirs.
+3.  **Separate API Keys:** Each deployment connects to that specific client's CrossChex account.
 
-### 3. Adicionar Remote
-```bash
-git remote add origin https://github.com/JRivers-pt/Pontual.git
-```
+### Step-by-Step Guide
 
-### 4. Commit e Push
-```bash
-# Adicionar todos os ficheiros
-git add .
+1.  **Create a Vercel Account** at [vercel.com](https://vercel.com).
+2.  **Import your Repository**:
+    - Click "Add New Project".
+    - Select your GitHub repository (`Pontual`).
 
-# Commit inicial
-git commit -m "feat: Initial commit - Pontual v1.0"
+3.  **Configure Project for Client 1**:
+    - Project Name: `pontual-client-a` (example)
+    - **Environment Variables** (Critical!):
+        - `NEXT_PUBLIC_CROSSCHEX_API_URL`: `https://api.eu.crosschexcloud.com/` (or applicable region)
+        - `CROSSCHEX_API_KEY`: [Client 1 Key]
+        - `CROSSCHEX_API_SECRET`: [Client 1 Secret]
+        - `ADMIN_EMAIL`: `client1@email.com` (Login Username)
+        - `ADMIN_PASSWORD`: [Strong Password] (Login Password)
+        - `NEXTAUTH_SECRET`: [Random String] (Generate one: `openssl rand -base64 32`)
+    - Click **Deploy**.
 
-# Push para GitHub (branch main)
-git push -u origin main
-```
+4.  **Repeat for Client 2**:
+    - Go to Dashboard -> "Add New Project" -> Import the **Same Repository** again.
+    - Project Name: `pontual-client-b`
+    - Enter **Client 2's** Environment Variables (Different API keys, different Email/Pass).
+    - Click **Deploy**.
 
-## 🔒 IMPORTANTE: Segurança
+## ✅ Verification
+Once deployed, verify each URL:
+- Visit `https://pontual-client-a.vercel.app` -> Log in with Client A's creds -> Check Data.
+- Visit `https://pontual-client-b.vercel.app` -> Log in with Client B's creds -> Check Data.
 
-**NUNCA faças commit do ficheiro `.env.local`!**
-
-As credenciais da API estão em:
-- `.env.local` ← Não fazer commit (já está no .gitignore)
-- `.env.example` ← Template sem valores reais (seguro)
-
-## 🖥️ Continuar noutro PC
-
-### No novo PC:
-```bash
-# Clonar o repositório
-git clone https://github.com/JRivers-pt/Pontual.git
-cd Pontual
-
-# Instalar dependências
-npm install
-
-# Copiar template de ambiente
-cp .env.example .env.local
-
-# Editar .env.local com as credenciais reais
-# (copiar do PC original ou gerar novas)
-
-# Executar
-npm run dev
-```
-
-## 📝 Workflow Recomendado
-
-```bash
-# Antes de começar a trabalhar
-git pull origin main
-
-# Fazer alterações...
-
-# Commit das alterações
-git add .
-git commit -m "feat: descrição das alterações"
-
-# Push
-git push origin main
-```
-
-## 🌿 Branches (Opcional)
-
-Para trabalhar com branches:
-```bash
-# Criar branch de desenvolvimento
-git checkout -b develop
-
-# Fazer alterações e commit
-git add .
-git commit -m "feat: nova funcionalidade"
-
-# Push da branch
-git push origin develop
-
-# Depois fazer merge via GitHub Pull Request
-```
+## 🛠 Troubleshooting
+- **Build Fails?** Check "Logs" in Vercel. Often it's a missing Environment Variable (validation will fail build).
+- **Login Fails?** Check `NEXTAUTH_SECRET` is set and `ADMIN_PASSWORD` allows the login.
