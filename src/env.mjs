@@ -2,8 +2,6 @@ import { z } from 'zod';
 
 const envSchema = z.object({
     NEXT_PUBLIC_CROSSCHEX_API_URL: z.string().url().default('https://api.eu.crosschexcloud.com/'),
-    CROSSCHEX_API_KEY: z.string().min(1),
-    CROSSCHEX_API_SECRET: z.string().min(1),
     NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
     ADMIN_EMAIL: z.string().min(1, "Admin email is required"),
     ADMIN_PASSWORD: z.string().min(1, "Admin password is required"),
