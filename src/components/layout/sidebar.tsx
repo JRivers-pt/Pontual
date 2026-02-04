@@ -60,7 +60,7 @@ export function Sidebar({ className }: SidebarProps) {
                         <div className="p-1 bg-blue-600 rounded-lg">
                             <Clock className="h-6 w-6 text-white" />
                         </div>
-                        <h2 className="text-xl font-bold text-white">Pontual | <span className="text-blue-400">VE</span></h2>
+                        <h2 className="text-xl font-bold text-white">Pontualidade | <span className="text-blue-400">VE</span></h2>
                     </div>
                     <div className="space-y-1">
                         {routes.map((route) => (

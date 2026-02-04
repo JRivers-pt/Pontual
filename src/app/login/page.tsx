@@ -78,7 +78,7 @@ export default function LoginPage() {
                     </div>
                     <CardTitle className="text-2xl text-center font-bold">VE Vontade e Empenho</CardTitle>
                     <CardDescription className="text-center">
-                        Aceda ao portal de assiduidade Pontual
+                        Aceda ao portal de assiduidade Pontualidade
                     </CardDescription>
                 </CardHeader>
                 <CardContent>

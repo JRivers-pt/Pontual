@@ -15,7 +15,7 @@ Ao contrário da versão anterior, agora usamos uma base de dados centralizada. 
 2.  **Base de Dados**: No separador "Storage", cria um **Vercel Postgres**. O Vercel ligará automaticamente a base de dados ao teu projeto.
 3.  **Variáveis de Ambiente**:
     - `NEXTAUTH_SECRET`: Gera uma chave aleatória (ex: `openssl rand -base64 32`)
-    - `NEXTAUTH_URL`: O URL final do teu site (ex: `https://pontual.vercel.app`)
+    - `NEXTAUTH_URL`: O URL final do teu site (ex: `https://pontualidade.pt`)
 4.  **Primeiro Acesso**:
     - Após o deploy, corre o script de seed (ou pede-me para criar uma página de registo inicial) para criares os 3 logins dos teus clientes.
 

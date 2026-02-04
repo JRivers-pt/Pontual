@@ -6,7 +6,7 @@ import { Sidebar, MobileNav } from "@/components/layout/sidebar";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Pontual | VE Vontade e Empenho",
+  title: "Pontualidade | VE Vontade e Empenho",
   description: "Sistema inteligente de gestão de assiduidade para VE Vontade e Empenho.",
 };
 
