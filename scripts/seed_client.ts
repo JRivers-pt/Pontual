@@ -28,7 +28,7 @@ async function main() {
         },
         create: {
             email,
-            name: 'Cliente 1',
+            name: 'VE Vontade e Empenho',
             password: hashedPassword,
             apiKey,
             apiSecret,

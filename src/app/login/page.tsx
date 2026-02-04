@@ -76,9 +76,9 @@ export default function LoginPage() {
                             <Lock className="h-6 w-6 text-white" />
                         </div>
                     </div>
-                    <CardTitle className="text-2xl text-center font-bold">Acesso Cliente</CardTitle>
+                    <CardTitle className="text-2xl text-center font-bold">VE Vontade e Empenho</CardTitle>
                     <CardDescription className="text-center">
-                        Introduza as suas credenciais para aceder ao portal
+                        Aceda ao portal de assiduidade Pontual
                     </CardDescription>
                 </CardHeader>
                 <CardContent>

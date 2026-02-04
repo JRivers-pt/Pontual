@@ -12,7 +12,7 @@ export default function Home() {
       <div className="flex flex-col gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-50">
-            Bem-vindo ao Pontual
+            Bem-vindo, VE Vontade e Empenho
           </h1>
           <p className="text-neutral-500 dark:text-neutral-400 mt-1">
             Sistema inteligente de gestão de assiduidade

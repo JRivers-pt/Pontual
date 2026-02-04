@@ -22,7 +22,7 @@ export function exportToPDF(data: AttendanceData[], period: string) {
     // Header
     doc.setFontSize(18);
     doc.setTextColor(40, 40, 40);
-    doc.text("Pontual - Relatório de Assiduidade", 14, 22);
+    doc.text("Pontual | VE Vontade e Empenho", 14, 22);
 
     doc.setFontSize(11);
     doc.setTextColor(100);

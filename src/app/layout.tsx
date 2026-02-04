@@ -6,8 +6,8 @@ import { Sidebar, MobileNav } from "@/components/layout/sidebar";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Pontual",
-  description: "Sistema inteligente de gestão de assiduidade e relatórios.",
+  title: "Pontual | VE Vontade e Empenho",
+  description: "Sistema inteligente de gestão de assiduidade para VE Vontade e Empenho.",
 };
 
 export default function RootLayout({
@@ -28,7 +28,7 @@ export default function RootLayout({
           <div className="flex-1 md:ml-64 transition-all duration-300 ease-in-out">
             <div className="md:hidden flex items-center p-4 border-b bg-white dark:bg-neutral-900">
               <MobileNav />
-              <span className="ml-2 font-bold text-lg">Anviz Manager</span>
+              <span className="ml-2 font-bold text-lg">Pontual | VE</span>
             </div>
             <main>
               {children}
