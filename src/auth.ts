@@ -3,8 +3,10 @@ import Credentials from "next-auth/providers/credentials"
 import { z } from "zod"
 import { prisma } from "@/lib/db"
 import bcrypt from "bcryptjs"
+import { authConfig } from "./auth.config"
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+    ...authConfig,
     providers: [
         Credentials({
             name: "Credentials",
@@ -33,7 +35,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     return {
                         id: user.id,
                         name: user.name,
-                        email: user.email // Keep email in session if available, but not required for login
+                        email: user.email
                     };
                 }
 
@@ -41,13 +43,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             },
         }),
     ],
-    pages: {
-        signIn: "/login",
-    },
+    // Remove pages and callbacks from here as they are in auth.config or spread from it
+    // We only need to override/extend specific callbacks if they need Node.js APIs (like DB)
     callbacks: {
-        authorized: async ({ auth }) => {
-            return !!auth
-        },
+        ...authConfig.callbacks,
         session: async ({ session, token }) => {
             if (token.sub && session.user) {
                 session.user.id = token.sub;
