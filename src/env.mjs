@@ -3,7 +3,7 @@ import { z } from 'zod';
 const envSchema = z.object({
     NEXT_PUBLIC_CROSSCHEX_API_URL: z.string().url().default('https://api.eu.crosschexcloud.com/'),
     NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-    ADMIN_EMAIL: z.string().min(1, "Admin email is required"),
+    ADMIN_USERNAME: z.string().min(1, "Admin username is required"),
     ADMIN_PASSWORD: z.string().min(1, "Admin password is required"),
     NEXTAUTH_SECRET: z.string().min(1, "NextAuth secret is required"),
 });
@@ -24,4 +24,4 @@ if (!env.success) {
 
 // Export a safe object, or throw if accessed when invalid?
 // We'll export the parsed data or empty object to avoid crashes on import.
-export const envVars = env.success ? env.data : process.env as any;
+export const envVars = env.success ? env.data : process.env;

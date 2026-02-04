@@ -9,20 +9,20 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         Credentials({
             name: "Credentials",
             credentials: {
-                email: { label: "Email", type: "email" },
+                username: { label: "Username", type: "text" },
                 password: { label: "Password", type: "password" },
             },
             authorize: async (credentials) => {
                 const parsedCredentials = z
-                    .object({ email: z.string().email(), password: z.string().min(1) })
+                    .object({ username: z.string().min(1), password: z.string().min(1) })
                     .safeParse(credentials);
 
                 if (!parsedCredentials.success) return null;
 
-                const { email, password } = parsedCredentials.data;
+                const { username, password } = parsedCredentials.data;
 
                 const user = await prisma.user.findUnique({
-                    where: { email }
+                    where: { username }
                 });
 
                 if (!user) return null;
@@ -33,7 +33,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     return {
                         id: user.id,
                         name: user.name,
-                        email: user.email
+                        email: user.email // Keep email in session if available, but not required for login
                     };
                 }
 

@@ -7,7 +7,8 @@ dotenv.config({ path: '.env.local' })
 const prisma = new PrismaClient()
 
 async function main() {
-    const email = process.env.ADMIN_EMAIL || 'admin@pontual.com'
+    const username = process.env.ADMIN_USERNAME || 'admin'
+    const email = process.env.ADMIN_EMAIL || 'admin@pontualidade.pt'
     const password = process.env.ADMIN_PASSWORD || 'admin123'
     const apiKey = process.env.CROSSCHEX_API_KEY
     const apiSecret = process.env.CROSSCHEX_API_SECRET
@@ -20,13 +21,15 @@ async function main() {
     const hashedPassword = await bcrypt.hash(password, 10)
 
     const user = await prisma.user.upsert({
-        where: { email },
+        where: { username },
         update: {
             password: hashedPassword,
             apiKey,
             apiSecret,
+            email // Update email if changed
         },
         create: {
+            username,
             email,
             name: 'VE Vontade e Empenho',
             password: hashedPassword,
@@ -35,7 +38,7 @@ async function main() {
         },
     })
 
-    console.log(`✅ Utilizador criado/atualizado: ${user.email}`)
+    console.log(`✅ Utilizador criado/atualizado: ${user.username}`)
 }
 
 main()
