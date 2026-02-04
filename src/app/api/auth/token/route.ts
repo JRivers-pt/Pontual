@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-const API_URL = process.env.NEXT_PUBLIC_CROSSCHEX_API_URL || 'https://api.eu.crosschexcloud.com/';
-const API_KEY = process.env.CROSSCHEX_API_KEY;
-const API_SECRET = process.env.CROSSCHEX_API_SECRET;
+import { auth } from '@/auth';
+import { prisma } from '@/lib/db';
 
 function generateTimestamp(): string {
     return new Date().toISOString().replace('Z', '+00:00');
@@ -14,6 +12,20 @@ function generateRequestId(): string {
 
 export async function POST(request: NextRequest) {
     try {
+        const session = await auth();
+
+        if (!session?.user?.email) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const user = await prisma.user.findUnique({
+            where: { email: session.user.email }
+        });
+
+        if (!user || !user.apiKey || !user.apiSecret) {
+            return NextResponse.json({ error: 'CrossChex credentials not configured' }, { status: 400 });
+        }
+
         const requestBody = {
             header: {
                 nameSpace: 'authorize.token',
@@ -23,12 +35,12 @@ export async function POST(request: NextRequest) {
                 timestamp: generateTimestamp()
             },
             payload: {
-                api_key: API_KEY,
-                api_secret: API_SECRET
+                api_key: user.apiKey,
+                api_secret: user.apiSecret
             }
         };
 
-        const response = await fetch(API_URL, {
+        const response = await fetch(user.apiUrl || 'https://api.eu.crosschexcloud.com/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

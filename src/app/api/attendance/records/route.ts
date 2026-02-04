@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-const API_URL = process.env.NEXT_PUBLIC_CROSSCHEX_API_URL || 'https://api.eu.crosschexcloud.com/';
+import { auth } from '@/auth';
+import { prisma } from '@/lib/db';
 
 function generateTimestamp(): string {
     return new Date().toISOString().replace('Z', '+00:00');
@@ -12,6 +12,20 @@ function generateRequestId(): string {
 
 export async function POST(request: NextRequest) {
     try {
+        const session = await auth();
+
+        if (!session?.user?.email) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const user = await prisma.user.findUnique({
+            where: { email: session.user.email }
+        });
+
+        if (!user) {
+            return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        }
+
         const body = await request.json();
         const { token, beginTime, endTime, page = 1, perPage = 100 } = body;
 
@@ -43,7 +57,7 @@ export async function POST(request: NextRequest) {
             }
         };
 
-        const response = await fetch(API_URL, {
+        const response = await fetch(user.apiUrl || 'https://api.eu.crosschexcloud.com/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

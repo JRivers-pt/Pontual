@@ -1,10 +1,8 @@
 import NextAuth from "next-auth"
 import Credentials from "next-auth/providers/credentials"
 import { z } from "zod"
-
-// We import envVars carefully or access process.env directly inside the function 
-// to avoid build-time issues if vars are missing during 'next build'
-// But ideally we use clean env.
+import { prisma } from "@/lib/db"
+import bcrypt from "bcryptjs"
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
     providers: [
@@ -15,24 +13,30 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 password: { label: "Password", type: "password" },
             },
             authorize: async (credentials) => {
-                // Access process.env directly here to ensure we get runtime values
-                const adminEmail = process.env.ADMIN_EMAIL;
-                const adminPassword = process.env.ADMIN_PASSWORD;
-
-                if (!adminEmail || !adminPassword) {
-                    return null;
-                }
-
                 const parsedCredentials = z
                     .object({ email: z.string().email(), password: z.string().min(1) })
                     .safeParse(credentials);
 
-                if (parsedCredentials.success) {
-                    if (parsedCredentials.data.email === adminEmail &&
-                        parsedCredentials.data.password === adminPassword) {
-                        return { id: "1", name: "Admin", email: adminEmail };
-                    }
+                if (!parsedCredentials.success) return null;
+
+                const { email, password } = parsedCredentials.data;
+
+                const user = await prisma.user.findUnique({
+                    where: { email }
+                });
+
+                if (!user) return null;
+
+                const passwordMatch = await bcrypt.compare(password, user.password);
+
+                if (passwordMatch) {
+                    return {
+                        id: user.id,
+                        name: user.name,
+                        email: user.email
+                    };
                 }
+
                 return null;
             },
         }),
@@ -42,8 +46,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
     callbacks: {
         authorized: async ({ auth }) => {
-            // Logged in users are authenticated, otherwise redirect to login
             return !!auth
         },
+        session: async ({ session, token }) => {
+            if (token.sub && session.user) {
+                session.user.id = token.sub;
+            }
+            return session;
+        }
     },
 })
