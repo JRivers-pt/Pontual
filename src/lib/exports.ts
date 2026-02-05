@@ -5,7 +5,7 @@ import * as XLSX from 'xlsx';
 // Tipos baseados nos dados da UI
 interface AttendanceData {
     data: string;
-    funcionario: string;
+    funcionario?: string;
     entrada?: string;
     saida?: string;
     duracao?: string;
@@ -13,8 +13,11 @@ interface AttendanceData {
     id?: string;
     tipo?: string;
     dispositivo?: string;
+    dia?: string;
+    estado?: string;
     [key: string]: any; // Permitir campos adicionais
 }
+
 
 export function exportToPDF(data: AttendanceData[], period: string) {
     const doc = new jsPDF();

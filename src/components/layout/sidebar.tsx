@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
     LayoutDashboard,
     FileText,
+    ClipboardList,
     Users,
     Settings,
     Menu,
@@ -25,7 +26,7 @@ export function Sidebar({ className }: SidebarProps) {
 
     const routes = [
         {
-            label: "Visão Geral",
+            label: "Dashboard",
             icon: LayoutDashboard,
             href: "/",
             active: pathname === "/",
@@ -37,7 +38,13 @@ export function Sidebar({ className }: SidebarProps) {
             active: pathname === "/reports",
         },
         {
-            label: "Funcionários",
+            label: "Folha de Ponto",
+            icon: ClipboardList,
+            href: "/timesheet",
+            active: pathname === "/timesheet",
+        },
+        {
+            label: "Colaboradores",
             icon: Users,
             href: "/employees",
             active: pathname === "/employees",
@@ -51,6 +58,7 @@ export function Sidebar({ className }: SidebarProps) {
             disabled: true // Future
         },
     ]
+
 
     return (
         <div className={cn("pb-12 bg-neutral-900 text-white min-h-screen border-r border-neutral-800", className)}>
