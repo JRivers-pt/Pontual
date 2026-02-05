@@ -41,6 +41,7 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { exportToPDF, exportToExcel } from "@/lib/exports"
 import { getAttendanceRecords } from "@/lib/api"
+import { calculateOvertime, getScheduleInfo } from "@/lib/schedules"
 
 type AttendanceRecord = {
     uuid: string
@@ -195,8 +196,11 @@ export default function ReportsPage() {
             const minutes = Math.floor((workDurationMs % (1000 * 60 * 60)) / (1000 * 60));
             const durationStr = workDurationMs > 0 ? `${hours}h ${minutes}m` : "-";
 
-            const standardWorkDayMs = 8 * 60 * 60 * 1000;
-            const overtimeMs = Math.max(0, workDurationMs - standardWorkDayMs);
+            // Calcular horas extra baseado no horário específico do colaborador
+            const firstCheckDate = parseISO(first.checktime);
+            const lastCheckDate = (sorted.length > 1 && lastInTime === null) ? parseISO(last.checktime) : null;
+            const overtimeMinutes = calculateOvertime(first.employeeId, firstCheckDate, lastCheckDate);
+            const overtimeMs = overtimeMinutes * 60 * 1000;
 
             const otHours = Math.floor(overtimeMs / (1000 * 60 * 60));
             const otMinutes = Math.floor((overtimeMs % (1000 * 60 * 60)) / (1000 * 60));

@@ -29,6 +29,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { getAttendanceRecords } from "@/lib/api"
+import { isLate as checkIsLate, getScheduleInfo } from "@/lib/schedules"
 
 type AttendanceRecord = {
   uuid: string
@@ -45,6 +46,8 @@ type EmployeeStatus = {
   firstCheck?: string
   lastCheck?: string
   totalMinutes: number
+  scheduleName: string
+  scheduleStart: string
 }
 
 export default function DashboardPage() {
@@ -107,7 +110,6 @@ export default function DashboardPage() {
       }
     })
 
-    const WORK_START_HOUR = 9 // 9:00 AM
     const statuses: EmployeeStatus[] = []
 
     empMap.forEach((data, id) => {
@@ -119,8 +121,9 @@ export default function DashboardPage() {
       const lastCheck = sortedChecks[sortedChecks.length - 1]
 
       const firstCheckDate = parseISO(firstCheck.time)
-      const isLate = firstCheckDate.getHours() > WORK_START_HOUR ||
-        (firstCheckDate.getHours() === WORK_START_HOUR && firstCheckDate.getMinutes() > 15)
+      // Usar horário específico do colaborador
+      const isLate = checkIsLate(id, firstCheckDate)
+      const scheduleInfo = getScheduleInfo(id)
 
       // Determine if still present (last check was entry type)
       const lastWasEntry = lastCheck.type === 0 || lastCheck.type === 128
@@ -160,7 +163,9 @@ export default function DashboardPage() {
         status,
         firstCheck: firstCheck.time,
         lastCheck: lastCheck.time,
-        totalMinutes: Math.round(totalMinutes)
+        totalMinutes: Math.round(totalMinutes),
+        scheduleName: scheduleInfo.scheduleName,
+        scheduleStart: scheduleInfo.startTimeStr
       })
     })
 
