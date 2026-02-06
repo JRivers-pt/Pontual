@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { signOut } from "next-auth/react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -112,7 +113,13 @@ export function Sidebar({ className }: SidebarProps) {
                         <span className="font-semibold">Admin</span>
                         <span className="text-xs text-neutral-400 truncate w-32">admin@exemplo.com</span>
                     </div>
-                    <Button variant="ghost" size="icon" className="ml-auto text-neutral-400 hover:text-white">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="ml-auto text-neutral-400 hover:text-white hover:bg-red-500/20"
+                        onClick={() => signOut({ callbackUrl: '/login' })}
+                        title="Terminar Sessão"
+                    >
                         <LogOut className="h-4 w-4" />
                     </Button>
                 </div>

@@ -8,5 +8,6 @@ const { auth } = NextAuth(authConfig)
 export default auth
 
 export const config = {
-    matcher: ["/", "/reports/:path*"]
+    // Protect all main routes, exclude login/api/static
+    matcher: ["/", "/reports/:path*", "/timesheet/:path*", "/employees/:path*", "/settings/:path*"]
 }
