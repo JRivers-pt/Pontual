@@ -44,6 +44,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { exportToPDF } from "@/lib/exports"
 import { getAttendanceRecords } from "@/lib/api"
+import { isLate as checkIsLate, calculateOvertime, getScheduleInfo, calculateRegularHours } from "@/lib/schedules"
 
 type AttendanceRecord = {
     uuid: string
@@ -68,10 +69,6 @@ type Employee = {
     id: string
     name: string
 }
-
-const WORK_START_HOUR = 9
-const WORK_START_MINUTES = 15
-const STANDARD_WORK_MINUTES = 8 * 60 // 8 hours
 
 export default function TimesheetPage() {
     const [currentMonth, setCurrentMonth] = React.useState<Date>(new Date())
@@ -197,11 +194,14 @@ export default function TimesheetPage() {
             })
 
             workedMinutes = Math.round(workedMinutes)
-            const overtimeMinutes = Math.max(0, workedMinutes - STANDARD_WORK_MINUTES)
 
-            // Determine if late
-            const isLate = firstCheckDate.getHours() > WORK_START_HOUR ||
-                (firstCheckDate.getHours() === WORK_START_HOUR && firstCheckDate.getMinutes() > WORK_START_MINUTES)
+            // Usar schedules.ts para cálculos específicos do colaborador
+            const employeeId = dayRecords[0]?.employeeId || ''
+            const lastCheckDate = sorted.length > 1 && lastInTime === null ? parseISO(lastCheck.checktime) : null
+            const overtimeMinutes = calculateOvertime(employeeId, firstCheckDate, lastCheckDate)
+
+            // Verificar atraso usando horário específico do colaborador
+            const isLate = checkIsLate(employeeId, firstCheckDate)
 
             return {
                 date: day,
