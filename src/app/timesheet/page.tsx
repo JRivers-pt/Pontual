@@ -44,7 +44,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { exportToPDF } from "@/lib/exports"
 import { getAttendanceRecords } from "@/lib/api"
-import { isLate as checkIsLate, calculateOvertime, getScheduleInfo, calculateRegularHours } from "@/lib/schedules"
+import { isLate as checkIsLate, calculateOvertime, getScheduleInfo } from "@/lib/schedules"
 
 type AttendanceRecord = {
     uuid: string

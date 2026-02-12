@@ -1,5 +1,6 @@
-// Configuração de Horários - Hardcoded para VE Vontade e Empenho
-// Atualizar este ficheiro quando houver mudanças nos horários
+// Configuração de Horários - Sincronizado com Anviz W1 Pro
+// Última atualização: 12/02/2026
+// IMPORTANTE: Manter sincronizado com configuração do dispositivo
 
 export interface Schedule {
     id: string;
@@ -8,10 +9,16 @@ export interface Schedule {
     endTime: { hour: number; minute: number };    // Hora de saída normal
     lateToleranceMinutes: number;                 // Tolerância para marcar atraso
     earlyOutToleranceMinutes: number;             // Tolerância para saída antecipada
-    // Horas extra contam se entrar antes de startTime ou sair depois de endTime
+    overtimeThresholdMinutes: number;             // Mínimo de minutos para contar HE
+    autoBreakDeduction: {                         // Break automático descontado
+        enabled: boolean;
+        startWindow: { hour: number; minute: number };
+        endWindow: { hour: number; minute: number };
+        durationMinutes: number;
+    };
 }
 
-// Definição dos horários
+// Definição dos horários (sincronizado com Anviz W1 Pro)
 export const SCHEDULES: Record<string, Schedule> = {
     'VE': {
         id: 'VE',
@@ -20,14 +27,28 @@ export const SCHEDULES: Record<string, Schedule> = {
         endTime: { hour: 17, minute: 30 },
         lateToleranceMinutes: 20,
         earlyOutToleranceMinutes: 20,
+        overtimeThresholdMinutes: 10,  // Só conta HE se >10min
+        autoBreakDeduction: {
+            enabled: true,
+            startWindow: { hour: 12, minute: 0 },
+            endWindow: { hour: 15, minute: 0 },
+            durationMinutes: 60  // 1 hora de break descontada
+        }
     },
     'VE2': {
         id: 'VE2',
         name: 'Horário VE 2',
         startTime: { hour: 9, minute: 0 },
         endTime: { hour: 18, minute: 0 },
-        lateToleranceMinutes: 60,
-        earlyOutToleranceMinutes: 60,
+        lateToleranceMinutes: 20,  // CORRIGIDO: era 60, Anviz tem 20
+        earlyOutToleranceMinutes: 20,  // CORRIGIDO: era 60, Anviz tem 20
+        overtimeThresholdMinutes: 10,  // Só conta HE se >10min
+        autoBreakDeduction: {
+            enabled: true,
+            startWindow: { hour: 12, minute: 0 },
+            endWindow: { hour: 15, minute: 0 },
+            durationMinutes: 60  // 1 hora de break descontada
+        }
     }
 };
 
@@ -75,6 +96,7 @@ export function isLate(workno: string, checkInTime: Date): boolean {
 /**
  * Calcula horas extra de um dia
  * HE = tempo antes da entrada normal + tempo depois da saída normal
+ * IMPORTANTE: Só conta se >= overtimeThresholdMinutes (10 min no Anviz)
  */
 export function calculateOvertime(
     workno: string,
@@ -82,7 +104,7 @@ export function calculateOvertime(
     lastCheckOut: Date | null
 ): number {
     const schedule = getEmployeeSchedule(workno);
-    const { startTime, endTime } = schedule;
+    const { startTime, endTime, overtimeThresholdMinutes } = schedule;
 
     let overtimeMinutes = 0;
 
@@ -91,7 +113,11 @@ export function calculateOvertime(
     const actualStartMinutes = firstCheckIn.getHours() * 60 + firstCheckIn.getMinutes();
 
     if (actualStartMinutes < scheduledStartMinutes) {
-        overtimeMinutes += (scheduledStartMinutes - actualStartMinutes);
+        const earlyMinutes = scheduledStartMinutes - actualStartMinutes;
+        // Só conta se >= threshold
+        if (earlyMinutes >= overtimeThresholdMinutes) {
+            overtimeMinutes += earlyMinutes;
+        }
     }
 
     // Horas extra por saída tardia (depois do horário normal)
@@ -100,7 +126,11 @@ export function calculateOvertime(
         const actualEndMinutes = lastCheckOut.getHours() * 60 + lastCheckOut.getMinutes();
 
         if (actualEndMinutes > scheduledEndMinutes) {
-            overtimeMinutes += (actualEndMinutes - scheduledEndMinutes);
+            const lateMinutes = actualEndMinutes - scheduledEndMinutes;
+            // Só conta se >= threshold
+            if (lateMinutes >= overtimeThresholdMinutes) {
+                overtimeMinutes += lateMinutes;
+            }
         }
     }
 
@@ -108,16 +138,24 @@ export function calculateOvertime(
 }
 
 /**
- * Calcula horas normais trabalhadas (sem horas extra)
+ * Calcula horas normais trabalhadas (sem horas extra, COM desconto de break)
+ * IMPORTANTE: Anviz desconta automaticamente 1h de break se trabalhar entre 12:00-15:00
  */
-export function calculateRegularHours(workno: string): number {
+export function calculateRegularHours(workno: string, workedMinutes: number): number {
     const schedule = getEmployeeSchedule(workno);
-    const { startTime, endTime } = schedule;
+    const { startTime, endTime, autoBreakDeduction } = schedule;
 
     const startMinutes = startTime.hour * 60 + startTime.minute;
     const endMinutes = endTime.hour * 60 + endTime.minute;
+    const scheduledMinutes = endMinutes - startMinutes;
 
-    return endMinutes - startMinutes; // Retorna minutos do dia normal de trabalho
+    // Se break automático está ativo e colaborador trabalhou tempo suficiente
+    if (autoBreakDeduction.enabled && workedMinutes >= autoBreakDeduction.durationMinutes) {
+        // Descontar break
+        return Math.max(0, workedMinutes - autoBreakDeduction.durationMinutes);
+    }
+
+    return workedMinutes;
 }
 
 /**
@@ -128,16 +166,33 @@ export function getScheduleInfo(workno: string): {
     startTimeStr: string;
     endTimeStr: string;
     regularHours: string;
+    breakInfo: string;
 } {
     const schedule = getEmployeeSchedule(workno);
-    const regularMinutes = calculateRegularHours(workno);
-    const regularHours = Math.floor(regularMinutes / 60);
-    const regularMins = regularMinutes % 60;
+    const { startTime, endTime, autoBreakDeduction } = schedule;
+
+    const startMinutes = startTime.hour * 60 + startTime.minute;
+    const endMinutes = endTime.hour * 60 + endTime.minute;
+    const totalMinutes = endMinutes - startMinutes;
+
+    // Descontar break se ativo
+    const workMinutes = autoBreakDeduction.enabled
+        ? totalMinutes - autoBreakDeduction.durationMinutes
+        : totalMinutes;
+
+    const regularHours = Math.floor(workMinutes / 60);
+    const regularMins = workMinutes % 60;
+
+    const breakHours = Math.floor(autoBreakDeduction.durationMinutes / 60);
+    const breakMins = autoBreakDeduction.durationMinutes % 60;
 
     return {
         scheduleName: schedule.name,
-        startTimeStr: `${schedule.startTime.hour.toString().padStart(2, '0')}:${schedule.startTime.minute.toString().padStart(2, '0')}`,
-        endTimeStr: `${schedule.endTime.hour.toString().padStart(2, '0')}:${schedule.endTime.minute.toString().padStart(2, '0')}`,
-        regularHours: `${regularHours}h${regularMins > 0 ? ` ${regularMins}m` : ''}`
+        startTimeStr: `${startTime.hour.toString().padStart(2, '0')}:${startTime.minute.toString().padStart(2, '0')}`,
+        endTimeStr: `${endTime.hour.toString().padStart(2, '0')}:${endTime.minute.toString().padStart(2, '0')}`,
+        regularHours: `${regularHours}h${regularMins > 0 ? ` ${regularMins}m` : ''}`,
+        breakInfo: autoBreakDeduction.enabled
+            ? `${breakHours}h${breakMins > 0 ? ` ${breakMins}m` : ''} (12:00-15:00)`
+            : 'Sem break automático'
     };
 }
