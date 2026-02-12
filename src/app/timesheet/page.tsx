@@ -182,8 +182,10 @@ export default function TimesheetPage() {
 
             sorted.forEach(record => {
                 const time = parseISO(record.checktime).getTime()
-                const isEntry = record.checktype === 0 || record.checktype === 128
-                const isExit = record.checktype === 1 || record.checktype === 129
+                // Entry types: Check-In (0), Overtime In (128), Break End (3)
+                const isEntry = record.checktype === 0 || record.checktype === 128 || record.checktype === 3
+                // Exit types: Check-Out (1), Overtime Out (129), Break Start (2)
+                const isExit = record.checktype === 1 || record.checktype === 129 || record.checktype === 2
 
                 if (isEntry) {
                     lastInTime = time

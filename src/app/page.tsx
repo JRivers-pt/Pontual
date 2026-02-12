@@ -134,8 +134,10 @@ export default function DashboardPage() {
 
       sortedChecks.forEach(check => {
         const time = parseISO(check.time).getTime()
-        const isEntry = check.type === 0 || check.type === 128
-        const isExit = check.type === 1 || check.type === 129
+        // Entry types: Check-In (0), Overtime In (128), Break End (3)
+        const isEntry = check.type === 0 || check.type === 128 || check.type === 3
+        // Exit types: Check-Out (1), Overtime Out (129), Break Start (2)
+        const isExit = check.type === 1 || check.type === 129 || check.type === 2
 
         if (isEntry) {
           lastInTime = time
