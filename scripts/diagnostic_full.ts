@@ -68,7 +68,7 @@ async function runDiagnostic() {
         ])
 
         const records = recordsResponse.payload.list
-        const employees = employeesResponse.payload.list
+        const employees = employeesResponse
 
         console.log(`✅ Total de registos: ${records.length}`)
         console.log(`✅ Total de colaboradores: ${employees.length}`)
