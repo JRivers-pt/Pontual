@@ -50,7 +50,7 @@ async function checkBreakRecords() {
                 time: record.checktime,
                 type: record.checktype,
                 typeName: CHECK_TYPES[record.checktype] || `Tipo ${record.checktype}`,
-                device: record.device.alias
+                device: record.device.name
             })
         })
 
