@@ -94,7 +94,7 @@ async function runDiagnostic() {
             employeeMap.get(workno)!.checks.push({
                 time: record.checktime,
                 type: record.checktype,
-                device: record.device.alias
+                device: record.device.name
             })
         })
 
