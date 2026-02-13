@@ -29,10 +29,10 @@ export const SCHEDULES: Record<string, Schedule> = {
         earlyOutToleranceMinutes: 20,
         overtimeThresholdMinutes: 10,  // Só conta HE se >10min
         autoBreakDeduction: {
-            enabled: true,
+            enabled: false,
             startWindow: { hour: 12, minute: 0 },
             endWindow: { hour: 15, minute: 0 },
-            durationMinutes: 60  // 1 hora de break descontada
+            durationMinutes: 60  // 1 hora de break (agora manual)
         }
     },
     'VE2': {
@@ -44,10 +44,10 @@ export const SCHEDULES: Record<string, Schedule> = {
         earlyOutToleranceMinutes: 20,  // CORRIGIDO: era 60, Anviz tem 20
         overtimeThresholdMinutes: 10,  // Só conta HE se >10min
         autoBreakDeduction: {
-            enabled: true,
+            enabled: false,
             startWindow: { hour: 12, minute: 0 },
             endWindow: { hour: 15, minute: 0 },
-            durationMinutes: 60  // 1 hora de break descontada
+            durationMinutes: 60  // 1 hora de break (agora manual)
         }
     }
 };

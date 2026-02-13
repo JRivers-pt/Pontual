@@ -11,10 +11,11 @@
 - ❌ **Antes:** 60 minutos de tolerância
 - ✅ **Agora:** 20 minutos (igual ao Anviz)
 
-### 2. **Break Automático Implementado**
-- ✅ **Configuração:** 1 hora de break (12:00-15:00)
-- ✅ **Comportamento:** Anviz desconta automaticamente
-- ✅ **Plataforma:** Calcula tempo trabalhado entre Entry/Exit (break já descontado nos registos)
+### 2. **Break Manual (Alterado)**
+- ❌ **Antes:** Break automático de 1h
+- ✅ **Agora:** Break manual (picagem de saída/entrada)
+- ✅ **Comportamento:** Anviz regista Break Start/End
+- ✅ **Plataforma:** Calcula tempo trabalhado EXATAMENTE conforme as picagens (sem descontos automáticos)
 
 ### 3. **Threshold de Horas Extra**
 - ✅ **Mínimo:** 10 minutos
@@ -32,7 +33,7 @@
 | Tolerância atraso | 20 min |
 | Tolerância saída antecipada | 20 min |
 | HE threshold | 10 min |
-| Break automático | 1h (12:00-15:00) |
+| Break | Manual (Picagem obrigatória) |
 
 ### Horário VE 2 (Isabel Vaz - ID 3)
 | Parâmetro | Valor |
@@ -42,7 +43,7 @@
 | Tolerância atraso | 20 min ✅ **CORRIGIDO** |
 | Tolerância saída antecipada | 20 min ✅ **CORRIGIDO** |
 | HE threshold | 10 min |
-| Break automático | 1h (12:00-15:00) |
+| Break | Manual (Picagem obrigatória) |
 
 ---
 
@@ -75,10 +76,11 @@ Atraso = Entrada > (Horário + Tolerância)
 
 ## ⚠️ Notas Importantes
 
-1. **Break é automático** - Anviz desconta 1h se trabalhar entre 12:00-15:00
-2. **Plataforma não precisa descontar** - Break já vem descontado nos registos da API
-3. **Cristiana 8:13→13:12** - Se não fez Break End, sistema conta 5h corretamente
-4. **HE < 10min não conta** - Alinhado com Anviz
+1. **Break é MANUAL** - Colaborador TEM de picar saída para almoço e retorno
+2. **Plataforma NÃO desconta** - O tempo de trabalho é calculado apenas enquanto o colaborador está "dentro"
+3. **Esquecimento** - Se esquecer de picar saída/entrada de almoço, o sistema contará como tempo de trabalho (necessário correção manual)
+4. **Cristiana 8:13→13:12** - Se picou Break Start às 13:12, o tempo conta até aí. Se saiu para o dia, conta até aí.
+5. **HE < 10min não conta** - Alinhado com Anviz
 
 ---
 
