@@ -111,7 +111,6 @@ export function Sidebar({ className }: SidebarProps) {
                     </Avatar>
                     <div className="flex flex-col text-sm">
                         <span className="font-semibold">Admin</span>
-                        <span className="text-xs text-neutral-400 truncate w-32">admin@exemplo.com</span>
                     </div>
                     <Button
                         variant="ghost"
