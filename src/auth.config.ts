@@ -1,6 +1,15 @@
 import type { NextAuthConfig } from "next-auth"
 
 export const authConfig = {
+    // Secret is required for NextAuth v5
+    secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
+    // Use JWT sessions for better performance (no database lookup on every request)
+    session: {
+        strategy: "jwt",
+        maxAge: 30 * 24 * 60 * 60, // 30 days
+    },
+    // Trust host for Vercel deployment
+    trustHost: true,
     pages: {
         signIn: "/login",
     },

@@ -17,7 +17,9 @@ async function main() {
 
     console.log('🔄 A criar utilizador VE na base de dados Neon...')
 
-    const hashedPassword = await bcrypt.hash(password, 10)
+    // Use 8 rounds for faster login performance (~75% faster than 10 rounds)
+    // Still very secure: 2^8 = 256 iterations
+    const hashedPassword = await bcrypt.hash(password, 8)
 
     const user = await prisma.user.upsert({
         where: { username },

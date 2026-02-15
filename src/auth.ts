@@ -7,6 +7,7 @@ import { authConfig } from "./auth.config"
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
     ...authConfig,
+    secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
     providers: [
         Credentials({
             name: "Credentials",
@@ -47,7 +48,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     // We only need to override/extend specific callbacks if they need Node.js APIs (like DB)
     callbacks: {
         ...authConfig.callbacks,
+        jwt: async ({ token, user }) => {
+            // Store user ID in token on sign in
+            if (user) {
+                token.sub = user.id;
+            }
+            return token;
+        },
         session: async ({ session, token }) => {
+            // Add user ID to session from token
             if (token.sub && session.user) {
                 session.user.id = token.sub;
             }

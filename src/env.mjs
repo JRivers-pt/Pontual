@@ -5,7 +5,9 @@ const envSchema = z.object({
     NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
     ADMIN_USERNAME: z.string().min(1, "Admin username is required"),
     ADMIN_PASSWORD: z.string().min(1, "Admin password is required"),
-    NEXTAUTH_SECRET: z.string().min(1, "NextAuth secret is required"),
+    AUTH_SECRET: z.string().min(1, "Auth secret is required for NextAuth v5"),
+    NEXTAUTH_SECRET: z.string().min(1, "NextAuth secret is required").optional(), // Backward compatibility
+    NEXTAUTH_URL: z.string().url().optional(), // Optional in dev, but recommended for production
 });
 
 // Use process.env directly. In Next.js, this is populated at build/runtime.
