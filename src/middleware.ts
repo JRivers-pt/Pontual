@@ -8,6 +8,7 @@ const { auth } = NextAuth(authConfig)
 export default auth
 
 export const config = {
-    // Protect all main routes, exclude login/api/static
-    matcher: ["/", "/reports/:path*", "/timesheet/:path*", "/employees/:path*", "/settings/:path*"]
+    // Protect routes but exclude static files, images, API routes, and Next.js internals
+    // This prevents middleware from running on every asset load
+    matcher: ["/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"]
 }
