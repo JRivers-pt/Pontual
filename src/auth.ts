@@ -24,9 +24,29 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
                 const { username, password } = parsedCredentials.data;
 
-                const user = await prisma.user.findUnique({
+                let user = await prisma.user.findUnique({
                     where: { username }
                 });
+
+                // Auto-create admin user on first-ever login (empty database)
+                if (!user) {
+                    const adminUser = process.env.ADMIN_USERNAME;
+                    const adminPass = process.env.ADMIN_PASSWORD;
+                    if (adminUser && adminPass && username === adminUser && password === adminPass) {
+                        const userCount = await prisma.user.count();
+                        if (userCount === 0) {
+                            const hashedPassword = await bcrypt.hash(adminPass, 8);
+                            user = await prisma.user.create({
+                                data: {
+                                    username: adminUser,
+                                    password: hashedPassword,
+                                    name: "Admin",
+                                    role: "ADMIN",
+                                }
+                            });
+                        }
+                    }
+                }
 
                 if (!user) return null;
 
