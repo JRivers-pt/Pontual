@@ -41,7 +41,7 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { exportToPDF, exportToExcel } from "@/lib/exports"
 import { getAttendanceRecords } from "@/lib/api"
-import { calculateOvertime, getScheduleInfo } from "@/lib/schedules"
+import { calculateSmartWorkHours, getScheduleInfo } from "@/lib/schedules"
 
 type AttendanceRecord = {
     uuid: string
@@ -176,37 +176,25 @@ export default function ReportsPage() {
             const first = sorted[0];
             const last = sorted[sorted.length - 1];
 
-            let workDurationMs = 0;
-            let lastInTime: number | null = null;
+            const { totalWorkMs, overtimeHours } = calculateSmartWorkHours(
+                sorted.map(r => ({ time: r.checktime, type: r.checktype }))
+            );
 
-            sorted.forEach(record => {
-                const time = parseISO(record.checktime).getTime();
-                // Entry types: Check-In (0), Overtime In (128), Break End (3)
-                const isEntry = record.checktype === 0 || record.checktype === 128 || record.checktype === 3;
-                // Exit types: Check-Out (1), Overtime Out (129), Break Start (2)
-                const isExit = record.checktype === 1 || record.checktype === 129 || record.checktype === 2;
+            const hours = Math.floor(totalWorkMs / (1000 * 60 * 60));
+            const minutes = Math.floor((totalWorkMs % (1000 * 60 * 60)) / (1000 * 60));
+            const durationStr = totalWorkMs > 0 ? `${hours}h ${minutes}m` : "-";
 
-                if (isEntry) {
-                    lastInTime = time;
-                } else if (isExit && lastInTime !== null) {
-                    workDurationMs += (time - lastInTime);
-                    lastInTime = null;
-                }
-            });
-
-            const hours = Math.floor(workDurationMs / (1000 * 60 * 60));
-            const minutes = Math.floor((workDurationMs % (1000 * 60 * 60)) / (1000 * 60));
-            const durationStr = workDurationMs > 0 ? `${hours}h ${minutes}m` : "-";
-
-            // Calcular horas extra baseado no horário específico do colaborador
-            const firstCheckDate = parseISO(first.checktime);
-            const lastCheckDate = (sorted.length > 1 && lastInTime === null) ? parseISO(last.checktime) : null;
-            const overtimeMinutes = calculateOvertime(first.employeeId, firstCheckDate, lastCheckDate);
-            const overtimeMs = overtimeMinutes * 60 * 1000;
-
+            const overtimeMs = overtimeHours * 60 * 60 * 1000;
             const otHours = Math.floor(overtimeMs / (1000 * 60 * 60));
             const otMinutes = Math.floor((overtimeMs % (1000 * 60 * 60)) / (1000 * 60));
             const overtimeStr = overtimeMs > 0 ? `+${otHours}h ${otMinutes}m` : "-";
+
+            const lastRecord = sorted[sorted.length - 1];
+            // Entry types: 0, 128, 3. Exit types: 1, 129, 2.
+            const isLastEntry = lastRecord.checktype === 0 || lastRecord.checktype === 128 || lastRecord.checktype === 3;
+            // If last is entry, we are currently IN (lastOut should be null)
+            // If last is exit, we are OUT (lastOut is last.checktime)
+            const lastOutTime = !isLastEntry ? last.checktime : null;
 
             return {
                 id: `${first.employeeId}_${first.checktime}`,
@@ -214,9 +202,9 @@ export default function ReportsPage() {
                 employeeId: first.employeeId,
                 employeeName: first.employeeName,
                 firstIn: first.checktime,
-                lastOut: (sorted.length > 1 && lastInTime === null) ? last.checktime : null,
+                lastOut: lastOutTime,
                 duration: durationStr,
-                durationMs: workDurationMs,
+                durationMs: totalWorkMs,
                 overtime: overtimeStr,
                 overtimeMs: overtimeMs,
                 recordCount: group.length,

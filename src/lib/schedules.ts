@@ -1,3 +1,6 @@
+
+import { startOfDay, differenceInMinutes, parseISO } from "date-fns";
+
 // Configuração de Horários - Sincronizado com Anviz W1 Pro
 // Última atualização: 12/02/2026
 // IMPORTANTE: Manter sincronizado com configuração do dispositivo
@@ -29,10 +32,10 @@ export const SCHEDULES: Record<string, Schedule> = {
         earlyOutToleranceMinutes: 20,
         overtimeThresholdMinutes: 10,  // Só conta HE se >10min
         autoBreakDeduction: {
-            enabled: false,
+            enabled: true,              // Enabled as per user request
             startWindow: { hour: 12, minute: 0 },
             endWindow: { hour: 15, minute: 0 },
-            durationMinutes: 60  // 1 hora de break (agora manual)
+            durationMinutes: 60  // 1 hora de break
         }
     },
     'VE2': {
@@ -44,10 +47,10 @@ export const SCHEDULES: Record<string, Schedule> = {
         earlyOutToleranceMinutes: 20,  // CORRIGIDO: era 60, Anviz tem 20
         overtimeThresholdMinutes: 10,  // Só conta HE se >10min
         autoBreakDeduction: {
-            enabled: false,
+            enabled: true,              // Enabled as per user request
             startWindow: { hour: 12, minute: 0 },
             endWindow: { hour: 15, minute: 0 },
-            durationMinutes: 60  // 1 hora de break (agora manual)
+            durationMinutes: 60  // 1 hora de break
         }
     }
 };
@@ -194,5 +197,86 @@ export function getScheduleInfo(workno: string): {
         breakInfo: autoBreakDeduction.enabled
             ? `${breakHours}h${breakMins > 0 ? ` ${breakMins}m` : ''} (12:00-15:00)`
             : 'Sem break automático'
+    };
+}
+
+/**
+ * Calculates work hours with Smart Break Deduction and Daily Overtime logic.
+ * 
+ * Logic:
+ * 1. Calculate total duration from first In to last Out.
+ * 2. Calculate actual break taken (gaps between Out and In).
+ * 3. Smart Deduction:
+ *    - If Total Elapsed > 6 hours AND Actual Break < 1 hour:
+ *      - Deduct (1 hour - Actual Break) from total work time.
+ * 4. Overtime:
+ *    - Regular Hours cap at 8h.
+ *    - Overtime = Net Work Hours - 8h.
+ */
+export function calculateSmartWorkHours(checks: { time: string | Date | number, type: number }[]) {
+    if (checks.length < 2) return { regularHours: 0, overtimeHours: 0, totalWorkMs: 0 };
+
+    // Normalize times to number (ms)
+    const sorted = [...checks].map(c => ({
+        time: c.time instanceof Date ? c.time.getTime() : (typeof c.time === 'string' ? parseISO(c.time).getTime() : c.time),
+        type: c.type
+    })).sort((a, b) => a.time - b.time);
+
+    const first = sorted[0];
+    const last = sorted[sorted.length - 1];
+
+    let totalWorkMs = 0;
+    let lastInTime: number | null = null;
+    let breakDurationMs = 0;
+    let lastOutTime: number | null = null;
+
+    sorted.forEach(record => {
+        const time = record.time;
+        // Entry types: Check-In (0), Overtime In (128), Break End (3)
+        const isEntry = record.type === 0 || record.type === 128 || record.type === 3;
+        // Exit types: Check-Out (1), Overtime Out (129), Break Start (2)
+        const isExit = record.type === 1 || record.type === 129 || record.type === 2;
+
+        if (isEntry) {
+            lastInTime = time;
+            if (lastOutTime !== null) {
+                breakDurationMs += (time - lastOutTime);
+                lastOutTime = null;
+            }
+        } else if (isExit && lastInTime !== null) {
+            totalWorkMs += (time - lastInTime);
+            lastOutTime = time;
+            lastInTime = null;
+        }
+    });
+
+    // Smart Deduction Logic
+    const totalElapsedMs = last.time - first.time;
+
+    // Only apply deduction if total elapsed is > 6 hours (6 * 60 * 60 * 1000)
+    // AND break taken is < 1 hour
+    const ONE_HOUR_MS = 60 * 60 * 1000;
+    const SIX_HOURS_MS = 6 * 60 * 60 * 1000;
+    let deductionMs = 0;
+
+    if (totalElapsedMs > SIX_HOURS_MS) {
+        if (breakDurationMs < ONE_HOUR_MS) {
+            // Deduct the remaining part of the hour not taken as break
+            deductionMs = Math.min(totalWorkMs, ONE_HOUR_MS - breakDurationMs);
+        }
+    }
+
+    const netWorkMs = Math.max(0, totalWorkMs - deductionMs);
+    const netWorkHours = netWorkMs / (1000 * 60 * 60);
+
+    // Overtime rule: Anything above 8 hours is overtime
+    const overtimeHoursNum = Math.max(0, netWorkHours - 8);
+    const regularHoursNum = Math.min(netWorkHours, 8);
+
+    return {
+        regularHours: regularHoursNum,
+        overtimeHours: overtimeHoursNum,
+        totalWorkMs: netWorkMs,
+        deductionMs
     };
 }

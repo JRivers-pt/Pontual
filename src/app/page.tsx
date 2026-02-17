@@ -29,7 +29,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { getAttendanceRecords } from "@/lib/api"
-import { isLate as checkIsLate, getScheduleInfo } from "@/lib/schedules"
+import { isLate as checkIsLate, getScheduleInfo, calculateSmartWorkHours } from "@/lib/schedules"
 
 type AttendanceRecord = {
   uuid: string
@@ -128,29 +128,16 @@ export default function DashboardPage() {
       // Determine if still present (last check was entry type)
       const lastWasEntry = lastCheck.type === 0 || lastCheck.type === 128
 
-      // Calculate total minutes worked
-      let totalMinutes = 0
-      let lastInTime: number | null = null
+      // Calculate total minutes worked using smart logic
+      const calcChecks = sortedChecks.map(c => ({ time: c.time, type: c.type }))
 
-      sortedChecks.forEach(check => {
-        const time = parseISO(check.time).getTime()
-        // Entry types: Check-In (0), Overtime In (128), Break End (3)
-        const isEntry = check.type === 0 || check.type === 128 || check.type === 3
-        // Exit types: Check-Out (1), Overtime Out (129), Break Start (2)
-        const isExit = check.type === 1 || check.type === 129 || check.type === 2
-
-        if (isEntry) {
-          lastInTime = time
-        } else if (isExit && lastInTime !== null) {
-          totalMinutes += (time - lastInTime) / (1000 * 60)
-          lastInTime = null
-        }
-      })
-
-      // If still checked in, add time until now
-      if (lastInTime !== null) {
-        totalMinutes += (Date.now() - lastInTime) / (1000 * 60)
+      if (lastWasEntry) {
+        // Add synthetic checkout at current time to include ongoing session
+        calcChecks.push({ time: new Date().toISOString(), type: 1 })
       }
+
+      const { totalWorkMs } = calculateSmartWorkHours(calcChecks)
+      const totalMinutes = totalWorkMs / (1000 * 60)
 
       let status: 'present' | 'absent' | 'late' | 'left'
       if (lastWasEntry) {
