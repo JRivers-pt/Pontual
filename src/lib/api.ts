@@ -56,7 +56,8 @@ export async function getAuthToken(): Promise<string> {
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
     }
 
     const data: TokenResponse = await response.json();
@@ -102,7 +103,8 @@ export async function getAttendanceRecords(
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
       }
 
       const data: RecordsResponse = await response.json();
