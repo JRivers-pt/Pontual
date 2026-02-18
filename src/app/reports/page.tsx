@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { addDays, format, parseISO, startOfMonth, endOfMonth, subMonths } from "date-fns"
+import { addDays, format, parseISO, startOfMonth, endOfMonth, subMonths, endOfDay } from "date-fns"
 import { pt } from "date-fns/locale"
 import { Calendar as CalendarIcon, FileDown, Search, RefreshCw, Clock, User, Users, Filter, ChevronDown } from "lucide-react"
 import { DateRange } from "react-day-picker"
@@ -75,19 +75,19 @@ function getCheckTypeInfo(type: number) {
 
 // Períodos pré-definidos
 const PRESET_PERIODS = [
-    { label: "Últimos 7 dias", value: "7d", getDates: () => ({ from: addDays(new Date(), -7), to: new Date() }) },
-    { label: "Últimos 30 dias", value: "30d", getDates: () => ({ from: addDays(new Date(), -30), to: new Date() }) },
-    { label: "Este mês", value: "thisMonth", getDates: () => ({ from: startOfMonth(new Date()), to: new Date() }) },
+    { label: "Últimos 7 dias", value: "7d", getDates: () => ({ from: addDays(new Date(), -7), to: endOfDay(new Date()) }) },
+    { label: "Últimos 30 dias", value: "30d", getDates: () => ({ from: addDays(new Date(), -30), to: endOfDay(new Date()) }) },
+    { label: "Este mês", value: "thisMonth", getDates: () => ({ from: startOfMonth(new Date()), to: endOfDay(new Date()) }) },
     { label: "Mês passado", value: "lastMonth", getDates: () => ({ from: startOfMonth(subMonths(new Date(), 1)), to: endOfMonth(subMonths(new Date(), 1)) }) },
-    { label: "Últimos 3 meses", value: "3m", getDates: () => ({ from: addDays(new Date(), -90), to: new Date() }) },
-    { label: "Últimos 6 meses", value: "6m", getDates: () => ({ from: addDays(new Date(), -180), to: new Date() }) },
-    { label: "Este ano", value: "thisYear", getDates: () => ({ from: new Date(new Date().getFullYear(), 0, 1), to: new Date() }) },
+    { label: "Últimos 3 meses", value: "3m", getDates: () => ({ from: addDays(new Date(), -90), to: endOfDay(new Date()) }) },
+    { label: "Últimos 6 meses", value: "6m", getDates: () => ({ from: addDays(new Date(), -180), to: endOfDay(new Date()) }) },
+    { label: "Este ano", value: "thisYear", getDates: () => ({ from: new Date(new Date().getFullYear(), 0, 1), to: endOfDay(new Date()) }) },
 ]
 
 export default function ReportsPage() {
     const [date, setDate] = React.useState<DateRange | undefined>({
         from: addDays(new Date(), -30),
-        to: new Date(),
+        to: endOfDay(new Date()),
     })
     const [records, setRecords] = React.useState<AttendanceRecord[]>([])
     const [loading, setLoading] = React.useState(false)

@@ -44,20 +44,7 @@ export function Sidebar({ className }: SidebarProps) {
             href: "/timesheet",
             active: pathname === "/timesheet",
         },
-        {
-            label: "Colaboradores",
-            icon: Users,
-            href: "/employees",
-            active: pathname === "/employees",
-            disabled: true // Future
-        },
-        {
-            label: "Definições",
-            icon: Settings,
-            href: "/settings",
-            active: pathname === "/settings",
-            disabled: true // Future
-        },
+
     ]
 
 

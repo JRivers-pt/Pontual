@@ -6,7 +6,20 @@ export const authConfig = {
     // Use JWT sessions for better performance (no database lookup on every request)
     session: {
         strategy: "jwt",
-        maxAge: 30 * 24 * 60 * 60, // 30 days
+        maxAge: 30 * 60, // 30 minutes
+    },
+    // Override cookie config to make it a session cookie (expires on window close)
+    cookies: {
+        sessionToken: {
+            name: `__Secure-next-auth.session-token`,
+            options: {
+                httpOnly: true,
+                sameSite: 'lax',
+                path: '/',
+                secure: process.env.NODE_ENV === 'production',
+                // maxAge is undefined to make it a session cookie
+            }
+        }
     },
     // Trust host for Vercel deployment
     trustHost: true,

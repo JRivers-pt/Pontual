@@ -76,6 +76,7 @@ export default function TimesheetPage() {
     const [loading, setLoading] = React.useState(false)
     const [error, setError] = React.useState<string | null>(null)
     const [selectedEmployee, setSelectedEmployee] = React.useState<string>("all")
+    const [lastUpdate, setLastUpdate] = React.useState<Date>(new Date())
 
     // Extract unique employees
     const employees = React.useMemo<Employee[]>(() => {
@@ -111,6 +112,7 @@ export default function TimesheetPage() {
             }))
 
             setRecords(formattedRecords)
+            setLastUpdate(new Date())
         } catch (err: any) {
             setError(err.message || 'Erro ao carregar dados')
             console.error('Error fetching records:', err)
@@ -121,6 +123,9 @@ export default function TimesheetPage() {
 
     React.useEffect(() => {
         fetchMonthRecords()
+        // Auto-refresh every 60 seconds
+        const interval = setInterval(fetchMonthRecords, 60 * 1000)
+        return () => clearInterval(interval)
     }, [fetchMonthRecords])
 
     // Filter records by selected employee
@@ -371,8 +376,14 @@ export default function TimesheetPage() {
 
                         {/* Refresh */}
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                                &nbsp;
+                            <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300 flex items-center gap-2">
+                                <span className="relative flex h-2 w-2">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                                </span>
+                                <span className="text-xs font-normal text-neutral-500">
+                                    {format(lastUpdate, 'HH:mm')}
+                                </span>
                             </label>
                             <Button
                                 variant="outline"
@@ -403,190 +414,206 @@ export default function TimesheetPage() {
                 </Card>
             )}
 
-            {/* Summary Cards */}
-            <div className="grid gap-4 md:grid-cols-4 print:grid-cols-4 print:gap-2">
-                <Card className="border-none shadow-sm print:border print:shadow-none">
-                    <CardHeader className="pb-2">
-                        <CardDescription className="flex items-center gap-2">
-                            <Calendar className="h-4 w-4" />
-                            Dias Trabalhados
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">
-                            {summary.presentDays} <span className="text-sm font-normal text-neutral-500">/ {summary.workDays}</span>
-                        </div>
-                    </CardContent>
+            {selectedEmployee === "all" ? (
+                <Card className="border-dashed border-2 shadow-none py-12 text-center print:hidden">
+                    <div className="flex flex-col items-center justify-center text-neutral-500">
+                        <User className="h-12 w-12 mb-4 opacity-20" />
+                        <h3 className="text-lg font-medium text-neutral-900 dark:text-neutral-100 mb-2">
+                            Aguardando Seleção
+                        </h3>
+                        <p className="max-w-md mx-auto text-sm mb-6">
+                            Selecione um colaborador acima para visualizar a sua folha de ponto e registos mensais.
+                        </p>
+                    </div>
                 </Card>
+            ) : (
+                <>
+                    {/* Summary Cards */}
+                    <div className="grid gap-4 md:grid-cols-4 print:grid-cols-4 print:gap-2">
+                        <Card className="border-none shadow-sm print:border print:shadow-none">
+                            <CardHeader className="pb-2">
+                                <CardDescription className="flex items-center gap-2">
+                                    <Calendar className="h-4 w-4" />
+                                    Dias Trabalhados
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">
+                                    {summary.presentDays} <span className="text-sm font-normal text-neutral-500">/ {summary.workDays}</span>
+                                </div>
+                            </CardContent>
+                        </Card>
 
-                <Card className="border-none shadow-sm print:border print:shadow-none">
-                    <CardHeader className="pb-2">
-                        <CardDescription className="flex items-center gap-2">
-                            <Clock className="h-4 w-4" />
-                            Total Horas
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{summary.totalWorked}</div>
-                    </CardContent>
-                </Card>
+                        <Card className="border-none shadow-sm print:border print:shadow-none">
+                            <CardHeader className="pb-2">
+                                <CardDescription className="flex items-center gap-2">
+                                    <Clock className="h-4 w-4" />
+                                    Total Horas
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">{summary.totalWorked}</div>
+                            </CardContent>
+                        </Card>
 
-                <Card className="border-none shadow-sm print:border print:shadow-none">
-                    <CardHeader className="pb-2">
-                        <CardDescription className="flex items-center gap-2 text-orange-600">
-                            <Clock className="h-4 w-4" />
-                            Horas Extra
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold text-orange-600">{summary.totalOvertime}</div>
-                    </CardContent>
-                </Card>
+                        <Card className="border-none shadow-sm print:border print:shadow-none">
+                            <CardHeader className="pb-2">
+                                <CardDescription className="flex items-center gap-2 text-orange-600">
+                                    <Clock className="h-4 w-4" />
+                                    Horas Extra
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold text-orange-600">{summary.totalOvertime}</div>
+                            </CardContent>
+                        </Card>
 
-                <Card className="border-none shadow-sm print:border print:shadow-none">
-                    <CardHeader className="pb-2">
-                        <CardDescription className="flex items-center gap-2">
-                            <AlertCircle className="h-4 w-4 text-red-500" />
-                            Faltas / Atrasos
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">
-                            <span className="text-red-600">{summary.absentDays}</span>
-                            <span className="text-neutral-400 mx-1">/</span>
-                            <span className="text-orange-600">{summary.lateDays}</span>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
+                        <Card className="border-none shadow-sm print:border print:shadow-none">
+                            <CardHeader className="pb-2">
+                                <CardDescription className="flex items-center gap-2">
+                                    <AlertCircle className="h-4 w-4 text-red-500" />
+                                    Faltas / Atrasos
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">
+                                    <span className="text-red-600">{summary.absentDays}</span>
+                                    <span className="text-neutral-400 mx-1">/</span>
+                                    <span className="text-orange-600">{summary.lateDays}</span>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
 
-            {/* Timesheet Table */}
-            <Card className="border-none shadow-sm print:border print:shadow-none">
-                <CardHeader className="print:hidden">
-                    <CardTitle className="flex items-center gap-2">
-                        <User className="h-5 w-5" />
-                        Registo Diário - {selectedEmployeeName}
-                    </CardTitle>
-                    <CardDescription>
-                        {format(currentMonth, 'MMMM yyyy', { locale: pt })}
-                    </CardDescription>
-                </CardHeader>
-                <CardContent className="print:p-0">
-                    <div className="rounded-md border overflow-hidden">
-                        <table className="w-full text-sm">
-                            <thead>
-                                <tr className="bg-neutral-100 dark:bg-neutral-800 print:bg-gray-100">
-                                    <th className="px-3 py-2 text-left font-medium">Data</th>
-                                    <th className="px-3 py-2 text-left font-medium">Dia</th>
-                                    <th className="px-3 py-2 text-center font-medium">Entrada</th>
-                                    <th className="px-3 py-2 text-center font-medium">Saída</th>
-                                    <th className="px-3 py-2 text-center font-medium">Duração</th>
-                                    <th className="px-3 py-2 text-center font-medium">H. Extra</th>
-                                    <th className="px-3 py-2 text-center font-medium print:hidden">Estado</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {loading ? (
-                                    <tr>
-                                        <td colSpan={7} className="text-center py-8 text-neutral-500">
-                                            <RefreshCw className="h-5 w-5 animate-spin mx-auto mb-2" />
-                                            A carregar folha de ponto...
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    monthDays.map((day, index) => (
-                                        <tr
-                                            key={day.dateStr}
-                                            className={cn(
-                                                "border-t",
-                                                day.isWeekend && "bg-neutral-50 dark:bg-neutral-900/50 print:bg-gray-50",
-                                                day.status === 'absent' && "bg-red-50/50 print:bg-red-50",
-                                                day.status === 'late' && "bg-orange-50/50 print:bg-orange-50"
-                                            )}
-                                        >
-                                            <td className="px-3 py-2 font-medium">
-                                                {format(day.date, 'dd/MM')}
-                                            </td>
-                                            <td className="px-3 py-2">
-                                                {getDayOfWeek(day.date)}
-                                            </td>
-                                            <td className="px-3 py-2 text-center">
-                                                {day.firstIn ? (
-                                                    <span className={cn(
-                                                        "font-mono",
-                                                        day.status === 'late' && "text-orange-600"
-                                                    )}>
-                                                        {format(parseISO(day.firstIn), 'HH:mm')}
-                                                    </span>
-                                                ) : (
-                                                    <span className="text-neutral-300">-</span>
-                                                )}
-                                            </td>
-                                            <td className="px-3 py-2 text-center">
-                                                {day.lastOut ? (
-                                                    <span className="font-mono">
-                                                        {format(parseISO(day.lastOut), 'HH:mm')}
-                                                    </span>
-                                                ) : (
-                                                    <span className="text-neutral-300">-</span>
-                                                )}
-                                            </td>
-                                            <td className="px-3 py-2 text-center font-medium">
-                                                {formatMinutes(day.workedMinutes)}
-                                            </td>
-                                            <td className="px-3 py-2 text-center">
-                                                {day.overtimeMinutes > 0 ? (
-                                                    <span className="font-medium text-orange-600">
-                                                        +{formatMinutes(day.overtimeMinutes)}
-                                                    </span>
-                                                ) : (
-                                                    <span className="text-neutral-300">-</span>
-                                                )}
-                                            </td>
-                                            <td className="px-3 py-2 text-center print:hidden">
-                                                {getStatusBadge(day.status)}
-                                            </td>
+                    {/* Timesheet Table */}
+                    <Card className="border-none shadow-sm print:border print:shadow-none">
+                        <CardHeader className="print:hidden">
+                            <CardTitle className="flex items-center gap-2">
+                                <User className="h-5 w-5" />
+                                Registo Diário - {selectedEmployeeName}
+                            </CardTitle>
+                            <CardDescription>
+                                {format(currentMonth, 'MMMM yyyy', { locale: pt })}
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="print:p-0">
+                            <div className="rounded-md border overflow-hidden">
+                                <table className="w-full text-sm">
+                                    <thead>
+                                        <tr className="bg-neutral-100 dark:bg-neutral-800 print:bg-gray-100">
+                                            <th className="px-3 py-2 text-left font-medium">Data</th>
+                                            <th className="px-3 py-2 text-left font-medium">Dia</th>
+                                            <th className="px-3 py-2 text-center font-medium">Entrada</th>
+                                            <th className="px-3 py-2 text-center font-medium">Saída</th>
+                                            <th className="px-3 py-2 text-center font-medium">Duração</th>
+                                            <th className="px-3 py-2 text-center font-medium">H. Extra</th>
+                                            <th className="px-3 py-2 text-center font-medium print:hidden">Estado</th>
                                         </tr>
-                                    ))
-                                )}
-                            </tbody>
-                            <tfoot>
-                                <tr className="bg-neutral-100 dark:bg-neutral-800 font-medium print:bg-gray-200">
-                                    <td colSpan={4} className="px-3 py-3 text-right">
-                                        TOTAL DO MÊS:
-                                    </td>
-                                    <td className="px-3 py-3 text-center font-bold">
-                                        {summary.totalWorked}
-                                    </td>
-                                    <td className="px-3 py-3 text-center font-bold text-orange-600">
-                                        {summary.totalOvertime}
-                                    </td>
-                                    <td className="print:hidden"></td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-                </CardContent>
-            </Card>
+                                    </thead>
+                                    <tbody>
+                                        {loading ? (
+                                            <tr>
+                                                <td colSpan={7} className="text-center py-8 text-neutral-500">
+                                                    <RefreshCw className="h-5 w-5 animate-spin mx-auto mb-2" />
+                                                    A carregar folha de ponto...
+                                                </td>
+                                            </tr>
+                                        ) : (
+                                            monthDays.map((day, index) => (
+                                                <tr
+                                                    key={day.dateStr}
+                                                    className={cn(
+                                                        "border-t",
+                                                        day.isWeekend && "bg-neutral-50 dark:bg-neutral-900/50 print:bg-gray-50",
+                                                        day.status === 'absent' && "bg-red-50/50 print:bg-red-50",
+                                                        day.status === 'late' && "bg-orange-50/50 print:bg-orange-50"
+                                                    )}
+                                                >
+                                                    <td className="px-3 py-2 font-medium">
+                                                        {format(day.date, 'dd/MM')}
+                                                    </td>
+                                                    <td className="px-3 py-2">
+                                                        {getDayOfWeek(day.date)}
+                                                    </td>
+                                                    <td className="px-3 py-2 text-center">
+                                                        {day.firstIn ? (
+                                                            <span className={cn(
+                                                                "font-mono",
+                                                                day.status === 'late' && "text-orange-600"
+                                                            )}>
+                                                                {format(parseISO(day.firstIn), 'HH:mm')}
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-neutral-300">-</span>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-3 py-2 text-center">
+                                                        {day.lastOut ? (
+                                                            <span className="font-mono">
+                                                                {format(parseISO(day.lastOut), 'HH:mm')}
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-neutral-300">-</span>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-3 py-2 text-center font-medium">
+                                                        {formatMinutes(day.workedMinutes)}
+                                                    </td>
+                                                    <td className="px-3 py-2 text-center">
+                                                        {day.overtimeMinutes > 0 ? (
+                                                            <span className="font-medium text-orange-600">
+                                                                +{formatMinutes(day.overtimeMinutes)}
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-neutral-300">-</span>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-3 py-2 text-center print:hidden">
+                                                        {getStatusBadge(day.status)}
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        )}
+                                    </tbody>
+                                    <tfoot>
+                                        <tr className="bg-neutral-100 dark:bg-neutral-800 font-medium print:bg-gray-200">
+                                            <td colSpan={4} className="px-3 py-3 text-right">
+                                                TOTAL DO MÊS:
+                                            </td>
+                                            <td className="px-3 py-3 text-center font-bold">
+                                                {summary.totalWorked}
+                                            </td>
+                                            <td className="px-3 py-3 text-center font-bold text-orange-600">
+                                                {summary.totalOvertime}
+                                            </td>
+                                            <td className="print:hidden"></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </CardContent>
+                    </Card>
 
-            {/* Signature Area (print only) */}
-            <div className="hidden print:block mt-12">
-                <div className="grid grid-cols-2 gap-8">
-                    <div>
-                        <div className="border-t border-black pt-2 text-center">
-                            <p className="text-sm">Assinatura do Colaborador</p>
+                    {/* Signature Area (print only) */}
+                    <div className="hidden print:block mt-12">
+                        <div className="grid grid-cols-2 gap-8">
+                            <div>
+                                <div className="border-t border-black pt-2 text-center">
+                                    <p className="text-sm">Assinatura do Colaborador</p>
+                                </div>
+                            </div>
+                            <div>
+                                <div className="border-t border-black pt-2 text-center">
+                                    <p className="text-sm">Assinatura do Responsável</p>
+                                </div>
+                            </div>
                         </div>
+                        <p className="text-xs text-center mt-8 text-gray-500">
+                            Documento gerado automaticamente pelo sistema Pontualidade.pt em {format(new Date(), 'dd/MM/yyyy HH:mm')}
+                        </p>
                     </div>
-                    <div>
-                        <div className="border-t border-black pt-2 text-center">
-                            <p className="text-sm">Assinatura do Responsável</p>
-                        </div>
-                    </div>
-                </div>
-                <p className="text-xs text-center mt-8 text-gray-500">
-                    Documento gerado automaticamente pelo sistema Pontualidade.pt em {format(new Date(), 'dd/MM/yyyy HH:mm')}
-                </p>
-            </div>
+                </>
+            )}
         </div>
     )
 }

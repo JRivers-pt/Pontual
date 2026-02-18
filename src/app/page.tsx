@@ -89,8 +89,8 @@ export default function DashboardPage() {
 
   React.useEffect(() => {
     fetchTodayRecords()
-    // Auto-refresh every 5 minutes
-    const interval = setInterval(fetchTodayRecords, 5 * 60 * 1000)
+    // Auto-refresh every 60 seconds
+    const interval = setInterval(fetchTodayRecords, 60 * 1000)
     return () => clearInterval(interval)
   }, [fetchTodayRecords])
 
@@ -217,9 +217,15 @@ export default function DashboardPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-xs text-neutral-400">
-            Atualizado: {format(lastUpdate, 'HH:mm')}
-          </span>
+          <div className="flex items-center gap-2 px-3 py-1 bg-green-50 dark:bg-green-900/20 rounded-full border border-green-100 dark:border-green-900/50">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+            </span>
+            <span className="text-xs font-medium text-green-700 dark:text-green-400">
+              Ao vivo • Atualizado: {format(lastUpdate, 'HH:mm')}
+            </span>
+          </div>
           <Button
             variant="outline"
             size="sm"
