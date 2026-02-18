@@ -18,8 +18,6 @@ import {
   HelpCircle
 } from "lucide-react"
 
-// TRACER: Use this to verify if the new code is actually deployed
-const APP_VERSION = "DEPLOY-CHECK-003"
 import Link from "next/link"
 
 import { cn } from "@/lib/utils"
