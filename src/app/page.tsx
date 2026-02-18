@@ -468,12 +468,10 @@ export default function DashboardPage() {
           )}
         </div>
       </div>
+      {/* DEBUG: Version Indicator - Remove after verification */}
+      <div className="fixed bottom-2 right-2 bg-red-600 text-white text-xs px-2 py-1 rounded-full z-50 shadow-lg border border-white">
+        Ver: {APP_VERSION}
+      </div>
     </div>
-      
-      {/* DEBUG: Version Indicator - Remove after verification */ }
-  <div className="fixed bottom-2 right-2 bg-red-600 text-white text-xs px-2 py-1 rounded-full z-50 shadow-lg border border-white">
-    Ver: {APP_VERSION}
-  </div>
-    </div >
   )
 }
