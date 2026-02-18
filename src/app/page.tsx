@@ -14,7 +14,14 @@ import {
   RefreshCw,
   Calendar,
   Activity
+  Calendar,
+  Activity,
+  LogOut,
+  HelpCircle
 } from "lucide-react"
+
+// TRACER: Use this to verify if the new code is actually deployed
+const APP_VERSION = "DEPLOY-CHECK-002"
 import Link from "next/link"
 
 import { cn } from "@/lib/utils"
@@ -464,5 +471,11 @@ export default function DashboardPage() {
         </div>
       </div>
     </div>
+      
+      {/* DEBUG: Version Indicator - Remove after verification */ }
+  <div className="fixed bottom-2 right-2 bg-red-600 text-white text-xs px-2 py-1 rounded-full z-50 shadow-lg border border-white">
+    Ver: {APP_VERSION}
+  </div>
+    </div >
   )
 }
