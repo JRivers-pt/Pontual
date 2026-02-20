@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
-import { Loader2, Lock } from "lucide-react"
+import { Loader2, Clock } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -73,12 +73,12 @@ export default function LoginPage() {
                 <CardHeader className="space-y-1">
                     <div className="flex justify-center mb-4">
                         <div className="h-12 w-12 bg-blue-600 rounded-full flex items-center justify-center">
-                            <Lock className="h-6 w-6 text-white" />
+                            <Clock className="h-6 w-6 text-white" />
                         </div>
                     </div>
-                    <CardTitle className="text-2xl text-center font-bold">VE Vontade e Empenho</CardTitle>
+                    <CardTitle className="text-2xl text-center font-bold">Pontualidade</CardTitle>
                     <CardDescription className="text-center">
-                        Aceda ao portal de assiduidade Pontualidade
+                        Portal de gestão de assiduidade
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -91,7 +91,7 @@ export default function LoginPage() {
                                     <FormItem>
                                         <FormLabel>Nome de Utilizador</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="admin" {...field} />
+                                            <Input placeholder="utilizador" {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>

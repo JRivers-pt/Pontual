@@ -56,7 +56,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     return {
                         id: user.id,
                         name: user.name,
-                        email: user.email
+                        email: user.email,
+                        company: user.company,
+                        role: user.role,
                     };
                 }
 
@@ -69,16 +71,20 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     callbacks: {
         ...authConfig.callbacks,
         jwt: async ({ token, user }) => {
-            // Store user ID in token on sign in
+            // Store user data in token on sign in
             if (user) {
                 token.sub = user.id;
+                token.company = (user as any).company ?? null;
+                token.role = (user as any).role ?? 'CLIENT';
             }
             return token;
         },
         session: async ({ session, token }) => {
-            // Add user ID to session from token
+            // Add user data to session from token
             if (token.sub && session.user) {
                 session.user.id = token.sub;
+                (session.user as any).company = token.company ?? null;
+                (session.user as any).role = token.role ?? 'CLIENT';
             }
             return session;
         }
