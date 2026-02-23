@@ -14,12 +14,12 @@ export async function POST(request: NextRequest) {
     try {
         const session = await auth();
 
-        if (!session?.user?.email) {
+        if (!session?.user?.id) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
         const user = await prisma.user.findUnique({
-            where: { email: session.user.email }
+            where: { id: session.user.id }
         });
 
         if (!user || !user.apiKey || !user.apiSecret) {
