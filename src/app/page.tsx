@@ -297,7 +297,7 @@ export default function DashboardPage() {
               {loading ? "-" : kpis.late}
             </div>
             <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">
-              chegaram depois das 9:15
+              chegaram depois da tolerância
             </p>
           </CardContent>
         </Card>
@@ -459,7 +459,7 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-orange-600 dark:text-orange-400">
-                  {kpis.late} colaborador{kpis.late > 1 ? 'es' : ''} chegou depois das 9:15 hoje.
+                  {kpis.late} colaborador{kpis.late > 1 ? 'es' : ''} chegou depois do horário previsto hoje.
                 </p>
               </CardContent>
             </Card>
