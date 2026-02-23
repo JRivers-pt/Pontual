@@ -35,7 +35,7 @@ export function Sidebar({ className }: SidebarProps) {
         ? companyName.split(" ").filter(Boolean).slice(0, 2).map((w: string) => w[0].toUpperCase()).join("")
         : userName.split(" ").slice(0, 2).map((w: string) => w[0].toUpperCase()).join("")
 
-    const routes = [
+    const allRoutes = [
         {
             label: "Dashboard",
             icon: LayoutDashboard,
@@ -54,8 +54,17 @@ export function Sidebar({ className }: SidebarProps) {
             href: "/timesheet",
             active: pathname === "/timesheet",
         },
-
     ]
+
+    // Add Admin routes if user is ADMIN
+    if ((session?.user as any)?.role === "ADMIN") {
+        allRoutes.push({
+            label: "Gestão de Clientes",
+            icon: Users,
+            href: "/admin/clients",
+            active: pathname.startsWith("/admin"),
+        })
+    }
 
 
     return (
@@ -83,7 +92,7 @@ export function Sidebar({ className }: SidebarProps) {
                     )}
 
                     <div className="space-y-1">
-                        {routes.map((route) => (
+                        {allRoutes.map((route) => (
                             <Button
                                 key={route.href}
                                 variant={route.active ? "secondary" : "ghost"}
