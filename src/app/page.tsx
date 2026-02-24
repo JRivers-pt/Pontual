@@ -31,8 +31,9 @@ import {
 } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { getAttendanceRecords } from "@/lib/api"
-import { isLate as checkIsLate, getScheduleInfo, calculateSmartWorkHours } from "@/lib/schedules"
+import { useSession } from "next-auth/react"
+import { getAttendanceRecords, getSchedules } from "@/lib/api"
+import { isLate as checkIsLate, getFormattedScheduleInfo, calculateSmartWorkHours, Schedule, getVilaPeixotoSchedule } from "@/lib/schedules"
 
 type AttendanceRecord = {
   uuid: string
@@ -51,15 +52,21 @@ type EmployeeStatus = {
   totalMinutes: number
   scheduleName: string
   scheduleStart: string
+  warningsDisabled?: boolean
 }
 
 export default function DashboardPage() {
+  const { data: session } = useSession()
   const [records, setRecords] = React.useState<AttendanceRecord[]>([])
+  const [schedules, setSchedules] = React.useState<Schedule[]>([])
   const [loading, setLoading] = React.useState(true)
   const [error, setError] = React.useState<string | null>(null)
   const [lastUpdate, setLastUpdate] = React.useState<Date>(new Date())
 
-  const fetchTodayRecords = React.useCallback(async () => {
+  const companyName = (session?.user as any)?.company || ""
+  const isVilaPeixoto = companyName.toLowerCase().includes("vila peixoto")
+
+  const fetchData = React.useCallback(async () => {
     setLoading(true)
     setError(null)
 
@@ -70,9 +77,13 @@ export default function DashboardPage() {
       const beginTime = today.toISOString().replace('Z', '+00:00')
       const endTime = now.toISOString().replace('Z', '+00:00')
 
-      const response = await getAttendanceRecords(beginTime, endTime)
+      // Fetch records and schedules in parallel
+      const [recordsResponse, schedulesData] = await Promise.all([
+        getAttendanceRecords(beginTime, endTime),
+        getSchedules()
+      ])
 
-      const formattedRecords: AttendanceRecord[] = response.payload.list.map(item => ({
+      const formattedRecords: AttendanceRecord[] = recordsResponse.payload.list.map(item => ({
         uuid: item.uuid,
         employeeName: `${item.employee.first_name} ${item.employee.last_name}`.trim(),
         employeeId: item.employee.workno,
@@ -81,21 +92,22 @@ export default function DashboardPage() {
       }))
 
       setRecords(formattedRecords)
+      setSchedules(schedulesData)
       setLastUpdate(new Date())
     } catch (err: any) {
       setError(err.message || 'Erro ao carregar dados')
-      console.error('Error fetching records:', err)
+      console.error('Error fetching dashboard data:', err)
     } finally {
       setLoading(false)
     }
   }, [])
 
   React.useEffect(() => {
-    fetchTodayRecords()
+    fetchData()
     // Auto-refresh every 60 seconds
-    const interval = setInterval(fetchTodayRecords, 60 * 1000)
+    const interval = setInterval(fetchData, 60 * 1000)
     return () => clearInterval(interval)
-  }, [fetchTodayRecords])
+  }, [fetchData])
 
   // Process employee statuses
   const employeeStatuses = React.useMemo<EmployeeStatus[]>(() => {
@@ -124,9 +136,23 @@ export default function DashboardPage() {
       const lastCheck = sortedChecks[sortedChecks.length - 1]
 
       const firstCheckDate = parseISO(firstCheck.time)
-      // Usar horário específico do colaborador
-      const isLate = checkIsLate(id, firstCheckDate)
-      const scheduleInfo = getScheduleInfo(id)
+
+      // DETERMINE SCHEDULE: 
+      // 1. If Vila Peixoto, use automatic rules based on name (user zero-management request)
+      // 2. If DB schedules exist, use those
+      // 3. Fallback to first schedule or default
+      let employeeSchedule: Schedule;
+
+      if (isVilaPeixoto) {
+        employeeSchedule = getVilaPeixotoSchedule(data.name);
+      } else {
+        employeeSchedule = schedules.find(s =>
+          (s as any).employeeSchedules?.some((es: any) => es.workno === id)
+        ) || schedules[0];
+      }
+
+      const isLate = checkIsLate(firstCheckDate, employeeSchedule)
+      const scheduleInfo = getFormattedScheduleInfo(employeeSchedule)
 
       // Determine if still present (last check was entry type)
       const lastWasEntry = lastCheck.type === 0 || lastCheck.type === 128
@@ -144,7 +170,7 @@ export default function DashboardPage() {
 
       let status: 'present' | 'absent' | 'late' | 'left'
       if (lastWasEntry) {
-        status = isLate ? 'late' : 'present'
+        status = (isLate && !employeeSchedule.warningsDisabled) ? 'late' : 'present'
       } else {
         status = 'left'
       }
@@ -157,12 +183,13 @@ export default function DashboardPage() {
         lastCheck: lastCheck.time,
         totalMinutes: Math.round(totalMinutes),
         scheduleName: scheduleInfo.scheduleName,
-        scheduleStart: scheduleInfo.startTimeStr
+        scheduleStart: scheduleInfo.startTimeStr,
+        warningsDisabled: (employeeSchedule as any).warningsDisabled
       })
     })
 
     return statuses.sort((a, b) => a.name.localeCompare(b.name))
-  }, [records])
+  }, [records, schedules, isVilaPeixoto])
 
   // Calculate KPIs
   const kpis = React.useMemo(() => {
@@ -232,7 +259,7 @@ export default function DashboardPage() {
           <Button
             variant="outline"
             size="sm"
-            onClick={fetchTodayRecords}
+            onClick={fetchData}
             disabled={loading}
           >
             <RefreshCw className={cn("h-4 w-4 mr-2", loading && "animate-spin")} />
@@ -285,40 +312,46 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-none shadow-sm bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950 dark:to-orange-900">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-orange-700 dark:text-orange-300">
-              Atrasos Hoje
-            </CardTitle>
-            <AlertTriangle className="h-5 w-5 text-orange-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-orange-900 dark:text-orange-100">
-              {loading ? "-" : kpis.late}
-            </div>
-            <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">
-              chegaram depois da tolerância
-            </p>
-          </CardContent>
-        </Card>
+        {/* Atrasos Hoje - Hidden if warnings are disabled */}
+        {!employeeStatuses.some(s => s.warningsDisabled) && (
+          <Card className="border-none shadow-sm bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950 dark:to-orange-900">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-orange-700 dark:text-orange-300">
+                Atrasos Hoje
+              </CardTitle>
+              <AlertTriangle className="h-5 w-5 text-orange-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-orange-900 dark:text-orange-100">
+                {loading ? "-" : kpis.late}
+              </div>
+              <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">
+                chegaram depois da tolerância
+              </p>
+            </CardContent>
+          </Card>
+        )}
 
-        <Card className="border-none shadow-sm bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-purple-700 dark:text-purple-300">
-              Taxa de Pontualidade
-            </CardTitle>
-            <TrendingUp className="h-5 w-5 text-purple-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-purple-900 dark:text-purple-100">
-              {loading ? "-" : `${kpis.punctualityRate}%`}
-            </div>
-            <Progress
-              value={loading ? 0 : kpis.punctualityRate}
-              className="mt-2 h-2"
-            />
-          </CardContent>
-        </Card>
+        {/* Taxa de Pontualidade - Hidden if warnings are disabled */}
+        {!employeeStatuses.some(s => s.warningsDisabled) && (
+          <Card className="border-none shadow-sm bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-purple-700 dark:text-purple-300">
+                Taxa de Pontualidade
+              </CardTitle>
+              <TrendingUp className="h-5 w-5 text-purple-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-purple-900 dark:text-purple-100">
+                {loading ? "-" : `${kpis.punctualityRate}%`}
+              </div>
+              <Progress
+                value={loading ? 0 : kpis.punctualityRate}
+                className="mt-2 h-2"
+              />
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Main Content Grid */}
@@ -439,7 +472,7 @@ export default function DashboardPage() {
               <Button
                 variant="outline"
                 className="w-full justify-start"
-                onClick={fetchTodayRecords}
+                onClick={fetchData}
                 disabled={loading}
               >
                 <RefreshCw className={cn("h-4 w-4 mr-2", loading && "animate-spin")} />

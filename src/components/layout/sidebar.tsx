@@ -56,8 +56,14 @@ export function Sidebar({ className }: SidebarProps) {
         },
     ]
 
-    // Add Admin routes if user is ADMIN
+    // Add Admin routes
     if ((session?.user as any)?.role === "ADMIN") {
+        allRoutes.push({
+            label: "Gestão de Horários",
+            icon: Clock,
+            href: "/schedules",
+            active: pathname === "/schedules",
+        })
         allRoutes.push({
             label: "Gestão de Clientes",
             icon: Users,

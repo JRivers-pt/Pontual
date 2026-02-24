@@ -182,3 +182,9 @@ export async function getEmployees() {
     throw error;
   }
 }
+
+export async function getSchedules() {
+  const response = await fetch('/api/schedules');
+  if (!response.ok) throw new Error('Failed to fetch schedules');
+  return response.json();
+}

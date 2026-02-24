@@ -42,9 +42,10 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
+import { useSession } from "next-auth/react"
 import { exportToPDF } from "@/lib/exports"
-import { getAttendanceRecords } from "@/lib/api"
-import { isLate as checkIsLate, calculateOvertime, getScheduleInfo } from "@/lib/schedules"
+import { getAttendanceRecords, getSchedules } from "@/lib/api"
+import { isLate as checkIsLate, calculateOvertime, getFormattedScheduleInfo, Schedule, getVilaPeixotoSchedule } from "@/lib/schedules"
 
 type AttendanceRecord = {
     uuid: string
@@ -71,16 +72,27 @@ type Employee = {
 }
 
 export default function TimesheetPage() {
+    const { data: session } = useSession()
     const [currentMonth, setCurrentMonth] = React.useState<Date>(new Date())
     const [records, setRecords] = React.useState<AttendanceRecord[]>([])
+    const [schedules, setSchedules] = React.useState<Schedule[]>([])
     const [loading, setLoading] = React.useState(false)
     const [error, setError] = React.useState<string | null>(null)
     const [selectedEmployee, setSelectedEmployee] = React.useState<string>("all")
     const [lastUpdate, setLastUpdate] = React.useState<Date>(new Date())
+    const [allEmployees, setAllEmployees] = React.useState<Employee[]>([])
+
+    const companyName = (session?.user as any)?.company || ""
+    const isVilaPeixoto = companyName.toLowerCase().includes("vila peixoto")
 
     // Extract unique employees
     const employees = React.useMemo<Employee[]>(() => {
         const empMap = new Map<string, string>()
+
+        // Use allEmployees as the base
+        allEmployees.forEach(e => empMap.set(e.id, e.name))
+
+        // Also add anyone found in current records (failsafe)
         records.forEach(r => {
             if (!empMap.has(r.employeeId)) {
                 empMap.set(r.employeeId, r.employeeName)
@@ -88,20 +100,28 @@ export default function TimesheetPage() {
         })
         return Array.from(empMap.entries()).map(([id, name]) => ({ id, name }))
             .sort((a, b) => a.name.localeCompare(b.name))
-    }, [records])
+    }, [records, allEmployees])
 
-    const fetchMonthRecords = React.useCallback(async () => {
+    const fetchMonthData = React.useCallback(async () => {
         setLoading(true)
         setError(null)
 
         try {
             const monthStart = startOfMonth(currentMonth)
             const monthEnd = endOfMonth(currentMonth)
+            const now = new Date()
+
+            // If the requested month is the current month, cap the end time to 'now'
+            // to avoid issues with some APIs when requesting future dates.
+            const adjustedEnd = monthEnd > now ? now : monthEnd;
 
             const beginTime = monthStart.toISOString().replace('Z', '+00:00')
-            const endTime = monthEnd.toISOString().replace('Z', '+00:00')
+            const endTime = adjustedEnd.toISOString().replace('Z', '+00:00')
 
-            const response = await getAttendanceRecords(beginTime, endTime)
+            const [response, schedulesData] = await Promise.all([
+                getAttendanceRecords(beginTime, endTime),
+                getSchedules()
+            ])
 
             const formattedRecords: AttendanceRecord[] = response.payload.list.map(item => ({
                 uuid: item.uuid,
@@ -112,21 +132,71 @@ export default function TimesheetPage() {
             }))
 
             setRecords(formattedRecords)
+            setSchedules(schedulesData)
             setLastUpdate(new Date())
+
+            // Update allEmployees as well
+            const empMap = new Map<string, string>()
+            formattedRecords.forEach(r => {
+                if (!empMap.has(r.employeeId)) {
+                    empMap.set(r.employeeId, r.employeeName)
+                }
+            })
+            const foundEmployees = Array.from(empMap.entries()).map(([id, name]) => ({ id, name }))
+            if (foundEmployees.length > 0) {
+                setAllEmployees(prev => {
+                    const combined = [...prev]
+                    foundEmployees.forEach(fe => {
+                        if (!combined.some(c => c.id === fe.id)) combined.push(fe)
+                    })
+                    return combined.sort((a, b) => a.name.localeCompare(b.name))
+                })
+            }
         } catch (err: any) {
             setError(err.message || 'Erro ao carregar dados')
-            console.error('Error fetching records:', err)
+            console.error('Error fetching month data:', err)
         } finally {
             setLoading(false)
         }
     }, [currentMonth])
 
     React.useEffect(() => {
-        fetchMonthRecords()
+        // Initial fetch for a wider range to populate employee list
+        const fetchInitialEmployees = async () => {
+            try {
+                const now = new Date()
+                const ago = subMonths(now, 2)
+                const response = await getAttendanceRecords(
+                    ago.toISOString().replace('Z', '+00:00'),
+                    now.toISOString().replace('Z', '+00:00')
+                )
+                const empMap = new Map<string, string>()
+                response.payload.list.forEach((r: any) => {
+                    if (!empMap.has(r.employee.workno)) {
+                        empMap.set(r.employee.workno, `${r.employee.first_name} ${r.employee.last_name}`.trim())
+                    }
+                })
+                const found = Array.from(empMap.entries()).map(([id, name]) => ({ id, name }))
+                setAllEmployees(prev => {
+                    const combined = [...prev]
+                    found.forEach(fe => {
+                        if (!combined.some(c => c.id === fe.id)) combined.push(fe)
+                    })
+                    return combined.sort((a, b) => a.name.localeCompare(b.name))
+                })
+            } catch (e) {
+                console.error("Error fetching initial employees:", e)
+            }
+        }
+        fetchInitialEmployees()
+    }, [])
+
+    React.useEffect(() => {
+        fetchMonthData()
         // Auto-refresh every 60 seconds
-        const interval = setInterval(fetchMonthRecords, 60 * 1000)
+        const interval = setInterval(fetchMonthData, 60 * 1000)
         return () => clearInterval(interval)
-    }, [fetchMonthRecords])
+    }, [fetchMonthData])
 
     // Filter records by selected employee
     const filteredRecords = React.useMemo(() => {
@@ -204,11 +274,26 @@ export default function TimesheetPage() {
 
             // Usar schedules.ts para cálculos específicos do colaborador
             const employeeId = dayRecords[0]?.employeeId || ''
-            const lastCheckDate = sorted.length > 1 && lastInTime === null ? parseISO(lastCheck.checktime) : null
-            const overtimeMinutes = calculateOvertime(employeeId, firstCheckDate, lastCheckDate)
+            const employeeName = dayRecords[0]?.employeeName || ''
 
-            // Verificar atraso usando horário específico do colaborador
-            const isLate = checkIsLate(employeeId, firstCheckDate)
+            // DETERMINE SCHEDULE: 
+            // 1. If Vila Peixoto, use automatic rules based on name
+            // 2. If DB schedules exist, use those
+            // 3. Fallback to first schedule or default
+            let employeeSchedule: Schedule;
+
+            if (isVilaPeixoto) {
+                employeeSchedule = getVilaPeixotoSchedule(employeeName);
+            } else {
+                employeeSchedule = schedules.find(s =>
+                    (s as any).employeeSchedules?.some((es: any) => es.workno === employeeId)
+                ) || schedules[0];
+            }
+
+            const lastCheckDate = sorted.length > 1 && lastInTime === null ? parseISO(lastCheck.checktime) : null
+            const overtimeMinutes = calculateOvertime(firstCheckDate, lastCheckDate, employeeSchedule)
+
+            const isLate = checkIsLate(firstCheckDate, employeeSchedule)
 
             return {
                 date: day,
@@ -218,38 +303,90 @@ export default function TimesheetPage() {
                 lastOut: lastCheck.checktype === 1 || lastCheck.checktype === 129 ? lastCheck.checktime : null,
                 workedMinutes,
                 overtimeMinutes,
-                status: isLate ? 'late' as const : 'normal' as const
+                status: (isLate && !employeeSchedule.warningsDisabled) ? 'late' as const : 'normal' as const
             }
         })
-    }, [currentMonth, filteredRecords])
+    }, [currentMonth, filteredRecords, schedules, isVilaPeixoto])
 
     // Calculate monthly summary
-    const summary = React.useMemo(() => {
-        const workDays = monthDays.filter(d => !d.isWeekend)
+    const calculateFullSummary = (recordsForEmployee: AttendanceRecord[]) => {
+        const monthStart = startOfMonth(currentMonth)
+        const monthEnd = endOfMonth(currentMonth)
+        const days = eachDayOfInterval({ start: monthStart, end: monthEnd })
+
+        const daysData = days.map(day => {
+            const dateStr = format(day, 'yyyy-MM-dd')
+            const dayRecords = recordsForEmployee.filter(r =>
+                format(parseISO(r.checktime), 'yyyy-MM-dd') === dateStr
+            )
+
+            if (isWeekend(day)) return { workedMinutes: 0, overtimeMinutes: 0, status: 'weekend' as const }
+            if (dayRecords.length === 0) return { workedMinutes: 0, overtimeMinutes: 0, status: 'absent' as const }
+
+            const sorted = [...dayRecords].sort((a, b) => parseISO(a.checktime).getTime() - parseISO(b.checktime).getTime())
+            const firstCheck = sorted[0]
+            const lastCheck = sorted[sorted.length - 1]
+            const firstCheckDate = parseISO(firstCheck.checktime)
+
+            let workedMinutes = 0
+            let lastInTime: number | null = null
+
+            sorted.forEach(record => {
+                const time = parseISO(record.checktime).getTime()
+                const isEntry = record.checktype === 0 || record.checktype === 128 || record.checktype === 3
+                const isExit = record.checktype === 1 || record.checktype === 129 || record.checktype === 2
+                if (isEntry) lastInTime = time
+                else if (isExit && lastInTime !== null) {
+                    workedMinutes += (time - lastInTime) / (1000 * 60)
+                    lastInTime = null
+                }
+            })
+
+            const employeeId = dayRecords[0]?.employeeId || ''
+            const employeeName = dayRecords[0]?.employeeName || ''
+            let employeeSchedule: Schedule;
+            if (isVilaPeixoto) employeeSchedule = getVilaPeixotoSchedule(employeeName);
+            else employeeSchedule = schedules.find(s => (s as any).employeeSchedules?.some((es: any) => es.workno === employeeId)) || schedules[0];
+
+            const lastCheckDate = sorted.length > 1 && lastInTime === null ? parseISO(lastCheck.checktime) : null
+            const overtimeMinutes = calculateOvertime(firstCheckDate, lastCheckDate, employeeSchedule)
+            const isLate = checkIsLate(firstCheckDate, employeeSchedule)
+
+            return {
+                workedMinutes: Math.round(workedMinutes),
+                overtimeMinutes,
+                status: (isLate && !employeeSchedule.warningsDisabled) ? 'late' as const : 'normal' as const
+            }
+        })
+
+        const workDays = daysData.filter((_, i) => !isWeekend(days[i]))
         const presentDays = workDays.filter(d => d.workedMinutes > 0)
         const absentDays = workDays.filter(d => d.status === 'absent')
         const lateDays = workDays.filter(d => d.status === 'late')
-
-        const totalWorkedMinutes = monthDays.reduce((acc, d) => acc + d.workedMinutes, 0)
-        const totalOvertimeMinutes = monthDays.reduce((acc, d) => acc + d.overtimeMinutes, 0)
-
-        const workedHours = Math.floor(totalWorkedMinutes / 60)
-        const workedMins = totalWorkedMinutes % 60
-        const overtimeHours = Math.floor(totalOvertimeMinutes / 60)
-        const overtimeMins = totalOvertimeMinutes % 60
+        const totalWorkedMinutes = daysData.reduce((acc, d) => acc + d.workedMinutes, 0)
+        const totalOvertimeMinutes = daysData.reduce((acc, d) => acc + d.overtimeMinutes, 0)
 
         return {
-            workDays: workDays.length,
             presentDays: presentDays.length,
+            workDays: workDays.length,
             absentDays: absentDays.length,
             lateDays: lateDays.length,
-            totalWorked: `${workedHours}h ${workedMins}m`,
-            totalOvertime: `${overtimeHours}h ${overtimeMins}m`,
-            attendanceRate: workDays.length > 0
-                ? Math.round((presentDays.length / workDays.length) * 100)
-                : 0
+            totalWorked: totalWorkedMinutes,
+            totalOvertime: totalOvertimeMinutes,
+            attendanceRate: workDays.length > 0 ? Math.round((presentDays.length / workDays.length) * 100) : 0,
+            warningsDisabled: isVilaPeixoto
         }
-    }, [monthDays])
+    }
+
+    const summary = React.useMemo(() => calculateFullSummary(filteredRecords), [filteredRecords, currentMonth, schedules, isVilaPeixoto])
+
+    const allEmployeeSummaries = React.useMemo(() => {
+        if (selectedEmployee !== "all") return []
+        return employees.map(emp => ({
+            ...emp,
+            ...calculateFullSummary(records.filter(r => r.employeeId === emp.id))
+        }))
+    }, [employees, records, currentMonth, schedules, isVilaPeixoto, selectedEmployee])
 
     const formatMinutes = (minutes: number) => {
         if (minutes === 0) return '-'
@@ -295,7 +432,7 @@ export default function TimesheetPage() {
                 saida: d.lastOut ? format(parseISO(d.lastOut), 'HH:mm') : '-',
                 duracao: formatMinutes(d.workedMinutes),
                 horasExtra: d.overtimeMinutes > 0 ? formatMinutes(d.overtimeMinutes) : '-',
-                estado: d.status === 'absent' ? 'Falta' : d.status === 'late' ? 'Atraso' : 'OK'
+                estado: d.status === 'absent' ? 'Falta' : (d.status === 'late' ? 'Atraso' : 'OK')
             }))
 
         exportToPDF(
@@ -388,7 +525,7 @@ export default function TimesheetPage() {
                             <Button
                                 variant="outline"
                                 className="w-full"
-                                onClick={fetchMonthRecords}
+                                onClick={fetchMonthData}
                                 disabled={loading}
                             >
                                 <RefreshCw className={cn("h-4 w-4 mr-2", loading && "animate-spin")} />
@@ -422,7 +559,7 @@ export default function TimesheetPage() {
                             Aguardando Seleção
                         </h3>
                         <p className="max-w-md mx-auto text-sm mb-6">
-                            Selecione um colaborador acima para visualizar a sua folha de ponto e registos mensais.
+                            Selecione um colaborador acima para visualizar a sua folha de ponto e registos individuais.
                         </p>
                     </div>
                 </Card>
@@ -452,7 +589,7 @@ export default function TimesheetPage() {
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold">{summary.totalWorked}</div>
+                                <div className="text-2xl font-bold">{formatMinutes(summary.totalWorked)}</div>
                             </CardContent>
                         </Card>
 
@@ -464,7 +601,7 @@ export default function TimesheetPage() {
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold text-orange-600">{summary.totalOvertime}</div>
+                                <div className="text-2xl font-bold text-orange-600">{formatMinutes(summary.totalOvertime)}</div>
                             </CardContent>
                         </Card>
 
@@ -472,14 +609,18 @@ export default function TimesheetPage() {
                             <CardHeader className="pb-2">
                                 <CardDescription className="flex items-center gap-2">
                                     <AlertCircle className="h-4 w-4 text-red-500" />
-                                    Faltas / Atrasos
+                                    {summary.warningsDisabled ? 'Total de Faltas' : 'Faltas / Atrasos'}
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
                                 <div className="text-2xl font-bold">
                                     <span className="text-red-600">{summary.absentDays}</span>
-                                    <span className="text-neutral-400 mx-1">/</span>
-                                    <span className="text-orange-600">{summary.lateDays}</span>
+                                    {!summary.warningsDisabled && (
+                                        <>
+                                            <span className="text-neutral-400 mx-1">/</span>
+                                            <span className="text-orange-600">{summary.lateDays}</span>
+                                        </>
+                                    )}
                                 </div>
                             </CardContent>
                         </Card>

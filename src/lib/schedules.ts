@@ -8,17 +8,19 @@ import { startOfDay, differenceInMinutes, parseISO } from "date-fns";
 export interface Schedule {
     id: string;
     name: string;
-    startTime: { hour: number; minute: number };  // Hora de entrada normal
-    endTime: { hour: number; minute: number };    // Hora de saída normal
-    lateToleranceMinutes: number;                 // Tolerância para marcar atraso
-    earlyOutToleranceMinutes: number;             // Tolerância para saída antecipada
-    overtimeThresholdMinutes: number;             // Mínimo de minutos para contar HE
-    autoBreakDeduction: {                         // Break automático descontado
+    startTime: string | { hour: number; minute: number };  // "HH:mm" in DB, object in legacy
+    endTime: string | { hour: number; minute: number };    // "HH:mm" in DB, object in legacy
+    lateToleranceMinutes?: number;                 // Legacy
+    lateTolerance?: number;                        // DB
+    earlyOutToleranceMinutes?: number;             // Legacy
+    overtimeThresholdMinutes?: number;             // Legacy
+    autoBreakDeduction?: {                         // Break automático descontado
         enabled: boolean;
         startWindow: { hour: number; minute: number };
         endWindow: { hour: number; minute: number };
         durationMinutes: number;
     };
+    warningsDisabled?: boolean;                    // Disable lateness and other alerts
 }
 
 // Definição dos horários (sincronizado com Anviz W1 Pro)
@@ -67,8 +69,56 @@ export const EMPLOYEE_SCHEDULES: Record<string, string> = {
 // Horário padrão para quem não está especificado
 export const DEFAULT_SCHEDULE_ID = 'VE';
 
+// HARDCODED RULES FOR VILA PEIXOTO (to avoid manual management for small clients)
+export const VILA_PEIXOTO_RULES: Record<string, Partial<Schedule>> = {
+    '7h-16h': { name: "Turno Júlio 7h-16h", startTime: "07:00", endTime: "16:00", lateTolerance: 15 },
+    '9h-18h': { name: "Turno Geral 9h-18h", startTime: "09:00", endTime: "18:00", lateTolerance: 15 },
+    '12h-22h': { name: "Turno 12h-22h", startTime: "12:00", endTime: "22:00", lateTolerance: 15 },
+};
+
+// Mapping for Vila Peixoto (Ana and Tabata are 12-22h, Julio is 7-16h, others 9-18h)
+export function getVilaPeixotoSchedule(employeeName: string): Schedule {
+    const name = employeeName.toLowerCase();
+
+    // Turno Júlio 7h-16h
+    if (name.includes('julio') || name.includes('júlio')) {
+        return {
+            id: 'auto-vp-7',
+            ...VILA_PEIXOTO_RULES['7h-16h'],
+            warningsDisabled: true // DESLIGADO as per user request
+        } as Schedule;
+    }
+
+    // Turno 12h-22h (Ana, Tabata, Carla, Rosandra)
+    if (name.includes('ana') || name.includes('tabata') || name.includes('tábata') || name.includes('carla') || name.includes('rosandra')) {
+        return {
+            id: 'auto-vp-12',
+            ...VILA_PEIXOTO_RULES['12h-22h'],
+            warningsDisabled: true // DESLIGADO as per user request
+        } as Schedule;
+    }
+
+    // Turno Geral 9h-18h (Paulo Jorge, Rosandra, etc.)
+    return {
+        id: 'auto-vp-9',
+        ...VILA_PEIXOTO_RULES['9h-18h'],
+        warningsDisabled: true // DESLIGADO as per user request
+    } as Schedule;
+}
+
 /**
- * Obtém o horário de um colaborador
+ * Helper to get hour/minute from either string "HH:mm" or legacy object {hour, minute}
+ */
+function parseTime(time: string | { hour: number; minute: number }): { hour: number; minute: number } {
+    if (typeof time === 'string') {
+        const [h, m] = time.split(':').map(Number);
+        return { hour: h, minute: m };
+    }
+    return time;
+}
+
+/**
+ * Obtém o horário de um colaborador (Legacy wrapper - only works with hardcoded values)
  */
 export function getEmployeeSchedule(workno: string): Schedule {
     const scheduleId = EMPLOYEE_SCHEDULES[workno] || DEFAULT_SCHEDULE_ID;
@@ -78,62 +128,55 @@ export function getEmployeeSchedule(workno: string): Schedule {
 /**
  * Verifica se um colaborador chegou atrasado
  */
-export function isLate(workno: string, checkInTime: Date): boolean {
-    const schedule = getEmployeeSchedule(workno);
-    const { startTime, lateToleranceMinutes } = schedule;
+export function isLate(checkInTime: Date, schedule?: Schedule): boolean {
+    if (!schedule || schedule.warningsDisabled) return false;
 
-    // Calcular hora limite (entrada + tolerância)
-    const limitHour = startTime.hour;
-    const limitMinute = startTime.minute + lateToleranceMinutes;
+    const startTime = parseTime(schedule.startTime);
+    const tolerance = schedule.lateTolerance ?? schedule.lateToleranceMinutes ?? 0;
 
-    const checkHour = checkInTime.getHours();
-    const checkMinute = checkInTime.getMinutes();
+    // Convert check-in time to minutes from midnight in the LOCAL timezone of the check-in
+    // This is safer than just getHours() if the Date object was parsed from a local string.
+    const checkInMinutes = checkInTime.getHours() * 60 + checkInTime.getMinutes();
+    const limitMinutesFromMidnight = startTime.hour * 60 + startTime.minute + tolerance;
 
-    // Converter para minutos desde meia-noite para comparar
-    const limitInMinutes = limitHour * 60 + limitMinute;
-    const checkInMinutes = checkHour * 60 + checkMinute;
+    // console.log(`Checking lateness: ${checkInMinutes} vs limit ${limitMinutesFromMidnight} (start ${startTime.hour}:${startTime.minute} + tol ${tolerance})`);
 
-    return checkInMinutes > limitInMinutes;
+    return checkInMinutes > limitMinutesFromMidnight;
 }
 
 /**
  * Calcula horas extra de um dia
- * HE = tempo antes da entrada normal + tempo depois da saída normal
- * IMPORTANTE: Só conta se >= overtimeThresholdMinutes (10 min no Anviz)
  */
 export function calculateOvertime(
-    workno: string,
     firstCheckIn: Date,
-    lastCheckOut: Date | null
+    lastCheckOut: Date | null,
+    schedule?: Schedule
 ): number {
-    const schedule = getEmployeeSchedule(workno);
-    const { startTime, endTime, overtimeThresholdMinutes } = schedule;
+    if (!schedule) return 0;
+
+    const startTime = parseTime(schedule.startTime);
+    const endTime = parseTime(schedule.endTime);
+    const threshold = schedule.overtimeThresholdMinutes ?? 10;
 
     let overtimeMinutes = 0;
 
-    // Horas extra por entrada antecipada (antes do horário normal)
+    // Entrada antecipada
     const scheduledStartMinutes = startTime.hour * 60 + startTime.minute;
     const actualStartMinutes = firstCheckIn.getHours() * 60 + firstCheckIn.getMinutes();
 
     if (actualStartMinutes < scheduledStartMinutes) {
         const earlyMinutes = scheduledStartMinutes - actualStartMinutes;
-        // Só conta se >= threshold
-        if (earlyMinutes >= overtimeThresholdMinutes) {
-            overtimeMinutes += earlyMinutes;
-        }
+        if (earlyMinutes >= threshold) overtimeMinutes += earlyMinutes;
     }
 
-    // Horas extra por saída tardia (depois do horário normal)
+    // Saída tardia
     if (lastCheckOut) {
         const scheduledEndMinutes = endTime.hour * 60 + endTime.minute;
         const actualEndMinutes = lastCheckOut.getHours() * 60 + lastCheckOut.getMinutes();
 
         if (actualEndMinutes > scheduledEndMinutes) {
             const lateMinutes = actualEndMinutes - scheduledEndMinutes;
-            // Só conta se >= threshold
-            if (lateMinutes >= overtimeThresholdMinutes) {
-                overtimeMinutes += lateMinutes;
-            }
+            if (lateMinutes >= threshold) overtimeMinutes += lateMinutes;
         }
     }
 
@@ -142,19 +185,13 @@ export function calculateOvertime(
 
 /**
  * Calcula horas normais trabalhadas (sem horas extra, COM desconto de break)
- * IMPORTANTE: Anviz desconta automaticamente 1h de break se trabalhar entre 12:00-15:00
  */
-export function calculateRegularHours(workno: string, workedMinutes: number): number {
-    const schedule = getEmployeeSchedule(workno);
-    const { startTime, endTime, autoBreakDeduction } = schedule;
+export function calculateRegularHours(workedMinutes: number, schedule?: Schedule): number {
+    if (!schedule) return workedMinutes;
 
-    const startMinutes = startTime.hour * 60 + startTime.minute;
-    const endMinutes = endTime.hour * 60 + endTime.minute;
-    const scheduledMinutes = endMinutes - startMinutes;
+    const { autoBreakDeduction } = schedule;
 
-    // Se break automático está ativo e colaborador trabalhou tempo suficiente
-    if (autoBreakDeduction.enabled && workedMinutes >= autoBreakDeduction.durationMinutes) {
-        // Descontar break
+    if (autoBreakDeduction?.enabled && workedMinutes >= autoBreakDeduction.durationMinutes) {
         return Math.max(0, workedMinutes - autoBreakDeduction.durationMinutes);
     }
 
@@ -164,38 +201,40 @@ export function calculateRegularHours(workno: string, workedMinutes: number): nu
 /**
  * Obtém informação formatada do horário
  */
-export function getScheduleInfo(workno: string): {
+export function getFormattedScheduleInfo(schedule?: Schedule): {
     scheduleName: string;
     startTimeStr: string;
     endTimeStr: string;
     regularHours: string;
     breakInfo: string;
 } {
-    const schedule = getEmployeeSchedule(workno);
-    const { startTime, endTime, autoBreakDeduction } = schedule;
+    if (!schedule) {
+        return {
+            scheduleName: 'Sem Horário',
+            startTimeStr: '--:--',
+            endTimeStr: '--:--',
+            regularHours: '0h',
+            breakInfo: 'Não definido'
+        };
+    }
 
-    const startMinutes = startTime.hour * 60 + startTime.minute;
-    const endMinutes = endTime.hour * 60 + endTime.minute;
-    const totalMinutes = endMinutes - startMinutes;
+    const start = parseTime(schedule.startTime);
+    const end = parseTime(schedule.endTime);
+    const breakDeduction = schedule.autoBreakDeduction?.enabled ? schedule.autoBreakDeduction.durationMinutes : 0;
 
-    // Descontar break se ativo
-    const workMinutes = autoBreakDeduction.enabled
-        ? totalMinutes - autoBreakDeduction.durationMinutes
-        : totalMinutes;
+    const totalMinutes = (end.hour * 60 + end.minute) - (start.hour * 60 + start.minute);
+    const workMinutes = Math.max(0, totalMinutes - breakDeduction);
 
     const regularHours = Math.floor(workMinutes / 60);
     const regularMins = workMinutes % 60;
 
-    const breakHours = Math.floor(autoBreakDeduction.durationMinutes / 60);
-    const breakMins = autoBreakDeduction.durationMinutes % 60;
-
     return {
         scheduleName: schedule.name,
-        startTimeStr: `${startTime.hour.toString().padStart(2, '0')}:${startTime.minute.toString().padStart(2, '0')}`,
-        endTimeStr: `${endTime.hour.toString().padStart(2, '0')}:${endTime.minute.toString().padStart(2, '0')}`,
+        startTimeStr: `${start.hour.toString().padStart(2, '0')}:${start.minute.toString().padStart(2, '0')}`,
+        endTimeStr: `${end.hour.toString().padStart(2, '0')}:${end.minute.toString().padStart(2, '0')}`,
         regularHours: `${regularHours}h${regularMins > 0 ? ` ${regularMins}m` : ''}`,
-        breakInfo: autoBreakDeduction.enabled
-            ? `${breakHours}h${breakMins > 0 ? ` ${breakMins}m` : ''} (12:00-15:00)`
+        breakInfo: schedule.autoBreakDeduction?.enabled
+            ? `${Math.floor(schedule.autoBreakDeduction.durationMinutes / 60)}h ${schedule.autoBreakDeduction.durationMinutes % 60}m`
             : 'Sem break automático'
     };
 }
