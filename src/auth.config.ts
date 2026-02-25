@@ -6,7 +6,7 @@ export const authConfig = {
     // Use JWT sessions for better performance (no database lookup on every request)
     session: {
         strategy: "jwt",
-        maxAge: 8 * 60 * 60, // 8 hours
+        maxAge: 30 * 60, // 30 minutes
     },
     // Trust host for Vercel deployment
     trustHost: true,

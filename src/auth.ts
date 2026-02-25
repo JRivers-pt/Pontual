@@ -24,16 +24,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
                 const { username, password } = parsedCredentials.data;
 
-                let user = await prisma.user.findUnique({
-                    where: { username }
-                });
+                // Normalize username to lowercase to match DB state
+                const normalizedUsername = username.toLowerCase();
 
-                // Fallback: try lowercase match if exact match fails
-                if (!user) {
-                    user = await prisma.user.findFirst({
-                        where: { username: username.toLowerCase() }
-                    });
-                }
+                const user = await prisma.user.findUnique({
+                    where: { username: normalizedUsername }
+                });
 
                 // Auto-create admin user on first-ever login (empty database)
                 if (!user) {
