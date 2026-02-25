@@ -13,7 +13,6 @@ export async function GET(request: Request) {
     const testEmail = searchParams.get("email");
 
     try {
-        const resend = new Resend(process.env.RESEND_API_KEY);
         const users = await prisma.user.findMany({
             where: { company: { contains: company } }
         });
@@ -153,7 +152,9 @@ export async function GET(request: Request) {
             const pdfArrayBuffer = doc.output('arraybuffer');
             const pdfBuffer = Buffer.from(pdfArrayBuffer);
 
-            if (process.env.RESEND_API_KEY) {
+            const resendKey = process.env.RESEND_API_KEY;
+            if (resendKey) {
+                const resend = new Resend(resendKey);
                 await resend.emails.send({
                     from: "Pontual <noreply@pontualidade.pt>",
                     to: reportEmail,
