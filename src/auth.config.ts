@@ -17,7 +17,8 @@ export const authConfig = {
                 sameSite: 'lax' as const,
                 path: '/',
                 secure: process.env.NODE_ENV === 'production',
-                maxAge: 8 * 60 * 60, // 8 hours — session expires after a working day
+                // No maxAge = true session cookie: expires when browser is closed
+                // The JWT itself has 8h maxAge as a safety net
             }
         }
     },

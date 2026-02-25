@@ -6,7 +6,6 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { getCrossChexToken, generateRequestId, generateTimestamp } from "@/lib/api-server";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
@@ -14,6 +13,7 @@ export async function GET(request: Request) {
     const testEmail = searchParams.get("email");
 
     try {
+        const resend = new Resend(process.env.RESEND_API_KEY);
         const users = await prisma.user.findMany({
             where: { company: { contains: company } }
         });
@@ -92,6 +92,8 @@ export async function GET(request: Request) {
                 doc.text(`Mes: ${format(new Date(), 'MMMM yyyy', { locale: pt })}`, 14, 36);
                 doc.text(`Gerado em: ${format(new Date(), 'dd/MM/yyyy HH:mm')}`, 14, 42);
 
+                const today = new Date();
+
                 const daysData = eachDayOfInterval({ start: monthStart, end: monthEnd }).map(day => {
                     const dateStr = format(day, 'yyyy-MM-dd');
                     const dayItems = empData.records.filter((r: any) => r.checktime.startsWith(dateStr));
@@ -102,11 +104,31 @@ export async function GET(request: Request) {
                     const first = sorted[0];
                     const last = sorted[sorted.length - 1];
 
+                    // Determine actual checkout: last record must be a checkout type (checktype 1 or 129)
+                    const lastIsCheckout = last && (last.checktype === 1 || last.checktype === 129);
+                    const isPastDay = day < today && format(day, 'yyyy-MM-dd') !== format(today, 'yyyy-MM-dd');
+
+                    // Auto-checkout estimation: if past day has entry but no checkout, use shift end time
+                    let exitDisplay = '-';
+                    if (lastIsCheckout && last !== first) {
+                        exitDisplay = format(parseISO(last.checktime), 'HH:mm');
+                    } else if (first && isPastDay) {
+                        // Use a default end time based on company schedule
+                        // For now default to shift end based on check-in time pattern
+                        const checkInHour = parseISO(first.checktime).getHours();
+                        let estimatedEndTime = '18:00'; // default
+                        if (checkInHour <= 7) estimatedEndTime = '16:30';       // Turno A/C (07:30)
+                        else if (checkInHour <= 8) estimatedEndTime = '17:30';  // Turno B (08:30)
+                        else if (checkInHour <= 9) estimatedEndTime = '18:00';  // Turno A Benfica (09:00)
+                        else if (checkInHour <= 10) estimatedEndTime = '19:00'; // Turno D (10:00)
+                        exitDisplay = `${estimatedEndTime}*`;
+                    }
+
                     return [
                         format(day, 'dd/MM'),
                         format(day, 'EEEE', { locale: pt }),
                         first ? format(parseISO(first.checktime), 'HH:mm') : '-',
-                        (last && last !== first) ? format(parseISO(last.checktime), 'HH:mm') : '-',
+                        exitDisplay,
                         dayItems.length > 0 ? 'Presente' : (isWeekend(day) ? 'FDS' : 'Falta')
                     ];
                 }).filter(Boolean);
