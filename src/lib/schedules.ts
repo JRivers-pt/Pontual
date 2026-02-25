@@ -115,9 +115,11 @@ export function getVilaPeixotoSchedule(employeeName: string): Schedule {
 }
 
 // Mapping for Gengibre / Cozinha Criativa
-export function getGengibreSchedule(employeeName: string, employeeId?: string): Schedule {
+export function getGengibreSchedule(employeeName: string, employeeId?: string | number): Schedule {
     const name = employeeName.toLowerCase();
-    const id = employeeId;
+    const id = employeeId ? String(employeeId) : undefined;
+
+    // console.log(`[getGengibreSchedule] Mapping for ${employeeName} (ID: ${id})`);
 
     // Map by ID (most reliable)
     // IDs based on the dashboard screenshot
@@ -140,7 +142,7 @@ export function getGengibreSchedule(employeeName: string, employeeId?: string): 
     return {
         id: 'auto-gg-default',
         ...GENGIBRE_RULES['Benfica A'],
-        warningsDisabled: false 
+        warningsDisabled: false
     } as Schedule;
 }
 

@@ -84,7 +84,9 @@ export default function TimesheetPage() {
 
     const companyName = (session?.user as any)?.company || ""
     const isVilaPeixoto = companyName.toLowerCase().includes("vila peixoto")
-    const isGengibre = companyName.toLowerCase().includes("cozinha criativa") || companyName.toLowerCase().includes("gengibre")
+    const isGengibre = companyName.toLowerCase().includes("cozinha") ||
+        companyName.toLowerCase().includes("gengibre") ||
+        companyName.toLowerCase().includes("criativa")
 
     // Extract unique employees
     const employees = React.useMemo<Employee[]>(() => {

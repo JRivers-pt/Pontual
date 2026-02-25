@@ -65,7 +65,11 @@ export default function DashboardPage() {
 
   const companyName = (session?.user as any)?.company || ""
   const isVilaPeixoto = companyName.toLowerCase().includes("vila peixoto")
-  const isGengibre = companyName.toLowerCase().includes("cozinha criativa") || companyName.toLowerCase().includes("gengibre")
+  const isGengibre = companyName.toLowerCase().includes("cozinha") ||
+    companyName.toLowerCase().includes("gengibre") ||
+    companyName.toLowerCase().includes("criativa")
+
+  // console.log("[DASHBOARD] Company:", companyName, "isGengibre:", isGengibre);
 
   const fetchData = React.useCallback(async () => {
     setLoading(true)
@@ -148,7 +152,7 @@ export default function DashboardPage() {
         employeeSchedule = getVilaPeixotoSchedule(data.name);
       } else if (isGengibre) {
         employeeSchedule = getGengibreSchedule(data.name, id);
-        // console.log(`[DEBUG] Gengibre mapping: ${data.name} (ID: ${id}) -> ${employeeSchedule.name}`);
+        // console.log(`[DASHBOARD] Gengibre schedule for ${data.name} (ID: ${id}): ${employeeSchedule.name}`);
       } else {
         employeeSchedule = schedules.find(s =>
           (s as any).employeeSchedules?.some((es: any) => es.workno === id)
