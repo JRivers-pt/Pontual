@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
             payload: {
                 begin_time: beginTime,
                 end_time: endTime,
-                order: 'desc',
+                order: 'asc',
                 page: page,
                 per_page: perPage
             }

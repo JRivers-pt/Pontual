@@ -105,7 +105,7 @@ export default function TimesheetPage() {
             .sort((a, b) => a.name.localeCompare(b.name))
     }, [records, allEmployees])
 
-    const fetchMonthData = React.useCallback(async (isRetry = false) => {
+    const fetchMonthData = React.useCallback(async () => {
         setLoading(true)
         setError(null)
 
@@ -114,8 +114,10 @@ export default function TimesheetPage() {
             const monthEnd = endOfMonth(currentMonth)
             const now = new Date()
 
-            // Cap the end time to 'now' for the current month
-            const adjustedEnd = monthEnd > now ? now : monthEnd;
+            // For past months, use the full end of the month.
+            // For the current month, cap to 'now' to avoid API errors.
+            const isCurrentMonth = format(currentMonth, 'yyyy-MM') === format(now, 'yyyy-MM')
+            const adjustedEnd = isCurrentMonth ? now : monthEnd
 
             const beginTime = monthStart.toISOString().replace('Z', '+00:00')
             const endTime = adjustedEnd.toISOString().replace('Z', '+00:00')
@@ -125,12 +127,7 @@ export default function TimesheetPage() {
                 getSchedules()
             ])
 
-            // Sort records by checktime ascending to ensure correct day mapping
-            const sorted = [...(response.payload.list || [])].sort((a: any, b: any) =>
-                new Date(a.checktime).getTime() - new Date(b.checktime).getTime()
-            )
-
-            const formattedRecords: AttendanceRecord[] = sorted.map((item: any) => ({
+            const formattedRecords: AttendanceRecord[] = (response.payload.list || []).map(item => ({
                 uuid: item.uuid,
                 employeeName: `${item.employee.first_name} ${item.employee.last_name}`.trim(),
                 employeeId: item.employee.workno,
@@ -142,30 +139,17 @@ export default function TimesheetPage() {
             setSchedules(schedulesData)
             setLastUpdate(new Date())
 
-            // Always merge new employees into allEmployees (never reset)
-            const empMap = new Map<string, string>()
-            formattedRecords.forEach(r => {
-                if (!empMap.has(r.employeeId)) {
-                    empMap.set(r.employeeId, r.employeeName)
-                }
-            })
-            const foundEmployees = Array.from(empMap.entries()).map(([id, name]) => ({ id, name }))
-            if (foundEmployees.length > 0) {
-                setAllEmployees(prev => {
-                    const combined = [...prev]
-                    foundEmployees.forEach(fe => {
-                        if (!combined.some(c => c.id === fe.id)) combined.push(fe)
-                    })
-                    return combined.sort((a, b) => a.name.localeCompare(b.name))
+            // Merge new employees into allEmployees
+            setAllEmployees(prev => {
+                const combined = [...prev]
+                formattedRecords.forEach(r => {
+                    if (!combined.some(c => c.id === r.employeeId)) {
+                        combined.push({ id: r.employeeId, name: r.employeeName })
+                    }
                 })
-            }
+                return combined.sort((a, b) => a.name.localeCompare(b.name))
+            })
         } catch (err: any) {
-            // On auth errors, retry once with a fresh token
-            if (!isRetry && (err.message?.includes('401') || err.message?.includes('token') || err.message?.includes('auth'))) {
-                console.warn('Auth error, retrying once...')
-                setTimeout(() => fetchMonthData(true), 1500)
-                return
-            }
             setError(err.message || 'Erro ao carregar dados')
             console.error('Error fetching month data:', err)
         } finally {
@@ -173,45 +157,46 @@ export default function TimesheetPage() {
         }
     }, [currentMonth])
 
+    // On mount: first load the employee list, then load the month data
     React.useEffect(() => {
-        // Fetch employees from a wider range (3 months) to ensure dropdown is never empty
-        const fetchInitialEmployees = async () => {
+        const init = async () => {
+            // Step 1: Quick fetch to populate the employee dropdown from recent months
             try {
                 const now = new Date()
-                const ago = subMonths(now, 3)
+                const ago = subMonths(now, 2)
                 const response = await getAttendanceRecords(
                     ago.toISOString().replace('Z', '+00:00'),
                     now.toISOString().replace('Z', '+00:00')
                 )
-                const empMap = new Map<string, string>()
+                const found: Employee[] = []
+                const seen = new Set<string>()
                 response.payload.list.forEach((r: any) => {
-                    if (!empMap.has(r.employee.workno)) {
-                        empMap.set(r.employee.workno, `${r.employee.first_name} ${r.employee.last_name}`.trim())
+                    if (!seen.has(r.employee.workno)) {
+                        seen.add(r.employee.workno)
+                        found.push({ id: r.employee.workno, name: `${r.employee.first_name} ${r.employee.last_name}`.trim() })
                     }
                 })
-                const found = Array.from(empMap.entries()).map(([id, name]) => ({ id, name }))
-                if (found.length > 0) {
-                    setAllEmployees(prev => {
-                        const combined = [...prev]
-                        found.forEach(fe => {
-                            if (!combined.some(c => c.id === fe.id)) combined.push(fe)
-                        })
-                        return combined.sort((a, b) => a.name.localeCompare(b.name))
-                    })
-                }
+                setAllEmployees(found.sort((a, b) => a.name.localeCompare(b.name)))
             } catch (e) {
                 console.error("Error fetching initial employees:", e)
             }
-        }
-        fetchInitialEmployees()
-    }, []) // Run once on mount to pre-populate the dropdown
 
-    React.useEffect(() => {
-        fetchMonthData()
+            // Step 2: Then load the current month's data
+            await fetchMonthData()
+        }
+        init()
+
         // Auto-refresh every 60 seconds
         const interval = setInterval(fetchMonthData, 60 * 1000)
         return () => clearInterval(interval)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+
+    // When the user changes the month, fetch that month's data
+    React.useEffect(() => {
+        fetchMonthData()
     }, [fetchMonthData])
+
 
     // Filter records by selected employee
     const filteredRecords = React.useMemo(() => {
@@ -223,10 +208,7 @@ export default function TimesheetPage() {
     const monthDays = React.useMemo<DayRecord[]>(() => {
         const monthStart = startOfMonth(currentMonth)
         const monthEnd = endOfMonth(currentMonth)
-        const now = new Date()
-        // For the current month, don't show days after today (they have no data and show as false absences)
-        const displayEnd = monthEnd > now ? now : monthEnd
-        const days = eachDayOfInterval({ start: monthStart, end: displayEnd })
+        const days = eachDayOfInterval({ start: monthStart, end: monthEnd })
 
         return days.map(day => {
             const dateStr = format(day, 'yyyy-MM-dd')
@@ -546,7 +528,7 @@ export default function TimesheetPage() {
                             <Button
                                 variant="outline"
                                 className="w-full"
-                                onClick={() => fetchMonthData()}
+                                onClick={fetchMonthData}
                                 disabled={loading}
                             >
                                 <RefreshCw className={cn("h-4 w-4 mr-2", loading && "animate-spin")} />

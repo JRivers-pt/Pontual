@@ -80,76 +80,57 @@ export async function getAttendanceRecords(
   endTime: string,
   onProgress?: (count: number) => void
 ): Promise<RecordsResponse> {
-  try {
-    const token = await getAuthToken();
-    let allRecords: AttendanceRecord[] = [];
-    let page = 1;
-    const perPage = 100; // Max allowed by CrossChex usually
-    let hasMore = true;
+  // Invalidate token cache to always get fresh token for new fetches
+  const token = await getAuthToken();
+  let allRecords: AttendanceRecord[] = [];
+  let page = 1;
+  const perPage = 100;
+  const MAX_PAGES = 50; // Safety cap to avoid infinite loops
 
-    while (hasMore) {
-      const response = await fetch('/api/attendance/records', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          token,
-          beginTime,
-          endTime,
-          page,
-          perPage
-        }),
-      });
+  while (page <= MAX_PAGES) {
+    const response = await fetch('/api/attendance/records', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, beginTime, endTime, page, perPage }),
+    });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-      }
-
-      const data: RecordsResponse = await response.json();
-      const records = data.payload.list || [];
-
-      allRecords = [...allRecords, ...records];
-
-      // Update progress if callback provided
-      if (onProgress) {
-        onProgress(allRecords.length);
-      }
-
-      // Check if we need to fetch more
-      const totalCount = data.payload.count;
-      const totalPages = Math.ceil(totalCount / perPage);
-
-      if (page >= totalPages || records.length === 0) {
-        hasMore = false;
-      } else {
-        page++;
-      }
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
     }
 
-    // Return structure matching original but with all records
-    return {
-      header: {
-        nameSpace: 'attendance.record',
-        nameAction: 'getrecord',
-        version: '1.0',
-        requestId: 'aggregated',
-        timestamp: new Date().toISOString()
-      },
-      payload: {
-        count: allRecords.length,
-        list: allRecords,
-        page: 1,
-        perPage: allRecords.length,
-        pageCount: 1
-      }
-    };
+    const data: RecordsResponse = await response.json();
+    const records = data.payload?.list || [];
 
-  } catch (error) {
-    console.error('Error fetching attendance records:', error);
-    throw error;
+    if (records.length === 0) break; // No more records
+
+    allRecords = [...allRecords, ...records];
+
+    if (onProgress) onProgress(allRecords.length);
+
+    // Stop if we have all records according to the API
+    const totalCount = data.payload?.count || 0;
+    if (allRecords.length >= totalCount) break;
+
+    page++;
   }
+
+  return {
+    header: {
+      nameSpace: 'attendance.record',
+      nameAction: 'getrecord',
+      version: '1.0',
+      requestId: 'aggregated',
+      timestamp: new Date().toISOString()
+    },
+    payload: {
+      count: allRecords.length,
+      list: allRecords,
+      page: 1,
+      perPage: allRecords.length,
+      pageCount: 1
+    }
+  };
 }
 
 export async function getEmployees() {
