@@ -270,27 +270,26 @@ export default function TimesheetPage() {
                 }
             })
 
-            workedMinutes = Math.round(workedMinutes)
+            const isPastDay = day < startOfDay(new Date())
 
-            // Usar schedules.ts para cálculos específicos do colaborador
-            const employeeId = dayRecords[0]?.employeeId || ''
-            const employeeName = dayRecords[0]?.employeeName || ''
-
-            // DETERMINE SCHEDULE: 
-            // 1. If Vila Peixoto, use automatic rules based on name
-            // 2. If DB schedules exist, use those
-            // 3. Fallback to first schedule or default
-            let employeeSchedule: Schedule;
-
-            if (isVilaPeixoto) {
-                employeeSchedule = getVilaPeixotoSchedule(employeeName);
-            } else if (isGengibre) {
-                employeeSchedule = getGengibreSchedule(employeeName, employeeId);
-            } else {
-                employeeSchedule = schedules.find(s =>
-                    (s as any).employeeSchedules?.some((es: any) => es.workno === employeeId)
-                ) || schedules[0];
+            // If a past day has an open check-in (no check-out), estimate the checkout
+            // using the employee's scheduled end time
+            let autoCheckout = false
+            if (lastInTime !== null && isPastDay && employeeSchedule) {
+                const endTime = typeof employeeSchedule.endTime === 'string'
+                    ? (() => { const [h, m] = (employeeSchedule.endTime as string).split(':').map(Number); return { hour: h, minute: m } })()
+                    : employeeSchedule.endTime as { hour: number; minute: number }
+                const estimatedOut = new Date(day)
+                estimatedOut.setHours(endTime.hour, endTime.minute, 0, 0)
+                const estimatedMs = estimatedOut.getTime()
+                if (estimatedMs > lastInTime) {
+                    workedMinutes += (estimatedMs - lastInTime) / (1000 * 60)
+                    lastInTime = null
+                    autoCheckout = true
+                }
             }
+
+            workedMinutes = Math.round(workedMinutes)
 
             const lastCheckDate = sorted.length > 1 && lastInTime === null ? parseISO(lastCheck.checktime) : null
             const overtimeMinutes = calculateOvertime(firstCheckDate, lastCheckDate, employeeSchedule)
@@ -302,7 +301,8 @@ export default function TimesheetPage() {
                 dateStr,
                 isWeekend: false,
                 firstIn: firstCheck.checktime,
-                lastOut: lastCheck.checktype === 1 || lastCheck.checktype === 129 ? lastCheck.checktime : null,
+                lastOut: (lastCheck.checktype === 1 || lastCheck.checktype === 129) ? lastCheck.checktime
+                    : autoCheckout ? 'auto' : null,
                 workedMinutes,
                 overtimeMinutes,
                 status: (isLate && !employeeSchedule.warningsDisabled) ? 'late' as const : 'normal' as const
@@ -350,6 +350,21 @@ export default function TimesheetPage() {
             if (isVilaPeixoto) employeeSchedule = getVilaPeixotoSchedule(employeeName);
             else if (isGengibre) employeeSchedule = getGengibreSchedule(employeeName);
             else employeeSchedule = schedules.find(s => (s as any).employeeSchedules?.some((es: any) => es.workno === employeeId)) || schedules[0];
+
+            // If a past day has an open check-in (no check-out), estimate using schedule end time
+            if (lastInTime !== null && day < startOfDay(new Date())) {
+                if (employeeSchedule) {
+                    const endTime = typeof employeeSchedule.endTime === 'string'
+                        ? (() => { const [h, m] = (employeeSchedule.endTime as string).split(':').map(Number); return { hour: h, minute: m } })()
+                        : employeeSchedule.endTime as { hour: number; minute: number }
+                    const estimatedOut = new Date(day)
+                    estimatedOut.setHours(endTime.hour, endTime.minute, 0, 0)
+                    if (estimatedOut.getTime() > lastInTime) {
+                        workedMinutes += (estimatedOut.getTime() - lastInTime) / (1000 * 60)
+                        lastInTime = null
+                    }
+                }
+            }
 
             const lastCheckDate = sorted.length > 1 && lastInTime === null ? parseISO(lastCheck.checktime) : null
             const overtimeMinutes = calculateOvertime(firstCheckDate, lastCheckDate, employeeSchedule)
@@ -692,7 +707,9 @@ export default function TimesheetPage() {
                                                         )}
                                                     </td>
                                                     <td className="px-3 py-2 text-center">
-                                                        {day.lastOut ? (
+                                                        {day.lastOut === 'auto' ? (
+                                                            <span className="text-xs text-neutral-400 italic">Saída Est.</span>
+                                                        ) : day.lastOut ? (
                                                             <span className="font-mono">
                                                                 {format(parseISO(day.lastOut), 'HH:mm')}
                                                             </span>

@@ -6,7 +6,7 @@ export const authConfig = {
     // Use JWT sessions for better performance (no database lookup on every request)
     session: {
         strategy: "jwt",
-        maxAge: 30 * 60, // 30 minutes
+        maxAge: 8 * 60 * 60, // 8 hours — expires at end of working day
     },
     // Override cookie config to make it a session cookie (expires on window close)
     cookies: {
@@ -14,10 +14,10 @@ export const authConfig = {
             name: `__Secure-next-auth.session-token`,
             options: {
                 httpOnly: true,
-                sameSite: 'lax',
+                sameSite: 'lax' as const,
                 path: '/',
                 secure: process.env.NODE_ENV === 'production',
-                // maxAge is undefined to make it a session cookie
+                maxAge: 8 * 60 * 60, // 8 hours — session expires after a working day
             }
         }
     },
