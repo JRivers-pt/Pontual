@@ -14,9 +14,11 @@ export default auth((req) => {
     if (process.env.NODE_ENV === "production") {
         const hostname = req.headers.get("host") || ""
         const desiredDomain = "www.pontualidade.pt"
+        const isPost = req.method === "POST"
+        const isAuthPath = req.nextUrl.pathname.startsWith("/api/auth")
 
-        // If we are NOT on the desired domain, redirect to it
-        if (hostname !== desiredDomain) {
+        // If we are NOT on the desired domain, and it's NOT a POST/Auth request, redirect
+        if (hostname !== desiredDomain && !isPost && !isAuthPath) {
             const newUrl = new URL(req.url)
             newUrl.host = desiredDomain
             newUrl.protocol = "https"
