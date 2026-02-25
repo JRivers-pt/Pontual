@@ -115,75 +115,56 @@ export function getVilaPeixotoSchedule(employeeName: string): Schedule {
 }
 
 // ============================================================
-// Official Gengibre / Cozinha Criativa shifts (from CrossChex):
+// Official Gengibre / Cozinha Criativa shifts (confirmed by client):
 //
-// Turno A          07:30 - 16:30  (orange)
-// Turno B          08:30 - 17:30  (black)
-// Turno C          07:30 - 16:30  (same start as A, different group)
-// Turno D          10:00 - 19:00  (blue)
-// Turno A Benfica  09:00 - 18:00  (teal/light)
-// Turno B Benfica  06:30 - 15:30  (pink)
-//
-// Employee → Shift mapping (from CrossChex schedule):
-//   Wellington Silva    → Turno A (07:30)
-//   Juliene Domingues   → Turno A (07:30)
-//   Ana Freitas         → Turno A (07:30)
-//   Muhammad Fique      → Turno C (07:30)
-//   Raul Fonseca        → Turno C (07:30)
-//   Elierson Simão      → Turno B (08:30)
-//   Wellington Mendes   → Turno B Benfica (06:30)
-//   Deilah Valmir       → Turno B Benfica (06:30)
-//   Helen Silva         → Turno A Benfica (09:00)
-//   Andre Lima          → Turno A Benfica (09:00)
-//   Paul Ferreira       → Turno A Benfica (09:00)
-//   Della/Delia Moreno  → Turno A Benfica (09:00)
-//   Domingas Ferreira   → Turno A Benfica (09:00)
-//   Carolina Petra      → Turno A Benfica (09:00)
-//   Caio Santos         → Turno A Benfica (09:00)
-//   Bruno Carmo         → Turno D (10:00)
+// Turno A          07:30 - 16:30  → Wellington Silva, Ana Freitas
+// Turno B          08:30 - 17:30  → Rheinner Oliveira, Rosangela Ferreira
+// Turno C          07:30 - 16:30  → Mohammad Ripon, Raul Fonseca
+// Turno D          10:00 - 19:00  → Deila Moreno, Bruno Carmo
+// Turno A Benfica  09:00 - 18:00  → Vasco Silva, Ademir Domingues, Caio Santos, Sandra Mendes, Carolina Petra
+// Turno B Benfica  06:30 - 15:30  → Anaís Lima
 // ============================================================
 export function getGengibreSchedule(employeeName: string, employeeId?: string | number): Schedule {
     const name = employeeName.toLowerCase().trim();
 
-    // Turno D → 10:00
-    if (name.includes('bruno'))
-        return { id: 'gg-d', name: 'Turno D 10h-19h', startTime: '10:00', endTime: '19:00', lateToleranceMinutes: 20 } as Schedule;
+    const tA = { id: 'gg-a', name: 'Turno A 07:30h', startTime: '07:30', endTime: '16:30', lateToleranceMinutes: 20 } as Schedule;
+    const tB = { id: 'gg-b', name: 'Turno B 08:30h', startTime: '08:30', endTime: '17:30', lateToleranceMinutes: 20 } as Schedule;
+    const tC = { id: 'gg-c', name: 'Turno C 07:30h', startTime: '07:30', endTime: '16:30', lateToleranceMinutes: 20 } as Schedule;
+    const tD = { id: 'gg-d', name: 'Turno D 10:00h', startTime: '10:00', endTime: '19:00', lateToleranceMinutes: 20 } as Schedule;
+    const tAB = { id: 'gg-ab', name: 'Turno A Benfica 09:00h', startTime: '09:00', endTime: '18:00', lateToleranceMinutes: 20 } as Schedule;
+    const tBB = { id: 'gg-bb', name: 'Turno B Benfica 06:30h', startTime: '06:30', endTime: '15:30', lateToleranceMinutes: 20 } as Schedule;
 
-    // Turno A → 07:30
-    if (name.includes('wellington silva') || name.includes('wellingtonsilva') ||
-        (name.includes('wellington') && !name.includes('mendes')))
-        return { id: 'gg-a', name: 'Turno A 07:30h', startTime: '07:30', endTime: '16:30', lateToleranceMinutes: 20 } as Schedule;
-    if (name.includes('juliene') || name.includes('juliana domingues'))
-        return { id: 'gg-a', name: 'Turno A 07:30h', startTime: '07:30', endTime: '16:30', lateToleranceMinutes: 20 } as Schedule;
-    if (name.includes('ana'))
-        return { id: 'gg-a', name: 'Turno A 07:30h', startTime: '07:30', endTime: '16:30', lateToleranceMinutes: 20 } as Schedule;
+    // Turno A (07:30) — Wellington Silva, Ana Freitas
+    if (name.includes('wellington silva')) return tA;
+    if (name.includes('ana freitas')) return tA;
 
-    // Turno C → 07:30 (same start as Turno A)
-    if (name.includes('muhammad') || name.includes('fique') || name.includes('mohamad'))
-        return { id: 'gg-c', name: 'Turno C 07:30h-16:30h', startTime: '07:30', endTime: '16:30', lateToleranceMinutes: 20 } as Schedule;
-    if (name.includes('raul') || name.includes('fonseca'))
-        return { id: 'gg-c', name: 'Turno C 07:30h-16:30h', startTime: '07:30', endTime: '16:30', lateToleranceMinutes: 20 } as Schedule;
+    // Turno B (08:30) — Rheinner Oliveira, Rosangela Ferreira
+    if (name.includes('rheinner')) return tB;
+    if (name.includes('rosangela')) return tB;
 
-    // Turno B → 08:30
-    if (name.includes('elierson') || name.includes('eliesson'))
-        return { id: 'gg-b', name: 'Turno B 08:30h', startTime: '08:30', endTime: '17:30', lateToleranceMinutes: 20 } as Schedule;
+    // Turno C (07:30) — Mohammad Ripon, Raul Fonseca
+    if (name.includes('mohammad') || name.includes('ripon')) return tC;
+    if (name.includes('raul') || name.includes('fonseca')) return tC;
 
-    // Turno B Benfica → 06:30
-    if (name.includes('mendes') || name.includes('wellington mendes'))
-        return { id: 'gg-bb', name: 'Turno B Benfica 06:30h', startTime: '06:30', endTime: '15:30', lateToleranceMinutes: 20 } as Schedule;
-    if (name.includes('deilah') || name.includes('valmir'))
-        return { id: 'gg-bb', name: 'Turno B Benfica 06:30h', startTime: '06:30', endTime: '15:30', lateToleranceMinutes: 20 } as Schedule;
+    // Turno D (10:00) — Deila Moreno, Bruno Carmo
+    if (name.includes('deila') || name.includes('moreno')) return tD;
+    if (name.includes('bruno') || name.includes('carmo')) return tD;
 
-    // All others → Turno A Benfica 09:00
-    // (Helen Silva, Andre Lima, Paul Ferreira, Della Moreno, Domingas Ferreira, Carolina Petra, Caio Santos)
-    return {
-        id: 'gg-ab',
-        name: 'Turno A Benfica 09h-18h',
-        startTime: '09:00',
-        endTime: '18:00',
-        lateToleranceMinutes: 20
-    } as Schedule;
+    // Turno A Benfica (09:00) — Vasco Silva, Ademir Domingues, Caio Santos, Sandra Mendes, Carolina Petra
+    if (name.includes('vasco')) return tAB;
+    if (name.includes('ademir')) return tAB;
+    if (name.includes('caio')) return tAB;
+    if (name.includes('sandra') && name.includes('mendes')) return tAB;
+    if (name.includes('carolina')) return tAB;
+
+    // Turno B Benfica (06:30) — Anaís Lima
+    if (name.includes('ana') && name.includes('lima')) return tBB;
+    if (name.includes('anaís') || name.includes('anais')) return tBB;
+
+    // Default fallback — Turno A Benfica (09:00) is the most common
+    return tAB;
 }
+
 
 
 /**
