@@ -200,11 +200,7 @@ export function isLate(checkInTime: Date, schedule?: Schedule): boolean {
     const checkInMinutes = checkInTime.getHours() * 60 + checkInTime.getMinutes();
     const limitMinutesFromMidnight = startTime.hour * 60 + startTime.minute + tolerance;
 
-    const result = checkInMinutes > limitMinutesFromMidnight;
-
-    console.log(`[isLate] ${schedule.name} | start: ${startTime.hour}:${startTime.minute} | tolerance: ${tolerance} | limit: ${limitMinutesFromMidnight} | checkIn: ${checkInMinutes} | LATE=${result}`);
-
-    return result;
+    return checkInMinutes > limitMinutesFromMidnight;
 }
 
 /**

@@ -69,7 +69,7 @@ export default function DashboardPage() {
     companyName.toLowerCase().includes("gengibre") ||
     companyName.toLowerCase().includes("criativa")
 
-  console.log("[DASHBOARD] Company:", companyName, "| isVilaPeixoto:", isVilaPeixoto, "| isGengibre:", isGengibre);
+
 
   const fetchData = React.useCallback(async () => {
     setLoading(true)
@@ -152,7 +152,6 @@ export default function DashboardPage() {
         employeeSchedule = getVilaPeixotoSchedule(data.name);
       } else if (isGengibre) {
         employeeSchedule = getGengibreSchedule(data.name, id);
-        console.log(`[DASHBOARD] Gengibre: ${data.name} (ID: "${id}") -> Schedule: ${employeeSchedule.name} | tolerance: ${employeeSchedule.lateToleranceMinutes ?? employeeSchedule.lateTolerance}min`);
       } else {
         employeeSchedule = schedules.find(s =>
           (s as any).employeeSchedules?.some((es: any) => es.workno === id)
