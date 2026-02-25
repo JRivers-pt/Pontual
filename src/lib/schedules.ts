@@ -119,16 +119,18 @@ export function getVilaPeixotoSchedule(employeeName: string): Schedule {
 //
 // Turno A          07:30 - 16:30  (orange)
 // Turno B          08:30 - 17:30  (black)
+// Turno C          07:30 - 16:30  (same start as A, different group)
 // Turno D          10:00 - 19:00  (blue)
 // Turno A Benfica  09:00 - 18:00  (teal/light)
 // Turno B Benfica  06:30 - 15:30  (pink)
 //
-// Employee → Shift mapping (from CrossChex schedule screenshot):
+// Employee → Shift mapping (from CrossChex schedule):
 //   Wellington Silva    → Turno A (07:30)
 //   Juliene Domingues   → Turno A (07:30)
 //   Ana Freitas         → Turno A (07:30)
+//   Muhammad Fique      → Turno C (07:30)
+//   Raul Fonseca        → Turno C (07:30)
 //   Elierson Simão      → Turno B (08:30)
-//   Muhammad Fique      → Turno B (08:30)
 //   Wellington Mendes   → Turno B Benfica (06:30)
 //   Deilah Valmir       → Turno B Benfica (06:30)
 //   Helen Silva         → Turno A Benfica (09:00)
@@ -137,7 +139,7 @@ export function getVilaPeixotoSchedule(employeeName: string): Schedule {
 //   Della/Delia Moreno  → Turno A Benfica (09:00)
 //   Domingas Ferreira   → Turno A Benfica (09:00)
 //   Carolina Petra      → Turno A Benfica (09:00)
-//   Caio Santos         → Turno A Benfica (09:00) [user confirmed]
+//   Caio Santos         → Turno A Benfica (09:00)
 //   Bruno Carmo         → Turno D (10:00)
 // ============================================================
 export function getGengibreSchedule(employeeName: string, employeeId?: string | number): Schedule {
@@ -156,10 +158,14 @@ export function getGengibreSchedule(employeeName: string, employeeId?: string | 
     if (name.includes('ana'))
         return { id: 'gg-a', name: 'Turno A 07:30h', startTime: '07:30', endTime: '16:30', lateToleranceMinutes: 20 } as Schedule;
 
+    // Turno C → 07:30 (same start as Turno A)
+    if (name.includes('muhammad') || name.includes('fique') || name.includes('mohamad'))
+        return { id: 'gg-c', name: 'Turno C 07:30h-16:30h', startTime: '07:30', endTime: '16:30', lateToleranceMinutes: 20 } as Schedule;
+    if (name.includes('raul') || name.includes('fonseca'))
+        return { id: 'gg-c', name: 'Turno C 07:30h-16:30h', startTime: '07:30', endTime: '16:30', lateToleranceMinutes: 20 } as Schedule;
+
     // Turno B → 08:30
     if (name.includes('elierson') || name.includes('eliesson'))
-        return { id: 'gg-b', name: 'Turno B 08:30h', startTime: '08:30', endTime: '17:30', lateToleranceMinutes: 20 } as Schedule;
-    if (name.includes('muhammad') || name.includes('fique'))
         return { id: 'gg-b', name: 'Turno B 08:30h', startTime: '08:30', endTime: '17:30', lateToleranceMinutes: 20 } as Schedule;
 
     // Turno B Benfica → 06:30
