@@ -33,7 +33,7 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { useSession } from "next-auth/react"
 import { getAttendanceRecords, getSchedules } from "@/lib/api"
-import { isLate as checkIsLate, getFormattedScheduleInfo, calculateSmartWorkHours, Schedule, getVilaPeixotoSchedule } from "@/lib/schedules"
+import { isLate as checkIsLate, getFormattedScheduleInfo, calculateSmartWorkHours, Schedule, getVilaPeixotoSchedule, getGengibreSchedule } from "@/lib/schedules"
 
 type AttendanceRecord = {
   uuid: string
@@ -65,6 +65,7 @@ export default function DashboardPage() {
 
   const companyName = (session?.user as any)?.company || ""
   const isVilaPeixoto = companyName.toLowerCase().includes("vila peixoto")
+  const isGengibre = companyName.toLowerCase().includes("cozinha criativa") || companyName.toLowerCase().includes("gengibre")
 
   const fetchData = React.useCallback(async () => {
     setLoading(true)
@@ -145,6 +146,8 @@ export default function DashboardPage() {
 
       if (isVilaPeixoto) {
         employeeSchedule = getVilaPeixotoSchedule(data.name);
+      } else if (isGengibre) {
+        employeeSchedule = getGengibreSchedule(data.name);
       } else {
         employeeSchedule = schedules.find(s =>
           (s as any).employeeSchedules?.some((es: any) => es.workno === id)
@@ -189,7 +192,7 @@ export default function DashboardPage() {
     })
 
     return statuses.sort((a, b) => a.name.localeCompare(b.name))
-  }, [records, schedules, isVilaPeixoto])
+  }, [records, schedules, isVilaPeixoto, isGengibre])
 
   // Calculate KPIs
   const kpis = React.useMemo(() => {

@@ -69,11 +69,19 @@ export const EMPLOYEE_SCHEDULES: Record<string, string> = {
 // Horário padrão para quem não está especificado
 export const DEFAULT_SCHEDULE_ID = 'VE';
 
-// HARDCODED RULES FOR VILA PEIXOTO (to avoid manual management for small clients)
 export const VILA_PEIXOTO_RULES: Record<string, Partial<Schedule>> = {
     '7h-16h': { name: "Turno Júlio 7h-16h", startTime: "07:00", endTime: "16:00", lateTolerance: 15 },
     '9h-18h': { name: "Turno Geral 9h-18h", startTime: "09:00", endTime: "18:00", lateTolerance: 15 },
     '12h-22h': { name: "Turno 12h-22h", startTime: "12:00", endTime: "22:00", lateTolerance: 15 },
+};
+
+export const GENGIBRE_RULES: Record<string, Partial<Schedule>> = {
+    'Turno A': { name: "Turno A 07h-16h", startTime: "07:00", endTime: "16:00", lateTolerance: 20 },
+    'Turno B': { name: "Turno B 08h-17h", startTime: "08:00", endTime: "17:00", lateTolerance: 20 },
+    'Turno C': { name: "Turno C 07:30-16:30", startTime: "07:30", endTime: "16:30", lateTolerance: 20 },
+    'Turno D': { name: "Turno D 10h-19h", startTime: "10:00", endTime: "19:00", lateTolerance: 20 },
+    'Benfica A': { name: "Turno A Benfica 09h-18h", startTime: "09:00", endTime: "18:00", lateTolerance: 20 },
+    'Benfica B': { name: "Turno B Benfica 06h-15h", startTime: "06:00", endTime: "15:00", lateTolerance: 20 },
 };
 
 // Mapping for Vila Peixoto (Ana and Tabata are 12-22h, Julio is 7-16h, others 9-18h)
@@ -103,6 +111,33 @@ export function getVilaPeixotoSchedule(employeeName: string): Schedule {
         id: 'auto-vp-9',
         ...VILA_PEIXOTO_RULES['9h-18h'],
         warningsDisabled: true // DESLIGADO as per user request
+    } as Schedule;
+}
+
+// Mapping for Gengibre / Cozinha Criativa
+export function getGengibreSchedule(employeeName: string): Schedule {
+    const name = employeeName.toLowerCase();
+
+    // Map specific employees to their common shifts if known, 
+    // or provide a heuristic based on current CrossChex assignments.
+
+    // Heuristic based on typical shifts seen in screenshots:
+    if (name.includes('ana freitas')) return { id: 'auto-gg-a', ...GENGIBRE_RULES['Turno A'] } as Schedule;
+    if (name.includes('bruno carmo')) return { id: 'auto-gg-b', ...GENGIBRE_RULES['Turno B'] } as Schedule;
+    if (name.includes('caio santos')) return { id: 'auto-gg-d', ...GENGIBRE_RULES['Turno D'] } as Schedule;
+    if (name.includes('carolina petra')) return { id: 'auto-gg-b', ...GENGIBRE_RULES['Turno B'] } as Schedule;
+    if (name.includes('delia moreno')) return { id: 'auto-gg-a', ...GENGIBRE_RULES['Turno A'] } as Schedule;
+    if (name.includes('wellington silva')) return { id: 'auto-gg-a', ...GENGIBRE_RULES['Turno A'] } as Schedule;
+    if (name.includes('yara silva')) return { id: 'auto-gg-a', ...GENGIBRE_RULES['Turno A'] } as Schedule;
+    if (name.includes('adanir domingues')) return { id: 'auto-gg-a', ...GENGIBRE_RULES['Turno A'] } as Schedule;
+    if (name.includes('andre lima')) return { id: 'auto-gg-a', ...GENGIBRE_RULES['Turno A'] } as Schedule;
+    if (name.includes('sandra mendes')) return { id: 'auto-gg-a', ...GENGIBRE_RULES['Turno A'] } as Schedule;
+
+    // Default to Turno B (08:00 - 17:00) which seems common
+    return {
+        id: 'auto-gg-default',
+        ...GENGIBRE_RULES['Turno B'],
+        warningsDisabled: false // Warnings ENABLED for Gengibre
     } as Schedule;
 }
 

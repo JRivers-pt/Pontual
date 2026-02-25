@@ -45,7 +45,7 @@ import { Badge } from "@/components/ui/badge"
 import { useSession } from "next-auth/react"
 import { exportToPDF } from "@/lib/exports"
 import { getAttendanceRecords, getSchedules } from "@/lib/api"
-import { isLate as checkIsLate, calculateOvertime, getFormattedScheduleInfo, Schedule, getVilaPeixotoSchedule } from "@/lib/schedules"
+import { isLate as checkIsLate, calculateOvertime, getFormattedScheduleInfo, Schedule, getVilaPeixotoSchedule, getGengibreSchedule } from "@/lib/schedules"
 
 type AttendanceRecord = {
     uuid: string
@@ -84,6 +84,7 @@ export default function TimesheetPage() {
 
     const companyName = (session?.user as any)?.company || ""
     const isVilaPeixoto = companyName.toLowerCase().includes("vila peixoto")
+    const isGengibre = companyName.toLowerCase().includes("cozinha criativa") || companyName.toLowerCase().includes("gengibre")
 
     // Extract unique employees
     const employees = React.useMemo<Employee[]>(() => {
@@ -284,6 +285,8 @@ export default function TimesheetPage() {
 
             if (isVilaPeixoto) {
                 employeeSchedule = getVilaPeixotoSchedule(employeeName);
+            } else if (isGengibre) {
+                employeeSchedule = getGengibreSchedule(employeeName);
             } else {
                 employeeSchedule = schedules.find(s =>
                     (s as any).employeeSchedules?.some((es: any) => es.workno === employeeId)
@@ -346,6 +349,7 @@ export default function TimesheetPage() {
             const employeeName = dayRecords[0]?.employeeName || ''
             let employeeSchedule: Schedule;
             if (isVilaPeixoto) employeeSchedule = getVilaPeixotoSchedule(employeeName);
+            else if (isGengibre) employeeSchedule = getGengibreSchedule(employeeName);
             else employeeSchedule = schedules.find(s => (s as any).employeeSchedules?.some((es: any) => es.workno === employeeId)) || schedules[0];
 
             const lastCheckDate = sorted.length > 1 && lastInTime === null ? parseISO(lastCheck.checktime) : null
@@ -378,7 +382,7 @@ export default function TimesheetPage() {
         }
     }
 
-    const summary = React.useMemo(() => calculateFullSummary(filteredRecords), [filteredRecords, currentMonth, schedules, isVilaPeixoto])
+    const summary = React.useMemo(() => calculateFullSummary(filteredRecords), [filteredRecords, currentMonth, schedules, isVilaPeixoto, isGengibre])
 
     const allEmployeeSummaries = React.useMemo(() => {
         if (selectedEmployee !== "all") return []
@@ -386,7 +390,7 @@ export default function TimesheetPage() {
             ...emp,
             ...calculateFullSummary(records.filter(r => r.employeeId === emp.id))
         }))
-    }, [employees, records, currentMonth, schedules, isVilaPeixoto, selectedEmployee])
+    }, [employees, records, currentMonth, schedules, isVilaPeixoto, isGengibre, selectedEmployee])
 
     const formatMinutes = (minutes: number) => {
         if (minutes === 0) return '-'
