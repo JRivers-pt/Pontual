@@ -114,45 +114,71 @@ export function getVilaPeixotoSchedule(employeeName: string): Schedule {
     } as Schedule;
 }
 
-// Mapping for Gengibre / Cozinha Criativa
+// ============================================================
+// Official Gengibre / Cozinha Criativa shifts (from CrossChex):
+//
+// Turno A          07:30 - 16:30  (orange)
+// Turno B          08:30 - 17:30  (black)
+// Turno D          10:00 - 19:00  (blue)
+// Turno A Benfica  09:00 - 18:00  (teal/light)
+// Turno B Benfica  06:30 - 15:30  (pink)
+//
+// Employee → Shift mapping (from CrossChex schedule screenshot):
+//   Wellington Silva    → Turno A (07:30)
+//   Juliene Domingues   → Turno A (07:30)
+//   Ana Freitas         → Turno A (07:30)
+//   Elierson Simão      → Turno B (08:30)
+//   Muhammad Fique      → Turno B (08:30)
+//   Wellington Mendes   → Turno B Benfica (06:30)
+//   Deilah Valmir       → Turno B Benfica (06:30)
+//   Helen Silva         → Turno A Benfica (09:00)
+//   Andre Lima          → Turno A Benfica (09:00)
+//   Paul Ferreira       → Turno A Benfica (09:00)
+//   Della/Delia Moreno  → Turno A Benfica (09:00)
+//   Domingas Ferreira   → Turno A Benfica (09:00)
+//   Carolina Petra      → Turno A Benfica (09:00)
+//   Caio Santos         → Turno A Benfica (09:00) [user confirmed]
+//   Bruno Carmo         → Turno D (10:00)
+// ============================================================
 export function getGengibreSchedule(employeeName: string, employeeId?: string | number): Schedule {
-    const name = employeeName.toLowerCase();
-    const nid = employeeId ? Number(employeeId) : NaN;
+    const name = employeeName.toLowerCase().trim();
 
-    // console.log(`[getGengibreSchedule] Mapping for ${employeeName} (ID: ${employeeId})`);
+    // Turno D → 10:00
+    if (name.includes('bruno'))
+        return { id: 'gg-d', name: 'Turno D 10h-19h', startTime: '10:00', endTime: '19:00', lateToleranceMinutes: 20 } as Schedule;
 
-    // Map by ID (CrossChex workno) - Most reliable
-    if (nid === 2) return { id: 'auto-gg-c', ...GENGIBRE_RULES['Turno C'] } as Schedule;    // Ana Freitas
-    if (nid === 8) return { id: 'auto-gg-d', ...GENGIBRE_RULES['Turno D'] } as Schedule;    // Bruno Carmo
-    if (nid === 12) return { id: 'auto-gg-d', ...GENGIBRE_RULES['Turno D'] } as Schedule;   // Caio Santos
-    if (nid === 3) return { id: 'auto-gg-ben-a', ...GENGIBRE_RULES['Benfica A'] } as Schedule; // Carolina Petra
-    if (nid === 6) return { id: 'auto-gg-ben-a', ...GENGIBRE_RULES['Benfica A'] } as Schedule; // Della/Delia Moreno
+    // Turno A → 07:30
+    if (name.includes('wellington silva') || name.includes('wellingtonsilva') ||
+        (name.includes('wellington') && !name.includes('mendes')))
+        return { id: 'gg-a', name: 'Turno A 07:30h', startTime: '07:30', endTime: '16:30', lateToleranceMinutes: 20 } as Schedule;
+    if (name.includes('juliene') || name.includes('juliana domingues'))
+        return { id: 'gg-a', name: 'Turno A 07:30h', startTime: '07:30', endTime: '16:30', lateToleranceMinutes: 20 } as Schedule;
+    if (name.includes('ana'))
+        return { id: 'gg-a', name: 'Turno A 07:30h', startTime: '07:30', endTime: '16:30', lateToleranceMinutes: 20 } as Schedule;
 
-    // Additional Gengibre IDs seen in previous logs
-    if (nid === 33) return { id: 'auto-gg-a', ...GENGIBRE_RULES['Turno A'] } as Schedule;   // Adanir Domingues
-    if (nid === 37) return { id: 'auto-gg-a', ...GENGIBRE_RULES['Turno A'] } as Schedule;   // Wellington Silva
-    if (nid === 29) return { id: 'auto-gg-a', ...GENGIBRE_RULES['Turno A'] } as Schedule;   // Yara Silva
-    if (nid === 32) return { id: 'auto-gg-a', ...GENGIBRE_RULES['Turno A'] } as Schedule;   // Andre Lima
-    if (nid === 18) return { id: 'auto-gg-a', ...GENGIBRE_RULES['Turno A'] } as Schedule;   // Sandra Mendes
+    // Turno B → 08:30
+    if (name.includes('elierson') || name.includes('eliesson'))
+        return { id: 'gg-b', name: 'Turno B 08:30h', startTime: '08:30', endTime: '17:30', lateToleranceMinutes: 20 } as Schedule;
+    if (name.includes('muhammad') || name.includes('fique'))
+        return { id: 'gg-b', name: 'Turno B 08:30h', startTime: '08:30', endTime: '17:30', lateToleranceMinutes: 20 } as Schedule;
 
-    // Fallback search by name
-    if (name.includes('ana freitas')) return { id: 'auto-gg-c', ...GENGIBRE_RULES['Turno C'] } as Schedule;
-    if (name.includes('bruno carmo')) return { id: 'auto-gg-d', ...GENGIBRE_RULES['Turno D'] } as Schedule;
-    if (name.includes('caio santos')) return { id: 'auto-gg-d', ...GENGIBRE_RULES['Turno D'] } as Schedule;
-    if (name.includes('carolina petra')) return { id: 'auto-gg-ben-a', ...GENGIBRE_RULES['Benfica A'] } as Schedule;
-    if (name.includes('della') || name.includes('delia')) return { id: 'auto-gg-ben-a', ...GENGIBRE_RULES['Benfica A'] } as Schedule;
-    if (name.includes('wellington')) return { id: 'auto-gg-a', ...GENGIBRE_RULES['Turno A'] } as Schedule;
-    if (name.includes('adanir')) return { id: 'auto-gg-a', ...GENGIBRE_RULES['Turno A'] } as Schedule;
+    // Turno B Benfica → 06:30
+    if (name.includes('mendes') || name.includes('wellington mendes'))
+        return { id: 'gg-bb', name: 'Turno B Benfica 06:30h', startTime: '06:30', endTime: '15:30', lateToleranceMinutes: 20 } as Schedule;
+    if (name.includes('deilah') || name.includes('valmir'))
+        return { id: 'gg-bb', name: 'Turno B Benfica 06:30h', startTime: '06:30', endTime: '15:30', lateToleranceMinutes: 20 } as Schedule;
 
-    // Default for Gengibre: Use Turno D (10h) if late for early shifts, 
-    // but here we default to Benfica A (09:00) as it's common.
-    // However, to satisfy "no warnings", let's use a very permissive default if unknown.
+    // All others → Turno A Benfica 09:00
+    // (Helen Silva, Andre Lima, Paul Ferreira, Della Moreno, Domingas Ferreira, Carolina Petra, Caio Santos)
     return {
-        id: 'auto-gg-default',
-        ...GENGIBRE_RULES['Turno D'], // 10:00 is safer to avoid false alarms
-        warningsDisabled: false
+        id: 'gg-ab',
+        name: 'Turno A Benfica 09h-18h',
+        startTime: '09:00',
+        endTime: '18:00',
+        lateToleranceMinutes: 20
     } as Schedule;
 }
+
 
 /**
  * Helper to get hour/minute from either string "HH:mm" or legacy object {hour, minute}
