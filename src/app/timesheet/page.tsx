@@ -105,7 +105,7 @@ export default function TimesheetPage() {
             .sort((a, b) => a.name.localeCompare(b.name))
     }, [records, allEmployees])
 
-    const fetchMonthData = React.useCallback(async () => {
+    const fetchMonthData = React.useCallback(async (isRetry = false) => {
         setLoading(true)
         setError(null)
 
@@ -114,8 +114,7 @@ export default function TimesheetPage() {
             const monthEnd = endOfMonth(currentMonth)
             const now = new Date()
 
-            // If the requested month is the current month, cap the end time to 'now'
-            // to avoid issues with some APIs when requesting future dates.
+            // Cap the end time to 'now' for the current month
             const adjustedEnd = monthEnd > now ? now : monthEnd;
 
             const beginTime = monthStart.toISOString().replace('Z', '+00:00')
@@ -126,7 +125,12 @@ export default function TimesheetPage() {
                 getSchedules()
             ])
 
-            const formattedRecords: AttendanceRecord[] = response.payload.list.map(item => ({
+            // Sort records by checktime ascending to ensure correct day mapping
+            const sorted = [...(response.payload.list || [])].sort((a: any, b: any) =>
+                new Date(a.checktime).getTime() - new Date(b.checktime).getTime()
+            )
+
+            const formattedRecords: AttendanceRecord[] = sorted.map((item: any) => ({
                 uuid: item.uuid,
                 employeeName: `${item.employee.first_name} ${item.employee.last_name}`.trim(),
                 employeeId: item.employee.workno,
@@ -138,7 +142,7 @@ export default function TimesheetPage() {
             setSchedules(schedulesData)
             setLastUpdate(new Date())
 
-            // Update allEmployees as well
+            // Always merge new employees into allEmployees (never reset)
             const empMap = new Map<string, string>()
             formattedRecords.forEach(r => {
                 if (!empMap.has(r.employeeId)) {
@@ -156,6 +160,12 @@ export default function TimesheetPage() {
                 })
             }
         } catch (err: any) {
+            // On auth errors, retry once with a fresh token
+            if (!isRetry && (err.message?.includes('401') || err.message?.includes('token') || err.message?.includes('auth'))) {
+                console.warn('Auth error, retrying once...')
+                setTimeout(() => fetchMonthData(true), 1500)
+                return
+            }
             setError(err.message || 'Erro ao carregar dados')
             console.error('Error fetching month data:', err)
         } finally {
@@ -164,11 +174,11 @@ export default function TimesheetPage() {
     }, [currentMonth])
 
     React.useEffect(() => {
-        // Initial fetch for a wider range to populate employee list
+        // Fetch employees from a wider range (3 months) to ensure dropdown is never empty
         const fetchInitialEmployees = async () => {
             try {
                 const now = new Date()
-                const ago = subMonths(now, 2)
+                const ago = subMonths(now, 3)
                 const response = await getAttendanceRecords(
                     ago.toISOString().replace('Z', '+00:00'),
                     now.toISOString().replace('Z', '+00:00')
@@ -180,19 +190,21 @@ export default function TimesheetPage() {
                     }
                 })
                 const found = Array.from(empMap.entries()).map(([id, name]) => ({ id, name }))
-                setAllEmployees(prev => {
-                    const combined = [...prev]
-                    found.forEach(fe => {
-                        if (!combined.some(c => c.id === fe.id)) combined.push(fe)
+                if (found.length > 0) {
+                    setAllEmployees(prev => {
+                        const combined = [...prev]
+                        found.forEach(fe => {
+                            if (!combined.some(c => c.id === fe.id)) combined.push(fe)
+                        })
+                        return combined.sort((a, b) => a.name.localeCompare(b.name))
                     })
-                    return combined.sort((a, b) => a.name.localeCompare(b.name))
-                })
+                }
             } catch (e) {
                 console.error("Error fetching initial employees:", e)
             }
         }
         fetchInitialEmployees()
-    }, [])
+    }, []) // Run once on mount to pre-populate the dropdown
 
     React.useEffect(() => {
         fetchMonthData()
@@ -211,7 +223,10 @@ export default function TimesheetPage() {
     const monthDays = React.useMemo<DayRecord[]>(() => {
         const monthStart = startOfMonth(currentMonth)
         const monthEnd = endOfMonth(currentMonth)
-        const days = eachDayOfInterval({ start: monthStart, end: monthEnd })
+        const now = new Date()
+        // For the current month, don't show days after today (they have no data and show as false absences)
+        const displayEnd = monthEnd > now ? now : monthEnd
+        const days = eachDayOfInterval({ start: monthStart, end: displayEnd })
 
         return days.map(day => {
             const dateStr = format(day, 'yyyy-MM-dd')
@@ -531,7 +546,7 @@ export default function TimesheetPage() {
                             <Button
                                 variant="outline"
                                 className="w-full"
-                                onClick={fetchMonthData}
+                                onClick={() => fetchMonthData()}
                                 disabled={loading}
                             >
                                 <RefreshCw className={cn("h-4 w-4 mr-2", loading && "animate-spin")} />
