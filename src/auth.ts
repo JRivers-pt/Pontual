@@ -27,7 +27,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 // Normalize username to lowercase to match DB state
                 const normalizedUsername = username.toLowerCase();
 
-                const user = await prisma.user.findUnique({
+                let user = await prisma.user.findUnique({
                     where: { username: normalizedUsername }
                 });
 
