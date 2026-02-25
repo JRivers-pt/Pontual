@@ -286,7 +286,7 @@ export default function TimesheetPage() {
             if (isVilaPeixoto) {
                 employeeSchedule = getVilaPeixotoSchedule(employeeName);
             } else if (isGengibre) {
-                employeeSchedule = getGengibreSchedule(employeeName);
+                employeeSchedule = getGengibreSchedule(employeeName, employeeId);
             } else {
                 employeeSchedule = schedules.find(s =>
                     (s as any).employeeSchedules?.some((es: any) => es.workno === employeeId)

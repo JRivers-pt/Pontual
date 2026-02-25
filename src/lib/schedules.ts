@@ -115,29 +115,32 @@ export function getVilaPeixotoSchedule(employeeName: string): Schedule {
 }
 
 // Mapping for Gengibre / Cozinha Criativa
-export function getGengibreSchedule(employeeName: string): Schedule {
+export function getGengibreSchedule(employeeName: string, employeeId?: string): Schedule {
     const name = employeeName.toLowerCase();
+    const id = employeeId;
 
-    // Map specific employees to their common shifts if known, 
-    // or provide a heuristic based on current CrossChex assignments.
+    // Map by ID (most reliable)
+    // IDs based on the dashboard screenshot
+    if (id === '2') return { id: 'auto-gg-c', ...GENGIBRE_RULES['Turno C'] } as Schedule; // Ana Freitas (06:53)
+    if (id === '8') return { id: 'auto-gg-d', ...GENGIBRE_RULES['Turno D'] } as Schedule; // Bruno Carmo (09:55)
+    if (id === '12') return { id: 'auto-gg-d', ...GENGIBRE_RULES['Turno D'] } as Schedule; // Caio Santos (09:02)
+    if (id === '3') return { id: 'auto-gg-ben-a', ...GENGIBRE_RULES['Benfica A'] } as Schedule; // Carolina Petra (08:50)
+    if (id === '6') return { id: 'auto-gg-ben-a', ...GENGIBRE_RULES['Benfica A'] } as Schedule; // Della Moreno (08:59)
 
-    // Heuristic based on typical shifts seen in screenshots:
-    if (name.includes('ana freitas')) return { id: 'auto-gg-a', ...GENGIBRE_RULES['Turno A'] } as Schedule;
-    if (name.includes('bruno carmo')) return { id: 'auto-gg-b', ...GENGIBRE_RULES['Turno B'] } as Schedule;
+    // Fallback search by name
+    if (name.includes('ana freitas')) return { id: 'auto-gg-c', ...GENGIBRE_RULES['Turno C'] } as Schedule;
+    if (name.includes('bruno carmo')) return { id: 'auto-gg-d', ...GENGIBRE_RULES['Turno D'] } as Schedule;
     if (name.includes('caio santos')) return { id: 'auto-gg-d', ...GENGIBRE_RULES['Turno D'] } as Schedule;
-    if (name.includes('carolina petra')) return { id: 'auto-gg-b', ...GENGIBRE_RULES['Turno B'] } as Schedule;
-    if (name.includes('delia moreno')) return { id: 'auto-gg-a', ...GENGIBRE_RULES['Turno A'] } as Schedule;
+    if (name.includes('carolina petra')) return { id: 'auto-gg-ben-a', ...GENGIBRE_RULES['Benfica A'] } as Schedule;
+    if (name.includes('della moreno')) return { id: 'auto-gg-ben-a', ...GENGIBRE_RULES['Benfica A'] } as Schedule;
+    if (name.includes('delia moreno')) return { id: 'auto-gg-ben-a', ...GENGIBRE_RULES['Benfica A'] } as Schedule;
     if (name.includes('wellington silva')) return { id: 'auto-gg-a', ...GENGIBRE_RULES['Turno A'] } as Schedule;
-    if (name.includes('yara silva')) return { id: 'auto-gg-a', ...GENGIBRE_RULES['Turno A'] } as Schedule;
-    if (name.includes('adanir domingues')) return { id: 'auto-gg-a', ...GENGIBRE_RULES['Turno A'] } as Schedule;
-    if (name.includes('andre lima')) return { id: 'auto-gg-a', ...GENGIBRE_RULES['Turno A'] } as Schedule;
-    if (name.includes('sandra mendes')) return { id: 'auto-gg-a', ...GENGIBRE_RULES['Turno A'] } as Schedule;
 
-    // Default to Turno B (08:00 - 17:00) which seems common
+    // Default to Turno A Benfica (09:00 - 18:00) 
     return {
         id: 'auto-gg-default',
-        ...GENGIBRE_RULES['Turno B'],
-        warningsDisabled: false // Warnings ENABLED for Gengibre
+        ...GENGIBRE_RULES['Benfica A'],
+        warningsDisabled: false 
     } as Schedule;
 }
 
@@ -174,9 +177,11 @@ export function isLate(checkInTime: Date, schedule?: Schedule): boolean {
     const checkInMinutes = checkInTime.getHours() * 60 + checkInTime.getMinutes();
     const limitMinutesFromMidnight = startTime.hour * 60 + startTime.minute + tolerance;
 
-    // console.log(`Checking lateness: ${checkInMinutes} vs limit ${limitMinutesFromMidnight} (start ${startTime.hour}:${startTime.minute} + tol ${tolerance})`);
+    const result = checkInMinutes > limitMinutesFromMidnight;
 
-    return checkInMinutes > limitMinutesFromMidnight;
+    // console.log(`[isLate] ${schedule.name} | checkIn: ${checkInMinutes} | limit: ${limitMinutesFromMidnight} | result: ${result}`);
+
+    return result;
 }
 
 /**

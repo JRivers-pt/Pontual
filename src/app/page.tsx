@@ -147,7 +147,8 @@ export default function DashboardPage() {
       if (isVilaPeixoto) {
         employeeSchedule = getVilaPeixotoSchedule(data.name);
       } else if (isGengibre) {
-        employeeSchedule = getGengibreSchedule(data.name);
+        employeeSchedule = getGengibreSchedule(data.name, id);
+        // console.log(`[DEBUG] Gengibre mapping: ${data.name} (ID: ${id}) -> ${employeeSchedule.name}`);
       } else {
         employeeSchedule = schedules.find(s =>
           (s as any).employeeSchedules?.some((es: any) => es.workno === id)
