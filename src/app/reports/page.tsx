@@ -40,7 +40,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { exportToPDF, exportToExcel } from "@/lib/exports"
-import { getAttendanceRecords } from "@/lib/api"
+import { getAttendanceRecords, getEmployees as fetchAllEmployeesApi } from "@/lib/api"
 import { calculateSmartWorkHours, getScheduleInfo } from "@/lib/schedules"
 
 type AttendanceRecord = {
@@ -90,29 +90,37 @@ export default function ReportsPage() {
         to: endOfDay(new Date()),
     })
     const [records, setRecords] = React.useState<AttendanceRecord[]>([])
+    const [allEmployees, setAllEmployees] = React.useState<Employee[]>([])
     const [loading, setLoading] = React.useState(false)
     const [error, setError] = React.useState<string | null>(null)
     const [selectedEmployee, setSelectedEmployee] = React.useState<string>("all")
     const [selectedPeriod, setSelectedPeriod] = React.useState<string>("30d")
     const [activeTab, setActiveTab] = React.useState<string>("summary")
 
-    // Extrair lista de colaboradores únicos
+    // Buscar a lista mestre de colaboradores (dos últimos 30 dias para base)
+    React.useEffect(() => {
+        fetchAllEmployeesApi().then(emps => {
+            setAllEmployees(emps.map(e => ({
+                id: e.workno,
+                name: e.fullName,
+                recordCount: 0
+            })).sort((a, b) => a.name.localeCompare(b.name)))
+        }).catch(err => console.error("Could not fetch master employees list", err))
+    }, [])
+
+    // Juntar a lista mestre de colaboradores com os dados dos registos atuais
     const employees = React.useMemo<Employee[]>(() => {
-        const empMap = new Map<string, { name: string; count: number }>()
+        const empMap = new Map<string, Employee>(allEmployees.map(e => [e.id, { ...e, recordCount: 0 }]))
+
         records.forEach(r => {
-            const existing = empMap.get(r.employeeId)
-            if (existing) {
-                existing.count++
-            } else {
-                empMap.set(r.employeeId, { name: r.employeeName, count: 1 })
+            if (!empMap.has(r.employeeId)) {
+                empMap.set(r.employeeId, { id: r.employeeId, name: r.employeeName, recordCount: 0 })
             }
+            empMap.get(r.employeeId)!.recordCount++
         })
-        return Array.from(empMap.entries()).map(([id, data]) => ({
-            id,
-            name: data.name,
-            recordCount: data.count
-        })).sort((a, b) => a.name.localeCompare(b.name))
-    }, [records])
+
+        return Array.from(empMap.values()).sort((a, b) => a.name.localeCompare(b.name))
+    }, [records, allEmployees])
 
     const fetchRecords = React.useCallback(async () => {
         if (!date?.from || !date?.to) return;

@@ -108,9 +108,8 @@ export async function getAttendanceRecords(
 
     if (onProgress) onProgress(allRecords.length);
 
-    // Stop if we have all records according to the API
-    const totalCount = data.payload?.count || 0;
-    if (allRecords.length >= totalCount) break;
+    // If we received fewer records than requested, we are on the last page.
+    if (records.length < perPage) break;
 
     page++;
   }
