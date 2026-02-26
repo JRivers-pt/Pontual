@@ -24,23 +24,32 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
                 const { username, password } = parsedCredentials.data;
 
-                // Normalize username to lowercase to match DB state
-                const normalizedUsername = username.toLowerCase();
-
-                let user = await prisma.user.findUnique({
-                    where: { username: normalizedUsername }
+                // We use findFirst with mode 'insensitive' to ignore casing during the DB lookup
+                let user = await prisma.user.findFirst({
+                    where: {
+                        username: {
+                            equals: username,
+                            mode: 'insensitive'
+                        }
+                    }
                 });
 
                 // Auto-create admin user on first-ever login (empty database)
                 if (!user) {
                     const adminUser = process.env.ADMIN_USERNAME;
                     const adminPass = process.env.ADMIN_PASSWORD;
-                    if (adminUser && adminPass && username === adminUser && password === adminPass) {
+
+                    // Case-insensitive check for adminUser
+                    if (adminUser && adminPass &&
+                        username.toLowerCase() === adminUser.toLowerCase() &&
+                        password === adminPass) {
+
                         const userCount = await prisma.user.count();
                         if (userCount === 0) {
                             const hashedPassword = await bcrypt.hash(adminPass, 8);
                             user = await prisma.user.create({
                                 data: {
+                                    // Use the exact configured admin username casing
                                     username: adminUser,
                                     password: hashedPassword,
                                     name: "Admin",
