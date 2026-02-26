@@ -10,8 +10,10 @@ datasource db {
   url      = env("POSTGRES_PRISMA_URL")
 }
 
-// SQLite doesn't support enums, using String instead
-// Role: ADMIN, CLIENT
+enum Role {
+  ADMIN
+  CLIENT
+}
 
 model User {
   id        String   @id @default(cuid())
@@ -19,7 +21,7 @@ model User {
   email     String?  @unique
   name      String?
   password  String
-  role      String   @default("CLIENT")
+  role      Role     @default(CLIENT)
   company   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
