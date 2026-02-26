@@ -166,6 +166,9 @@ export async function getEmployees() {
 
 export async function getSchedules() {
   const response = await fetch('/api/schedules');
-  if (!response.ok) throw new Error('Failed to fetch schedules');
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || errorData.details || 'Failed to fetch schedules');
+  }
   return response.json();
 }

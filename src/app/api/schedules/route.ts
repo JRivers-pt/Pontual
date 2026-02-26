@@ -19,7 +19,7 @@ export const GET = auth(async (req) => {
         const user = await prisma.user.findUnique({ where: { id: req.auth.user.id } });
         const companyName = user?.company;
 
-        if (schedules.length === 0 && companyName?.toLowerCase().includes("vila peixoto")) {
+        if (schedules.length === 0 && companyName && companyName.toLowerCase().includes("vila peixoto")) {
             console.log("Auto-seeding schedules for Vila Peixoto...");
 
             // 1. Create Schedules
@@ -46,9 +46,12 @@ export const GET = auth(async (req) => {
         }
 
         return NextResponse.json(schedules);
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error fetching schedules:", error);
-        return NextResponse.json({ error: "Failed to fetch schedules" }, { status: 500 });
+        return NextResponse.json({
+            error: "Failed to fetch schedules: " + (error.message || String(error)),
+            details: error.stack
+        }, { status: 500 });
     }
 });
 
