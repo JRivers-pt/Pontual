@@ -99,7 +99,13 @@ export async function getAttendanceRecords(
       throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
     }
 
-    const data: RecordsResponse = await response.json();
+    const data: any = await response.json();
+
+    // Check for CrossChex custom exception in a 200 OK response
+    if (data.header?.nameSpace === "System" && data.payload?.type === "FREQUENT_REQUEST") {
+      throw new Error("Por favor, aguarde 30 segundos entre as atualizações (Limite da API CrossChex).");
+    }
+
     const records = data.payload?.list || [];
 
     if (records.length === 0) break; // No more records
