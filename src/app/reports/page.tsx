@@ -96,6 +96,7 @@ export default function ReportsPage() {
     const [selectedEmployee, setSelectedEmployee] = React.useState<string>("all")
     const [selectedPeriod, setSelectedPeriod] = React.useState<string>("30d")
     const [activeTab, setActiveTab] = React.useState<string>("summary")
+    const [rateLimitCountdown, setRateLimitCountdown] = React.useState<number>(0)
 
     // Buscar a lista mestre de colaboradores (dos últimos 30 dias para base)
     React.useEffect(() => {
@@ -107,6 +108,17 @@ export default function ReportsPage() {
             })).sort((a, b) => a.name.localeCompare(b.name)))
         }).catch(err => console.error("Could not fetch master employees list", err))
     }, [])
+
+    // Contador de rate limit
+    React.useEffect(() => {
+        if (rateLimitCountdown <= 0) return;
+
+        const timer = setInterval(() => {
+            setRateLimitCountdown(prev => prev - 1);
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, [rateLimitCountdown]);
 
     // Juntar a lista mestre de colaboradores com os dados dos registos atuais
     const employees = React.useMemo<Employee[]>(() => {
@@ -146,6 +158,9 @@ export default function ReportsPage() {
 
             setRecords(formattedRecords);
         } catch (err: any) {
+            if (err.message && err.message.includes("Limite da API CrossChex")) {
+                setRateLimitCountdown(30);
+            }
             setError(err.message || 'Erro ao carregar registos');
             console.error('Error fetching records:', err);
         } finally {
@@ -435,9 +450,13 @@ export default function ReportsPage() {
                     </div>
 
                     <div className="mt-4 flex justify-end">
-                        <Button onClick={fetchRecords} disabled={loading}>
-                            <RefreshCw className={cn("mr-2 h-4 w-4", loading && "animate-spin")} />
-                            Atualizar Dados
+                        <Button onClick={fetchRecords} disabled={loading || rateLimitCountdown > 0}>
+                            {rateLimitCountdown > 0 ? (
+                                <Clock className="mr-2 h-4 w-4 animate-pulse" />
+                            ) : (
+                                <RefreshCw className={cn("mr-2 h-4 w-4", loading && "animate-spin")} />
+                            )}
+                            {rateLimitCountdown > 0 ? `Aguarde ${rateLimitCountdown}s` : "Atualizar Dados"}
                         </Button>
                     </div>
                 </CardContent>
