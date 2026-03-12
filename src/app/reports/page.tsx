@@ -41,7 +41,7 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { exportToPDF, exportToExcel } from "@/lib/exports"
 import { getAttendanceRecords, getEmployees as fetchAllEmployeesApi } from "@/lib/api"
-import { calculateSmartWorkHours, getScheduleInfo } from "@/lib/schedules"
+import { calculateSmartWorkHours, getFormattedScheduleInfo } from "@/lib/schedules"
 
 type AttendanceRecord = {
     uuid: string
@@ -112,7 +112,7 @@ export default function ReportsPage() {
     const employees = React.useMemo<Employee[]>(() => {
         const empMap = new Map<string, Employee>(allEmployees.map(e => [e.id, { ...e, recordCount: 0 }]))
 
-        records.forEach(r => {
+        records.forEach((r: AttendanceRecord) => {
             if (!empMap.has(r.employeeId)) {
                 empMap.set(r.employeeId, { id: r.employeeId, name: r.employeeName, recordCount: 0 })
             }
@@ -167,7 +167,7 @@ export default function ReportsPage() {
     const dailySummaries = React.useMemo(() => {
         const groups: Record<string, AttendanceRecord[]> = {};
 
-        filteredRecords.forEach(record => {
+        filteredRecords.forEach((record: AttendanceRecord) => {
             const dateKey = format(parseISO(record.checktime), 'yyyy-MM-dd');
             const groupKey = `${dateKey}_${record.employeeId}`;
             if (!groups[groupKey]) {
@@ -226,7 +226,7 @@ export default function ReportsPage() {
         const uniqueEmployees = selectedEmployee === "all"
             ? new Set(filteredRecords.map(r => r.employeeId)).size
             : 1;
-        const totalDaysWork = dailySummaries.length;
+        const totalDaysWork = new Set(dailySummaries.map(s => s.date)).size;
 
         const totalWorkMs = dailySummaries.reduce((acc, s) => acc + s.durationMs, 0);
         const workHours = Math.floor(totalWorkMs / (1000 * 60 * 60));
@@ -523,7 +523,7 @@ export default function ReportsPage() {
                         <CardHeader>
                             <CardTitle>Resumo Diário de Ponto</CardTitle>
                             <CardDescription>
-                                {dailySummaries.length} dias de trabalho registados
+                                {stats.totalDaysWork} dias com atividade registada
                             </CardDescription>
                         </CardHeader>
                         <CardContent>

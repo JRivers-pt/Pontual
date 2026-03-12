@@ -153,9 +153,20 @@ export default function DashboardPage() {
       } else if (isGengibre) {
         employeeSchedule = getGengibreSchedule(data.name, id);
       } else {
-        employeeSchedule = schedules.find(s =>
+        employeeSchedule = (schedules && schedules.length > 0) ? (schedules.find(s =>
           (s as any).employeeSchedules?.some((es: any) => es.workno === id)
-        ) || schedules[0];
+        ) || schedules[0]) : getEmployeeSchedule(id);
+      }
+
+      if (!employeeSchedule) {
+        // Fallback to a safe default if even getEmployeeSchedule fails
+        employeeSchedule = {
+          id: 'default',
+          name: 'Horário Padrão',
+          startTime: '09:00',
+          endTime: '18:00',
+          lateTolerance: 20
+        } as Schedule;
       }
 
       const isLate = checkIsLate(firstCheckDate, employeeSchedule)
