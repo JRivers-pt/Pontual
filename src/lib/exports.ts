@@ -19,13 +19,13 @@ interface AttendanceData {
 }
 
 
-export function exportToPDF(data: AttendanceData[], period: string) {
+export function exportToPDF(data: AttendanceData[], period: string, headerTitle?: string) {
     const doc = new jsPDF();
 
     // Header
     doc.setFontSize(18);
     doc.setTextColor(40, 40, 40);
-    doc.text("Pontual | VE Vontade e Empenho", 14, 22);
+    doc.text(headerTitle || "Pontual | VE Vontade e Empenho", 14, 22);
 
     doc.setFontSize(11);
     doc.setTextColor(100);

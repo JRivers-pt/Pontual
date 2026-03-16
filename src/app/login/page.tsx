@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { signIn } from "next-auth/react"
+import { signIn, useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -30,9 +30,17 @@ const formSchema = z.object({
 })
 
 export default function LoginPage() {
+    const { data: session, status } = useSession()
     const router = useRouter()
     const [isLoading, setIsLoading] = React.useState(false)
     const [error, setError] = React.useState<string | null>(null)
+
+    React.useEffect(() => {
+        if (status === "authenticated") {
+            router.push("/")
+            router.refresh()
+        }
+    }, [status, router])
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),

@@ -28,6 +28,9 @@ export function ClientForm({ clientId }: ClientFormProps) {
         apiKey: "",
         apiSecret: "",
         apiUrl: "https://api.eu.crosschexcloud.com/",
+        reportHeader: "",
+        vpEmail: "",
+        autoEmailReports: false,
     });
 
     useEffect(() => {
@@ -50,6 +53,9 @@ export function ClientForm({ clientId }: ClientFormProps) {
                 apiKey: data.apiKey || "",
                 apiSecret: data.apiSecret || "",
                 apiUrl: data.apiUrl || "https://api.eu.crosschexcloud.com/",
+                reportHeader: data.reportHeader || "",
+                vpEmail: data.vpEmail || "",
+                autoEmailReports: !!data.autoEmailReports,
             });
         } catch (err) {
             setError("Erro ao carregar dados do cliente");
@@ -220,6 +226,58 @@ export function ClientForm({ clientId }: ClientFormProps) {
                             onChange={handleChange}
                             placeholder="https://api.eu.crosschexcloud.com/"
                         />
+                    </div>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Configurações de Relatórios</CardTitle>
+                    <CardDescription>Personalização de cabeçalhos e automação de envio.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="reportHeader">Cabeçalho Personalizado (PDF)</Label>
+                        <Input
+                            id="reportHeader"
+                            name="reportHeader"
+                            value={formData.reportHeader}
+                            onChange={handleChange}
+                            placeholder="ex: Nome da Empresa | Departamento"
+                        />
+                    </div>
+                    <div className="space-y-4 pt-2">
+                        <div className="flex items-center space-x-2">
+                            <input
+                                type="checkbox"
+                                id="autoEmailReports"
+                                name="autoEmailReports"
+                                checked={formData.autoEmailReports}
+                                onChange={(e) => setFormData(prev => ({ ...prev, autoEmailReports: e.target.checked }))}
+                                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            />
+                            <Label htmlFor="autoEmailReports" className="cursor-pointer text-sm font-medium">
+                                Ativar envio automático mensal por email
+                            </Label>
+                        </div>
+                        
+                        {formData.autoEmailReports && (
+                            <div className="space-y-2 pl-6 animate-in fade-in slide-in-from-left-2 duration-300">
+                                <Label htmlFor="vpEmail">Email do VP / Responsável</Label>
+                                <Input
+                                    id="vpEmail"
+                                    name="vpEmail"
+                                    type="email"
+                                    value={formData.vpEmail}
+                                    onChange={handleChange}
+                                    placeholder="vp@empresa.com"
+                                    required={formData.autoEmailReports}
+                                />
+                                <p className="text-[10px] text-neutral-500">
+                                    O relatório será enviado automaticamente no primeiro dia de cada mês.
+                                </p>
+                            </div>
+                        )}
                     </div>
                 </CardContent>
             </Card>

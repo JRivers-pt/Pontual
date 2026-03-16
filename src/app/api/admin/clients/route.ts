@@ -31,7 +31,7 @@ export const POST = auth(async (req) => {
 
     try {
         const body = await req.json();
-        const { username, password, email, name, company, apiKey, apiSecret, apiUrl } = body;
+        const { username, password, email, name, company, apiKey, apiSecret, apiUrl, reportHeader, vpEmail, autoEmailReports } = body;
 
         if (!username || !password) {
             return NextResponse.json({ error: "Username and password are required" }, { status: 400 });
@@ -57,6 +57,9 @@ export const POST = auth(async (req) => {
                 apiKey: apiKey || null,
                 apiSecret: apiSecret || null,
                 apiUrl: apiUrl || "https://api.eu.crosschexcloud.com/",
+                reportHeader: reportHeader || null,
+                vpEmail: vpEmail || null,
+                autoEmailReports: autoEmailReports || false,
                 role: "CLIENT",
             },
         });

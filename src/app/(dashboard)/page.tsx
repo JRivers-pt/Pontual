@@ -31,9 +31,10 @@ import {
 } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { useSession } from "next-auth/react"
+import { useSession, signOut } from "next-auth/react"
 import { getAttendanceRecords, getSchedules } from "@/lib/api"
-import { isLate as checkIsLate, getFormattedScheduleInfo, calculateSmartWorkHours, Schedule, getVilaPeixotoSchedule, getGengibreSchedule } from "@/lib/schedules"
+import { isLate as checkIsLate, getFormattedScheduleInfo, calculateSmartWorkHours, Schedule, getVilaPeixotoSchedule, getGengibreSchedule, getEmployeeSchedule } from "@/lib/schedules"
+import { Skeleton } from "@/components/ui/skeleton"
 
 type AttendanceRecord = {
   uuid: string
@@ -100,8 +101,16 @@ export default function DashboardPage() {
       setSchedules(schedulesData)
       setLastUpdate(new Date())
     } catch (err: any) {
-      setError(err.message || 'Erro ao carregar dados')
+      const errorMsg = err.message || 'Erro ao carregar dados'
+      setError(errorMsg)
       console.error('Error fetching dashboard data:', err)
+
+      // If Unauthorized, force logout to clear "old/broken session"
+      if (errorMsg.toLowerCase().includes("unauthorized") || errorMsg.includes("401")) {
+        setTimeout(() => {
+          signOut({ callbackUrl: '/login', redirect: true })
+        }, 2000)
+      }
     } finally {
       setLoading(false)
     }
@@ -287,9 +296,23 @@ export default function DashboardPage() {
       </div>
 
       {error && (
-        <Card className="border-red-200 bg-red-50">
-          <CardContent className="p-4">
-            <p className="text-sm text-red-600">❌ {error}</p>
+        <Card className="border-red-200 bg-red-50 dark:bg-red-950/20 dark:border-red-900/50">
+          <CardContent className="p-4 flex items-center justify-between gap-4">
+            <p className="text-sm text-red-600 dark:text-red-400">
+              {error.toLowerCase().includes("unauthorized") 
+                ? "Sessão expirada ou credenciais inválidas. Redirecionando para o login..." 
+                : `❌ ${error}`}
+            </p>
+            {(error.toLowerCase().includes("unauthorized") || error.includes("401")) && (
+              <Button 
+                variant="destructive" 
+                size="sm" 
+                onClick={() => signOut({ callbackUrl: '/login' })}
+                className="whitespace-nowrap"
+              >
+                Sair e Reentrar
+              </Button>
+            )}
           </CardContent>
         </Card>
       )}
@@ -305,10 +328,10 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-blue-900 dark:text-blue-100">
-              {loading ? "-" : kpis.total}
+              {loading ? <Skeleton className="h-9 w-12 bg-blue-200/50 dark:bg-blue-800/50" /> : kpis.total}
             </div>
             <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-              registaram ponto
+              {loading ? <Skeleton className="h-3 w-24 bg-blue-200/50 dark:bg-blue-800/50" /> : "registaram ponto"}
             </p>
           </CardContent>
         </Card>
@@ -322,10 +345,10 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-green-900 dark:text-green-100">
-              {loading ? "-" : kpis.present}
+              {loading ? <Skeleton className="h-9 w-12 bg-green-200/50 dark:bg-green-800/50" /> : kpis.present}
             </div>
             <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-              em trabalho
+              {loading ? <Skeleton className="h-3 w-20 bg-green-200/50 dark:bg-green-800/50" /> : "em trabalho"}
             </p>
           </CardContent>
         </Card>
@@ -341,10 +364,10 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-orange-900 dark:text-orange-100">
-                {loading ? "-" : kpis.late}
+                {loading ? <Skeleton className="h-9 w-12 bg-orange-200/50 dark:bg-orange-800/50" /> : kpis.late}
               </div>
               <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">
-                chegaram depois da tolerância
+                {loading ? <Skeleton className="h-3 w-32 bg-orange-200/50 dark:bg-orange-800/50" /> : "chegaram depois da tolerância"}
               </p>
             </CardContent>
           </Card>
@@ -361,7 +384,7 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-purple-900 dark:text-purple-100">
-                {loading ? "-" : `${kpis.punctualityRate}%`}
+                {loading ? <Skeleton className="h-9 w-16 bg-purple-200/50 dark:bg-purple-800/50" /> : `${kpis.punctualityRate}%`}
               </div>
               <Progress
                 value={loading ? 0 : kpis.punctualityRate}
@@ -397,9 +420,25 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             {loading ? (
-              <div className="flex items-center justify-center py-12 text-neutral-500">
-                <RefreshCw className="h-5 w-5 animate-spin mr-2" />
-                A carregar...
+              <div className="space-y-3">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-neutral-50 dark:bg-neutral-900 border border-transparent">
+                    <div className="flex items-center gap-3">
+                      <Skeleton className="w-2 h-2 rounded-full" />
+                      <div>
+                        <Skeleton className="h-4 w-32 mb-1" />
+                        <Skeleton className="h-3 w-16" />
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="text-right">
+                        <Skeleton className="h-4 w-12 mb-1" />
+                        <Skeleton className="h-3 w-20" />
+                      </div>
+                      <Skeleton className="h-5 w-16 rounded-full" />
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : employeeStatuses.length === 0 ? (
               <div className="text-center py-12 text-neutral-500">

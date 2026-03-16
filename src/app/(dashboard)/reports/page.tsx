@@ -97,6 +97,19 @@ export default function ReportsPage() {
     const [selectedPeriod, setSelectedPeriod] = React.useState<string>("30d")
     const [activeTab, setActiveTab] = React.useState<string>("summary")
     const [rateLimitCountdown, setRateLimitCountdown] = React.useState<number>(0)
+    const [reportHeader, setReportHeader] = React.useState<string | undefined>(undefined)
+
+    // Fetch user profile for settings
+    React.useEffect(() => {
+        fetch('/api/user/profile')
+            .then(res => res.json())
+            .then(data => {
+                if (data.reportHeader) {
+                    setReportHeader(data.reportHeader);
+                }
+            })
+            .catch(err => console.error("Error fetching profile", err));
+    }, []);
 
     // Buscar a lista mestre de colaboradores (dos últimos 30 dias para base)
     React.useEffect(() => {
@@ -289,7 +302,7 @@ export default function ReportsPage() {
             duracao: s.duration,
             horasExtra: s.overtime
         }));
-        exportToPDF(dataToExport, `${employeeName} - ${format(date?.from || new Date(), "MMM yyyy", { locale: pt })}`);
+        exportToPDF(dataToExport, `${employeeName} - ${format(date?.from || new Date(), "MMM yyyy", { locale: pt })}`, reportHeader);
     };
 
     const handleExportExcel = () => {

@@ -31,6 +31,11 @@ model User {
   apiSecret String?
   apiUrl    String?  @default("https://api.eu.crosschexcloud.com/")
 
+  // Report Settings
+  reportHeader      String?
+  vpEmail          String?
+  autoEmailReports Boolean @default(false)
+
   // Schedules associated with this client
   schedules Schedule[]
 }
