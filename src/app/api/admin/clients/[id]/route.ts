@@ -35,7 +35,7 @@ export const PATCH = auth(async (req, { params }) => {
 
     try {
         const body = await req.json();
-        const { username, password, email, name, company, apiKey, apiSecret, apiUrl, reportHeader, vpEmail, autoEmailReports } = body;
+        const { username, password, email, name, company, apiKey, apiSecret, apiUrl, reportHeader, logoUrl, vpEmail, autoEmailReports } = body;
 
         const updateData: any = {
             username,
@@ -46,6 +46,7 @@ export const PATCH = auth(async (req, { params }) => {
             apiSecret: apiSecret || null,
             apiUrl: apiUrl || undefined,
             reportHeader: reportHeader !== undefined ? reportHeader : undefined,
+            logoUrl: logoUrl !== undefined ? logoUrl : undefined,
             vpEmail: vpEmail !== undefined ? vpEmail : undefined,
             autoEmailReports: autoEmailReports !== undefined ? autoEmailReports : undefined,
         };

@@ -1,9 +1,9 @@
 "use client"
 
 import * as React from "react"
-import { addDays, format, parseISO, startOfMonth, endOfMonth, subMonths, endOfDay } from "date-fns"
+import { addDays, format, parseISO, startOfMonth, endOfMonth, subMonths, endOfDay, startOfDay } from "date-fns"
 import { pt } from "date-fns/locale"
-import { Calendar as CalendarIcon, FileDown, Search, RefreshCw, Clock, User, Users, Filter, ChevronDown } from "lucide-react"
+import { Calendar as CalendarIcon, FileDown, Search, RefreshCw, Clock, User, Users, Filter, ChevronDown, CalendarOff } from "lucide-react"
 import { DateRange } from "react-day-picker"
 
 import { cn } from "@/lib/utils"
@@ -39,9 +39,10 @@ import {
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { exportToPDF, exportToExcel } from "@/lib/exports"
+import { exportToPDF, exportToExcel, exportToMensalPDF } from "@/lib/exports"
 import { getAttendanceRecords, getEmployees as fetchAllEmployeesApi } from "@/lib/api"
 import { calculateSmartWorkHours, getFormattedScheduleInfo } from "@/lib/schedules"
+import { ExportModal } from "@/components/reports/ExportModal"
 
 type AttendanceRecord = {
     uuid: string
@@ -82,6 +83,7 @@ const PRESET_PERIODS = [
     { label: "Últimos 3 meses", value: "3m", getDates: () => ({ from: addDays(new Date(), -90), to: endOfDay(new Date()) }) },
     { label: "Últimos 6 meses", value: "6m", getDates: () => ({ from: addDays(new Date(), -180), to: endOfDay(new Date()) }) },
     { label: "Este ano", value: "thisYear", getDates: () => ({ from: new Date(new Date().getFullYear(), 0, 1), to: endOfDay(new Date()) }) },
+    { label: "Mês Específico...", value: "specificMonth", getDates: () => ({ from: startOfMonth(new Date()), to: endOfMonth(new Date()) }) },
 ]
 
 export default function ReportsPage() {
@@ -98,6 +100,9 @@ export default function ReportsPage() {
     const [activeTab, setActiveTab] = React.useState<string>("summary")
     const [rateLimitCountdown, setRateLimitCountdown] = React.useState<number>(0)
     const [reportHeader, setReportHeader] = React.useState<string | undefined>(undefined)
+    const [logoUrl, setLogoUrl] = React.useState<string | undefined>(undefined)
+    const [schedulesMap, setSchedulesMap] = React.useState<Map<string, any>>(new Map())
+    const [isExportModalOpen, setIsExportModalOpen] = React.useState(false)
     const [reportType, setReportType] = React.useState<"summary" | "detailed" | "matrix">("summary")
 
     // Fetch user profile for settings
@@ -105,11 +110,24 @@ export default function ReportsPage() {
         fetch('/api/user/profile')
             .then(res => res.json())
             .then(data => {
-                if (data.reportHeader) {
-                    setReportHeader(data.reportHeader);
-                }
+                if (data.reportHeader) setReportHeader(data.reportHeader);
+                if (data.logoUrl) setLogoUrl(data.logoUrl);
             })
             .catch(err => console.error("Error fetching profile", err));
+
+        // Fetch schedules mapping
+        fetch('/api/schedules')
+            .then(res => res.json())
+            .then((data: any[]) => {
+                const map = new Map();
+                data.forEach(sched => {
+                    sched.employeeSchedules?.forEach((es: any) => {
+                        map.set(es.workno, sched);
+                    });
+                });
+                setSchedulesMap(map);
+            })
+            .catch(err => console.error("Error fetching schedules", err));
     }, []);
 
     // Buscar a lista mestre de colaboradores (dos últimos 30 dias para base)
@@ -205,7 +223,7 @@ export default function ReportsPage() {
             groups[groupKey].push(record);
         });
 
-        return Object.values(groups).map(group => {
+        const summaries = Object.values(groups).map(group => {
             const sorted = [...group].sort((a, b) =>
                 parseISO(a.checktime).getTime() - parseISO(b.checktime).getTime()
             );
@@ -227,10 +245,7 @@ export default function ReportsPage() {
             const overtimeStr = overtimeMs > 0 ? `+${otHours}h ${otMinutes}m` : "-";
 
             const lastRecord = sorted[sorted.length - 1];
-            // Entry types: 0, 128, 3. Exit types: 1, 129, 2.
             const isLastEntry = lastRecord.checktype === 0 || lastRecord.checktype === 128 || lastRecord.checktype === 3;
-            // If last is entry, we are currently IN (lastOut should be null)
-            // If last is exit, we are OUT (lastOut is last.checktime)
             const lastOutTime = !isLastEntry ? last.checktime : null;
 
             return {
@@ -246,14 +261,86 @@ export default function ReportsPage() {
                 overtime: overtimeStr,
                 overtimeMs: overtimeMs,
                 recordCount: group.length,
-                allRecords: sorted
+                allRecords: sorted,
+                isPlaceholder: false,
+                isLate: false,
+                isEarly: false
             };
-        }).sort((a, b) => {
+        });
+
+        // Mapping for late/early detection
+        const summariesWithWarnings = summaries.map(s => {
+            if (s.isPlaceholder) return s;
+            
+            const sched = schedulesMap.get(s.employeeId);
+            if (!sched) return s;
+
+            // Late Detection
+            const firstInTime = format(parseISO(s.firstIn), 'HH:mm');
+            const [inH, inM] = firstInTime.split(':').map(Number);
+            const [startH, startM] = sched.startTime.split(':').map(Number);
+            const tolerance = sched.lateTolerance || 0;
+            
+            const inTotalMin = inH * 60 + inM;
+            const startTotalMin = startH * 60 + startM;
+            const isLate = inTotalMin > (startTotalMin + tolerance);
+
+            // Early Departure Detection
+            let isEarly = false;
+            if (s.lastOut) {
+                const lastOutTime = format(parseISO(s.lastOut), 'HH:mm');
+                const [outH, outM] = lastOutTime.split(':').map(Number);
+                const [endH, endM] = sched.endTime.split(':').map(Number);
+                const outTotalMin = outH * 60 + outM;
+                const endTotalMin = endH * 60 + endM;
+                isEarly = outTotalMin < endTotalMin;
+            }
+
+            return { ...s, isLate, isEarly };
+        });
+
+        // If single employee, inject absences
+        if (selectedEmployee !== "all" && date?.from && date?.to && employees.length > 0) {
+            const empName = employees.find(e => e.id === selectedEmployee)?.name || "Colaborador";
+            const existingDates = new Set(summariesWithWarnings.map(s => s.date));
+            let current = startOfDay(date.from);
+            const last = startOfDay(date.to);
+            
+            while (current <= last) {
+                const dateKey = format(current, 'yyyy-MM-dd');
+                const day = current.getDay();
+                const isWeekend = day === 0 || day === 6;
+
+                if (!isWeekend && !existingDates.has(dateKey)) {
+                    summariesWithWarnings.push({
+                        id: `absent_${selectedEmployee}_${dateKey}`,
+                        date: dateKey,
+                        employeeId: selectedEmployee,
+                        employeeName: empName,
+                        department: "-",
+                        firstIn: current.toISOString(),
+                        lastOut: null,
+                        duration: "Falta",
+                        durationMs: 0,
+                        overtime: "-",
+                        overtimeMs: 0,
+                        recordCount: 0,
+                        allRecords: [],
+                        isPlaceholder: true,
+                        isLate: false,
+                        isEarly: false
+                    });
+                }
+                current = addDays(current, 1);
+            }
+        }
+
+        return summariesWithWarnings.sort((a, b) => {
             const nameCompare = a.employeeName.localeCompare(b.employeeName);
             if (nameCompare !== 0) return nameCompare;
-            return b.firstIn.localeCompare(a.firstIn);
+            return b.date.localeCompare(a.date);
         });
-    }, [filteredRecords]);
+    }, [filteredRecords, selectedEmployee, date, employees, schedulesMap]);
 
     // Estatísticas do colaborador selecionado
     const stats = React.useMemo(() => {
@@ -276,8 +363,40 @@ export default function ReportsPage() {
             ? (totalWorkMs / totalDaysWork / (1000 * 60 * 60)).toFixed(1)
             : "0";
 
-        return { uniqueEmployees, totalDaysWork, totalWorkStr, totalOvertimeStr, avgHoursPerDay };
-    }, [filteredRecords, dailySummaries, selectedEmployee]);
+        // Absence calculation (only logic for single employee for now)
+        let totalAbsences = 0;
+        if (selectedEmployee !== "all" && date?.from && date?.to) {
+            let current = startOfDay(date.from);
+            const last = startOfDay(date.to);
+            const workDaysWithRecords = new Set(dailySummaries.filter(s => !s.isPlaceholder).map(s => s.date));
+            
+            while (current <= last) {
+                const day = current.getDay();
+                const isWeekend = day === 0 || day === 6;
+                const dateKey = format(current, 'yyyy-MM-dd');
+                
+                if (!isWeekend && !workDaysWithRecords.has(dateKey)) {
+                    totalAbsences++;
+                }
+                current = addDays(current, 1);
+            }
+        }
+
+        // Late arrivals calculation
+        const totalLate = dailySummaries.filter(s => s.isLate).length;
+        const totalEarlyExits = dailySummaries.filter(s => s.isEarly).length;
+
+        return {
+            totalDaysWork,
+            totalWorkStr,
+            totalOvertimeStr,
+            avgHoursPerDay,
+            uniqueEmployees,
+            totalAbsences,
+            totalLate,
+            totalEarlyExits
+        };
+    }, [dailySummaries, filteredRecords, selectedEmployee, date]);
 
     // Histórico detalhado de todas as picagens
     const detailedHistory = React.useMemo(() => {
@@ -296,45 +415,77 @@ export default function ReportsPage() {
         }
     }
 
-    const handleExportPDF = () => {
-        const employeeName = selectedEmployee === "all"
-            ? "Todos"
-            : employees.find(e => e.id === selectedEmployee)?.name || "Colaborador";
+    const handleExport = async (type: "summary" | "detailed" | "matrix" | "mensal", fileFormat: "pdf" | "excel") => {
+        setLoading(true);
+        try {
+            const employeeName = selectedEmployee === "all"
+                ? "Todos"
+                : employees.find(e => e.id === selectedEmployee)?.name || "Colaborador";
 
-        const dataToExport = dailySummaries.map(s => ({
-            data: format(parseISO(s.firstIn), 'dd/MM/yyyy', { locale: pt }),
-            funcionario: s.employeeName,
-            id: s.employeeId,
-            departamento: (s as any).department || "-",
-            entrada: format(parseISO(s.firstIn), 'HH:mm'),
-            saida: s.lastOut ? format(parseISO(s.lastOut), 'HH:mm') : '-',
-            movimentos: s.allRecords.map((r: AttendanceRecord) => format(parseISO(r.checktime), 'HH:mm')).join(', '),
-            duracao: s.duration,
-            horasExtra: s.overtime
-        }));
-        exportToPDF(
-            dataToExport, 
-            `${employeeName} - ${format(date?.from || new Date(), "MMM yyyy", { locale: pt })}`, 
-            reportHeader,
-            reportType
-        );
+            const periodName = selectedPeriod === "custom" 
+                ? `${format(date?.from || new Date(), "dd/MM")} a ${format(date?.to || new Date(), "dd/MM/yy")}`
+                : PRESET_PERIODS.find(p => p.value === selectedPeriod)?.label || "Período";
+
+            if (fileFormat === "pdf") {
+                if (type === "mensal") {
+                    const dataToExport = dailySummaries.map(s => ({
+                        funcionario: s.employeeName,
+                        departamento: (s as any).department || "-",
+                        duracao: s.duration,
+                        horasExtra: s.overtime,
+                        isLate: s.isLate
+                    }));
+                    await exportToMensalPDF(
+                        dataToExport,
+                        `${employeeName} - ${periodName}`,
+                        reportHeader,
+                        logoUrl
+                    );
+                } else {
+                    const dataToExport = dailySummaries.map(s => ({
+                        data: format(parseISO(s.firstIn), 'dd/MM/yyyy', { locale: pt }),
+                        funcionario: s.employeeName,
+                        id: s.employeeId,
+                        departamento: (s as any).department || "-",
+                        entrada: format(parseISO(s.firstIn), 'HH:mm'),
+                        saida: s.lastOut ? format(parseISO(s.lastOut), 'HH:mm') : '-',
+                        movimentos: s.allRecords.map((r: AttendanceRecord) => format(parseISO(r.checktime), 'HH:mm')).join(', '),
+                        duracao: s.duration,
+                        horasExtra: s.overtime
+                    }));
+                    
+                    await exportToPDF(
+                        dataToExport, 
+                        `${employeeName} - ${periodName}`, 
+                        reportHeader,
+                        type,
+                        logoUrl
+                    );
+                }
+            } else {
+                const dataToExport = dailySummaries.map(s => ({
+                    data: format(parseISO(s.firstIn), 'dd/MM/yyyy', { locale: pt }),
+                    funcionario: s.employeeName,
+                    id_funcionario: s.employeeId,
+                    departamento: (s as any).department || "-",
+                    entrada: format(parseISO(s.firstIn), 'HH:mm'),
+                    saida: s.lastOut ? format(parseISO(s.lastOut), 'HH:mm') : '-',
+                    movimentos: s.allRecords.map((r: AttendanceRecord) => format(parseISO(r.checktime), 'HH:mm')).join(', '),
+                    duracao_total: s.duration,
+                    horas_extra: s.overtime,
+                    registos_no_dia: s.recordCount
+                }));
+                exportToExcel(dataToExport);
+            }
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const handleExportExcel = () => {
-        const dataToExport = dailySummaries.map(s => ({
-            data: format(parseISO(s.firstIn), 'dd/MM/yyyy', { locale: pt }),
-            funcionario: s.employeeName,
-            id_funcionario: s.employeeId,
-            departamento: (s as any).department || "-",
-            entrada: format(parseISO(s.firstIn), 'HH:mm'),
-            saida: s.lastOut ? format(parseISO(s.lastOut), 'HH:mm') : '-',
-            movimentos: s.allRecords.map((r: AttendanceRecord) => format(parseISO(r.checktime), 'HH:mm')).join(', '),
-            duracao_total: s.duration,
-            horas_extra: s.overtime,
-            registos_no_dia: s.recordCount
-        }));
-        exportToExcel(dataToExport);
-    };
+    const handleExportPDF = () => setIsExportModalOpen(true);
+    const handleExportExcel = () => setIsExportModalOpen(true);
 
     const selectedEmployeeName = selectedEmployee === "all"
         ? "Todos os Colaboradores"
@@ -354,36 +505,21 @@ export default function ReportsPage() {
                 </div>
                 <div className="flex gap-2">
                     <Button
-                        variant="outline"
-                        className="shadow-sm"
-                        onClick={handleExportPDF}
+                        variant="default"
+                        className="shadow-md bg-blue-600 hover:bg-blue-700"
+                        onClick={() => setIsExportModalOpen(true)}
                         disabled={loading || dailySummaries.length === 0}
                     >
                         <FileDown className="mr-2 h-4 w-4" />
-                        PDF
-                    </Button>
-                    <Button
-                        variant="outline"
-                        className="shadow-sm"
-                        onClick={handleExportExcel}
-                        disabled={loading || dailySummaries.length === 0}
-                    >
-                        <FileDown className="mr-2 h-4 w-4" />
-                        Excel
+                        Exportar Relatório
                     </Button>
                 </div>
             </div>
 
             {/* Filtros */}
-            <Card className="border-none shadow-sm">
-                <CardHeader className="pb-4">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                        <Filter className="h-5 w-5" />
-                        Filtros
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card className="border-none shadow-sm overflow-visible bg-white dark:bg-neutral-900 border-b border-neutral-100 dark:border-neutral-800">
+                <CardContent className="p-4">
+                    <div className="flex flex-col md:flex-row items-end gap-4">
                         {/* Seletor de Colaborador */}
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
@@ -414,36 +550,13 @@ export default function ReportsPage() {
                             </Select>
                         </div>
 
-                        {/* Tipo de Relatório */}
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                                Tipo de Exportação
-                            </label>
-                            <Select value={reportType} onValueChange={(v: any) => setReportType(v)}>
-                                <SelectTrigger className="w-full">
-                                    <SelectValue placeholder="Tipo de relatório" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="summary">
-                                        Resumo Geral
-                                    </SelectItem>
-                                    <SelectItem value="detailed">
-                                        Relatório Detalhado (Oficial)
-                                    </SelectItem>
-                                    <SelectItem value="matrix">
-                                        Resumo em Grelha (Mensal)
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-
                         {/* Período Pré-definido */}
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                        <div className="flex-1 space-y-2 min-w-[200px]">
+                            <label className="text-sm font-medium text-neutral-500">
                                 Período
                             </label>
                             <Select value={selectedPeriod} onValueChange={handlePeriodChange}>
-                                <SelectTrigger className="w-full">
+                                <SelectTrigger className="w-full bg-neutral-50 dark:bg-neutral-800 border-neutral-200">
                                     <SelectValue placeholder="Selecionar período" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -457,16 +570,16 @@ export default function ReportsPage() {
                         </div>
 
                         {/* Datas Personalizadas */}
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                                Datas Personalizadas
+                        <div className="flex-1 space-y-2 min-w-[220px]">
+                            <label className="text-sm font-medium text-neutral-500">
+                                Datas Selecionadas
                             </label>
                             <Popover>
                                 <PopoverTrigger asChild>
                                     <Button
                                         variant={"outline"}
                                         className={cn(
-                                            "w-full justify-start text-left font-normal",
+                                            "w-full justify-start text-left font-normal bg-neutral-50 dark:bg-neutral-800 border-neutral-200",
                                             !date && "text-muted-foreground"
                                         )}
                                     >
@@ -500,23 +613,47 @@ export default function ReportsPage() {
                                 </PopoverContent>
                             </Popover>
                         </div>
-                    </div>
 
-                    <div className="mt-4 flex justify-end">
-                        <Button onClick={fetchRecords} disabled={loading || rateLimitCountdown > 0}>
-                            {rateLimitCountdown > 0 ? (
-                                <Clock className="mr-2 h-4 w-4 animate-pulse" />
-                            ) : (
-                                <RefreshCw className={cn("mr-2 h-4 w-4", loading && "animate-spin")} />
-                            )}
-                            {rateLimitCountdown > 0 ? `Aguarde ${rateLimitCountdown}s` : "Atualizar Dados"}
-                        </Button>
+                        <div className="flex items-end h-full">
+                            <Button 
+                                onClick={fetchRecords} 
+                                disabled={loading || rateLimitCountdown > 0}
+                                className="bg-neutral-900 border-neutral-800 hover:bg-neutral-800 h-10 px-6"
+                            >
+                                {rateLimitCountdown > 0 ? (
+                                    <Clock className="mr-2 h-4 w-4 animate-pulse" />
+                                ) : (
+                                    <RefreshCw className={cn("mr-2 h-4 w-4", loading && "animate-spin")} />
+                                )}
+                                {rateLimitCountdown > 0 ? `Aguarde ${rateLimitCountdown}s` : "Atualizar"}
+                            </Button>
+                        </div>
                     </div>
                 </CardContent>
             </Card>
 
             {/* Estatísticas do Colaborador */}
             <div className="grid gap-4 md:grid-cols-5">
+                {/* Colaboradores / Ausências */}
+                <Card className="border-none shadow-sm bg-white dark:bg-neutral-900">
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-xs font-medium text-neutral-500 uppercase tracking-wider flex items-center gap-2">
+                            {selectedEmployee === "all" ? <Users className="h-3 w-3" /> : <CalendarOff className="h-3 w-3" />}
+                            {selectedEmployee === "all" ? "Colaboradores Ativos" : "Dias Ausente"}
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className={cn(
+                            "text-2xl font-bold",
+                            selectedEmployee !== "all" && stats.totalAbsences > 0 ? "text-red-600" : "text-neutral-900 dark:text-neutral-100"
+                        )}>
+                            {selectedEmployee === "all" ? stats.uniqueEmployees : stats.totalAbsences}
+                        </div>
+                        <p className="text-[10px] text-neutral-400 mt-1">
+                            {selectedEmployee === "all" ? "Com registos no período" : "Dias úteis sem registos"}
+                        </p>
+                    </CardContent>
+                </Card>
                 <Card className="border-none shadow-sm">
                     <CardHeader className="pb-2">
                         <CardDescription className="flex items-center gap-2">
@@ -528,6 +665,47 @@ export default function ReportsPage() {
                         <div className="text-lg font-bold truncate" title={selectedEmployeeName}>
                             {selectedEmployeeName}
                         </div>
+                    </CardContent>
+                </Card>
+
+                {/* Atrasos */}
+                <Card className="border-none shadow-sm bg-white dark:bg-neutral-900">
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-xs font-medium text-neutral-500 uppercase tracking-wider flex items-center gap-2">
+                            <Clock className="h-3 w-3" />
+                            Atrasos
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className={cn(
+                            "text-2xl font-bold",
+                            stats.totalLate > 0 ? "text-red-600" : "text-neutral-900 dark:text-neutral-100"
+                        )}>
+                            {stats.totalLate}
+                        </div>
+                        <p className="text-[10px] text-neutral-400 mt-1">
+                            Entradas fora do horário
+                        </p>
+                    </CardContent>
+                </Card>
+                {/* Saídas Antecipadas */}
+                <Card className="border-none shadow-sm bg-white dark:bg-neutral-900">
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-xs font-medium text-neutral-500 uppercase tracking-wider flex items-center gap-2">
+                            <Clock className="h-3 w-3" />
+                            Saídas Antecipadas
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className={cn(
+                            "text-2xl font-bold",
+                            stats.totalEarlyExits > 0 ? "text-yellow-600" : "text-neutral-900 dark:text-neutral-100"
+                        )}>
+                            {stats.totalEarlyExits}
+                        </div>
+                        <p className="text-[10px] text-neutral-400 mt-1">
+                            Saídas antes do horário
+                        </p>
                     </CardContent>
                 </Card>
                 <Card className="border-none shadow-sm">
@@ -631,11 +809,17 @@ export default function ReportsPage() {
                                             dailySummaries.map((summary) => {
                                                 const hasOvertime = summary.overtimeMs > 0;
                                                 return (
-                                                    <TableRow key={summary.id}>
+                                                    <TableRow 
+                                                        key={summary.id}
+                                                        className={cn(
+                                                            summary.isPlaceholder && "bg-red-50/50 dark:bg-red-950/10"
+                                                        )}
+                                                    >
                                                         <TableCell className="font-medium">
                                                             {format(parseISO(summary.firstIn), 'dd MMM yyyy', { locale: pt })}
+                                                            <div className="text-[10px] text-neutral-400 md:hidden">{summary.employeeName}</div>
                                                         </TableCell>
-                                                        <TableCell>
+                                                        <TableCell className="hidden md:table-cell">
                                                             <div className="flex flex-col">
                                                                 <span className="font-semibold text-neutral-900 dark:text-neutral-100">{summary.employeeName}</span>
                                                                 <span className="text-xs text-neutral-500">ID: {summary.employeeId}</span>
@@ -645,6 +829,9 @@ export default function ReportsPage() {
                                                             <div className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700 border border-green-100">
                                                                 {format(parseISO(summary.firstIn), 'HH:mm')}
                                                             </div>
+                                                            {summary.isLate && (
+                                                                <div className="w-2 h-2 rounded-full bg-red-500 inline-block ml-1" title="Atraso" />
+                                                            )}
                                                         </TableCell>
                                                         <TableCell className="text-center">
                                                             {summary.lastOut ? (
@@ -653,6 +840,9 @@ export default function ReportsPage() {
                                                                 </div>
                                                             ) : (
                                                                 <span className="text-[10px] text-neutral-400 italic">Sem saída</span>
+                                                            )}
+                                                            {summary.isEarly && (
+                                                                <div className="w-2 h-2 rounded-full bg-yellow-500 inline-block ml-1" title="Saída Antecipada" />
                                                             )}
                                                         </TableCell>
                                                         <TableCell className="text-center">
@@ -767,6 +957,14 @@ export default function ReportsPage() {
                     </Card>
                 </TabsContent>
             </Tabs>
+
+            <ExportModal
+                isOpen={isExportModalOpen}
+                onOpenChange={setIsExportModalOpen}
+                onExport={handleExport}
+                loading={loading}
+                title={selectedEmployeeName}
+            />
         </div>
     )
 }

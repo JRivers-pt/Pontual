@@ -33,6 +33,7 @@ model User {
 
   // Report Settings
   reportHeader      String?
+  logoUrl           String?
   vpEmail          String?
   autoEmailReports Boolean @default(false)
 

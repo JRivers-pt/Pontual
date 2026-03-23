@@ -10,6 +10,16 @@ export const GET = auth(async (req) => {
     try {
         const user = await prisma.user.findUnique({
             where: { id: req.auth.user.id },
+            select: {
+                id: true,
+                username: true,
+                email: true,
+                name: true,
+                role: true,
+                company: true,
+                reportHeader: true,
+                logoUrl: true,
+            }
         });
 
         if (!user) {

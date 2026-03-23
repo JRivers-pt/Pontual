@@ -29,6 +29,7 @@ export function ClientForm({ clientId }: ClientFormProps) {
         apiSecret: "",
         apiUrl: "https://api.eu.crosschexcloud.com/",
         reportHeader: "",
+        logoUrl: "",
         vpEmail: "",
         autoEmailReports: false,
     });
@@ -54,6 +55,7 @@ export function ClientForm({ clientId }: ClientFormProps) {
                 apiSecret: data.apiSecret || "",
                 apiUrl: data.apiUrl || "https://api.eu.crosschexcloud.com/",
                 reportHeader: data.reportHeader || "",
+                logoUrl: data.logoUrl || "",
                 vpEmail: data.vpEmail || "",
                 autoEmailReports: !!data.autoEmailReports,
             });
@@ -244,6 +246,16 @@ export function ClientForm({ clientId }: ClientFormProps) {
                             value={formData.reportHeader}
                             onChange={handleChange}
                             placeholder="ex: Nome da Empresa | Departamento"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="logoUrl">URL do Logotipo (opcional)</Label>
+                        <Input
+                            id="logoUrl"
+                            name="logoUrl"
+                            value={formData.logoUrl}
+                            onChange={handleChange}
+                            placeholder="ex: /logos/gengibre-logo.jpg ou https://..."
                         />
                     </div>
                     <div className="space-y-4 pt-2">
