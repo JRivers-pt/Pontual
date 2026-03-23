@@ -165,6 +165,27 @@ export function getGengibreSchedule(employeeName: string, employeeId?: string | 
     return tAB;
 }
 
+/**
+ * Obtém o departamento de um colaborador (Benfica ou Amadora) para Cozinha Criativa
+ */
+export function getGengibreDepartment(employeeName: string): string {
+    const name = employeeName.toLowerCase().trim();
+    
+    // Benfica
+    if (name.includes('vasco') || 
+        name.includes('ademir') || 
+        name.includes('caio') || 
+        name.includes('sandra mendes') || 
+        name.includes('carolina petra') || 
+        name.includes('anaís lima') || 
+        name.includes('anais lima')) {
+        return "Benfica";
+    }
+    
+    // Default fallback - Amadora (most common or per client image)
+    return "Amadora";
+}
+
 
 
 /**

@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { addDays, format, parseISO, startOfMonth, endOfMonth, subMonths, endOfDay } from "date-fns"
+import { addDays, format, parseISO, startOfMonth, endOfMonth, subMonths, endOfDay, isWithinInterval } from "date-fns"
 import { pt } from "date-fns/locale"
 import { Calendar as CalendarIcon, FileDown, Search, RefreshCw, Clock, User, Users, Filter, ChevronDown } from "lucide-react"
 import { DateRange } from "react-day-picker"
@@ -238,7 +238,7 @@ export default function ReportsPage() {
                 date: format(parseISO(first.checktime), 'yyyy-MM-dd'),
                 employeeId: first.employeeId,
                 employeeName: first.employeeName,
-                department: (first as any).department || "Geral",
+                department: getGengibreDepartment(first.employeeName),
                 firstIn: first.checktime,
                 lastOut: lastOutTime,
                 duration: durationStr,
