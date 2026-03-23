@@ -10,8 +10,8 @@ async function addGengibre() {
             password,
             company: 'Cozinha Criativa',
             name: 'Guilherme',
-            apiKey: 'e1333efb083e4f994aaea2cf3f86f1c0',
-            apiSecret: '1109f672c35321500de3bb33a8d93af2',
+            apiKey: 'ca9605b9d17b330391a3f2e25ac6c5b1',
+            apiSecret: '8a19bfac316a3c3c4cab75b7a0dd7d7f',
             apiUrl: 'https://api.eu.crosschexcloud.com/'
         },
         create: {
@@ -20,8 +20,8 @@ async function addGengibre() {
             company: 'Cozinha Criativa',
             name: 'Guilherme',
             role: 'CLIENT',
-            apiKey: 'e1333efb083e4f994aaea2cf3f86f1c0',
-            apiSecret: '1109f672c35321500de3bb33a8d93af2',
+            apiKey: 'ca9605b9d17b330391a3f2e25ac6c5b1',
+            apiSecret: '8a19bfac316a3c3c4cab75b7a0dd7d7f',
             apiUrl: 'https://api.eu.crosschexcloud.com/'
         }
     });
