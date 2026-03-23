@@ -98,6 +98,7 @@ export default function ReportsPage() {
     const [activeTab, setActiveTab] = React.useState<string>("summary")
     const [rateLimitCountdown, setRateLimitCountdown] = React.useState<number>(0)
     const [reportHeader, setReportHeader] = React.useState<string | undefined>(undefined)
+    const [reportType, setReportType] = React.useState<"summary" | "detailed" | "matrix">("summary")
 
     // Fetch user profile for settings
     React.useEffect(() => {
@@ -237,6 +238,7 @@ export default function ReportsPage() {
                 date: format(parseISO(first.checktime), 'yyyy-MM-dd'),
                 employeeId: first.employeeId,
                 employeeName: first.employeeName,
+                department: (first as any).department || "Geral",
                 firstIn: first.checktime,
                 lastOut: lastOutTime,
                 duration: durationStr,
@@ -246,7 +248,11 @@ export default function ReportsPage() {
                 recordCount: group.length,
                 allRecords: sorted
             };
-        }).sort((a, b) => b.firstIn.localeCompare(a.firstIn));
+        }).sort((a, b) => {
+            const nameCompare = a.employeeName.localeCompare(b.employeeName);
+            if (nameCompare !== 0) return nameCompare;
+            return b.firstIn.localeCompare(a.firstIn);
+        });
     }, [filteredRecords]);
 
     // Estatísticas do colaborador selecionado
@@ -275,9 +281,11 @@ export default function ReportsPage() {
 
     // Histórico detalhado de todas as picagens
     const detailedHistory = React.useMemo(() => {
-        return [...filteredRecords].sort((a, b) =>
-            parseISO(b.checktime).getTime() - parseISO(a.checktime).getTime()
-        );
+        return [...filteredRecords].sort((a, b) => {
+            const nameCompare = a.employeeName.localeCompare(b.employeeName);
+            if (nameCompare !== 0) return nameCompare;
+            return parseISO(b.checktime).getTime() - parseISO(a.checktime).getTime();
+        });
     }, [filteredRecords]);
 
     const handlePeriodChange = (value: string) => {
@@ -297,12 +305,19 @@ export default function ReportsPage() {
             data: format(parseISO(s.firstIn), 'dd/MM/yyyy', { locale: pt }),
             funcionario: s.employeeName,
             id: s.employeeId,
+            departamento: (s as any).department || "-",
             entrada: format(parseISO(s.firstIn), 'HH:mm'),
             saida: s.lastOut ? format(parseISO(s.lastOut), 'HH:mm') : '-',
+            movimentos: s.allRecords.map((r: AttendanceRecord) => format(parseISO(r.checktime), 'HH:mm')).join(', '),
             duracao: s.duration,
             horasExtra: s.overtime
         }));
-        exportToPDF(dataToExport, `${employeeName} - ${format(date?.from || new Date(), "MMM yyyy", { locale: pt })}`, reportHeader);
+        exportToPDF(
+            dataToExport, 
+            `${employeeName} - ${format(date?.from || new Date(), "MMM yyyy", { locale: pt })}`, 
+            reportHeader,
+            reportType
+        );
     };
 
     const handleExportExcel = () => {
@@ -310,8 +325,10 @@ export default function ReportsPage() {
             data: format(parseISO(s.firstIn), 'dd/MM/yyyy', { locale: pt }),
             funcionario: s.employeeName,
             id_funcionario: s.employeeId,
+            departamento: (s as any).department || "-",
             entrada: format(parseISO(s.firstIn), 'HH:mm'),
             saida: s.lastOut ? format(parseISO(s.lastOut), 'HH:mm') : '-',
+            movimentos: s.allRecords.map((r: AttendanceRecord) => format(parseISO(r.checktime), 'HH:mm')).join(', '),
             duracao_total: s.duration,
             horas_extra: s.overtime,
             registos_no_dia: s.recordCount
@@ -393,6 +410,29 @@ export default function ReportsPage() {
                                             </div>
                                         </SelectItem>
                                     ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        {/* Tipo de Relatório */}
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                                Tipo de Exportação
+                            </label>
+                            <Select value={reportType} onValueChange={(v: any) => setReportType(v)}>
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Tipo de relatório" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="summary">
+                                        Resumo Geral
+                                    </SelectItem>
+                                    <SelectItem value="detailed">
+                                        Relatório Detalhado (Oficial)
+                                    </SelectItem>
+                                    <SelectItem value="matrix">
+                                        Resumo em Grelha (Mensal)
+                                    </SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
@@ -567,6 +607,7 @@ export default function ReportsPage() {
                                             <TableHead>Funcionário</TableHead>
                                             <TableHead className="text-center">Entrada</TableHead>
                                             <TableHead className="text-center">Saída</TableHead>
+                                            <TableHead className="text-center">Movimentos (24h)</TableHead>
                                             <TableHead className="text-center">Duração</TableHead>
                                             <TableHead className="text-center">Horas Extra</TableHead>
                                             <TableHead className="text-right">Registos</TableHead>
@@ -575,14 +616,14 @@ export default function ReportsPage() {
                                     <TableBody>
                                         {loading ? (
                                             <TableRow>
-                                                <TableCell colSpan={7} className="text-center py-8 text-neutral-500">
+                                                <TableCell colSpan={8} className="text-center py-8 text-neutral-500">
                                                     <RefreshCw className="h-5 w-5 animate-spin mx-auto mb-2" />
                                                     A carregar relatórios...
                                                 </TableCell>
                                             </TableRow>
                                         ) : dailySummaries.length === 0 ? (
                                             <TableRow>
-                                                <TableCell colSpan={7} className="text-center py-8 text-neutral-500">
+                                                <TableCell colSpan={8} className="text-center py-8 text-neutral-500">
                                                     Sem atividade no período selecionado
                                                 </TableCell>
                                             </TableRow>
@@ -613,6 +654,18 @@ export default function ReportsPage() {
                                                             ) : (
                                                                 <span className="text-[10px] text-neutral-400 italic">Sem saída</span>
                                                             )}
+                                                        </TableCell>
+                                                        <TableCell className="text-center">
+                                                            <div className="flex flex-wrap gap-1 justify-center max-w-[180px] mx-auto">
+                                                                {summary.allRecords.map((r: AttendanceRecord, i: number) => {
+                                                                    const info = getCheckTypeInfo(r.checktype);
+                                                                    return (
+                                                                        <Badge key={i} variant="outline" className={cn("text-[9px] px-1 py-0 h-4 min-w-[32px] justify-center", info.color)} title={info.label}>
+                                                                            {format(parseISO(r.checktime), 'HH:mm')}
+                                                                        </Badge>
+                                                                    )
+                                                                })}
+                                                            </div>
                                                         </TableCell>
                                                         <TableCell className="text-center">
                                                             <span className="text-sm font-medium text-neutral-600 dark:text-neutral-400">

@@ -102,9 +102,15 @@ export async function GET(request: Request) {
                 });
 
                 const doc = new jsPDF();
-                let isFirstEmployee = true;
+                
+                // Sort employees by name
+                const sortedEmployees = Array.from(employeesMap.values()).sort((a: any, b: any) => 
+                    a.name.localeCompare(b.name)
+                );
 
-                for (const [empId, empData] of employeesMap) {
+                let isFirstEmployee = true;
+                for (const empData of sortedEmployees) {
+                    const empId = empData.records[0]?.employee.workno || 'N/A';
                     if (!isFirstEmployee) {
                         doc.addPage();
                     }
@@ -130,24 +136,34 @@ export async function GET(request: Request) {
                         const sorted = dayItems.sort((a: any, b: any) => parseISO(a.checktime).getTime() - parseISO(b.checktime).getTime());
                         const first = sorted[0];
                         const last = sorted[sorted.length - 1];
+                        const allTimes = sorted.map((r: any) => format(parseISO(r.checktime), 'HH:mm')).join(', ');
 
                         return [
                             format(day, 'dd/MM'),
                             format(day, 'EEEE', { locale: pt }),
                             first ? format(parseISO(first.checktime), 'HH:mm') : '-',
                             (last && last !== first) ? format(parseISO(last.checktime), 'HH:mm') : '-',
+                            allTimes || '-',
                             dayItems.length > 0 ? 'Presente' : (isWeekend(day) ? 'FDS' : 'Falta')
                         ];
                     }).filter(Boolean);
 
                     autoTable(doc, {
-                        head: [['Data', 'Dia', 'Entrada', 'Saída', 'Estado']],
+                        head: [['Data', 'Dia', 'Entrada', 'Saída', 'Movimentos', 'Estado']],
                         body: daysData as any[][],
                         startY: 52,
                         theme: 'grid',
-                        styles: { fontSize: 9, cellPadding: 3 },
+                        styles: { fontSize: 8, cellPadding: 2 },
                         headStyles: { fillColor: [37, 99, 235], textColor: 255 },
                         margin: { left: 14, right: 14 },
+                        columnStyles: {
+                            0: { cellWidth: 15 },
+                            1: { cellWidth: 25 },
+                            2: { cellWidth: 15 },
+                            3: { cellWidth: 15 },
+                            4: { cellWidth: 50 },
+                            5: { cellWidth: 20 },
+                        }
                     });
                 }
 
