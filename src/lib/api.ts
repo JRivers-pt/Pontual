@@ -140,6 +140,10 @@ export async function getAttendanceRecords(
 
 export async function getEmployees() {
   try {
+    // 1. Get managed worknos from our database
+    const managedRes = await fetch('/api/employees');
+    const { worknos: managedWorknos } = await managedRes.json().catch(() => ({ worknos: [] }));
+
     const endDate = new Date();
     const startDate = new Date();
     startDate.setMonth(startDate.getMonth() - 1);
@@ -152,6 +156,12 @@ export async function getEmployees() {
     const employeesMap = new Map();
     records.payload.list.forEach(record => {
       const key = record.employee.workno;
+      
+      // 2. Only include if in the managed list
+      if (managedWorknos.length > 0 && !managedWorknos.includes(key)) {
+        return;
+      }
+
       if (!employeesMap.has(key)) {
         employeesMap.set(key, {
           workno: record.employee.workno,
@@ -167,6 +177,13 @@ export async function getEmployees() {
     console.error('Error fetching employees:', error);
     throw error;
   }
+}
+
+export async function getManagedWorknos(): Promise<string[]> {
+  const response = await fetch('/api/employees');
+  if (!response.ok) return [];
+  const data = await response.json();
+  return data.worknos || [];
 }
 
 export async function getSchedules() {

@@ -104,6 +104,7 @@ export default function ReportsPage() {
     const [schedulesMap, setSchedulesMap] = React.useState<Map<string, any>>(new Map())
     const [isExportModalOpen, setIsExportModalOpen] = React.useState(false)
     const [reportType, setReportType] = React.useState<"summary" | "detailed" | "matrix">("summary")
+    const [managedWorknos, setManagedWorknos] = React.useState<string[]>([])
 
     // Fetch user profile for settings
     React.useEffect(() => {
@@ -115,19 +116,20 @@ export default function ReportsPage() {
             })
             .catch(err => console.error("Error fetching profile", err));
 
-        // Fetch schedules mapping
-        fetch('/api/schedules')
-            .then(res => res.json())
-            .then((data: any[]) => {
-                const map = new Map();
-                data.forEach(sched => {
-                    sched.employeeSchedules?.forEach((es: any) => {
-                        map.set(es.workno, sched);
-                    });
+        // Fetch schedules mapping and managed worknos
+        Promise.all([
+            fetch('/api/schedules').then(res => res.json()),
+            fetch('/api/employees').then(res => res.json())
+        ]).then(([schedulesData, employeesData]) => {
+            const map = new Map();
+            schedulesData.forEach((sched: any) => {
+                sched.employeeSchedules?.forEach((es: any) => {
+                    map.set(es.workno, sched);
                 });
-                setSchedulesMap(map);
-            })
-            .catch(err => console.error("Error fetching schedules", err));
+            });
+            setSchedulesMap(map);
+            setManagedWorknos(employeesData.worknos || []);
+        }).catch(err => console.error("Error fetching initial data", err));
     }, []);
 
     // Buscar a lista mestre de colaboradores (dos últimos 30 dias para base)
@@ -178,7 +180,7 @@ export default function ReportsPage() {
 
             const response = await getAttendanceRecords(beginTime, endTime);
 
-            const formattedRecords: AttendanceRecord[] = response.payload.list.map(item => ({
+            const allFetchedRecords: AttendanceRecord[] = response.payload.list.map(item => ({
                 uuid: item.uuid,
                 employeeName: `${item.employee.first_name} ${item.employee.last_name}`.trim(),
                 employeeId: item.employee.workno,
@@ -188,7 +190,12 @@ export default function ReportsPage() {
                 deviceSerial: item.device.serial_number
             }));
 
-            setRecords(formattedRecords);
+            // Filter by managed worknos if list is available
+            const filteredByManaged = managedWorknos.length > 0 
+                ? allFetchedRecords.filter(r => managedWorknos.includes(r.employeeId))
+                : allFetchedRecords;
+
+            setRecords(filteredByManaged);
         } catch (err: any) {
             if (err.message && err.message.includes("Limite da API CrossChex")) {
                 setRateLimitCountdown(30);

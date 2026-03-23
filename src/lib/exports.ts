@@ -136,7 +136,7 @@ export async function exportToPDF(data: AttendanceData[], period: string, header
                 emp.dept.substring(0, 10),
                 ...rowDays,
                 totalStr,
-                "0:00" // OT placeholder
+                emp.ot || "00:00"
             ];
         });
 
@@ -199,7 +199,7 @@ export async function exportToPDF(data: AttendanceData[], period: string, header
             doc.setFontSize(11);
             doc.setTextColor(100);
             doc.text(`Colaborador: ${empName}`, textStartX, 30);
-            doc.text(`Departamento: ${empData[0]?.departamento || empData[0]?.department || "N/A"}`, textStartX + 80, 30);
+            doc.text(`Departamento: ${empData[0]?.departamento || empData[0]?.department || "Geral"}`, textStartX + 80, 30);
             doc.text(`Período: ${period}`, textStartX, 36);
             doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-PT')} ${new Date().toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' })}`, textStartX, 42);
 

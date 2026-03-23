@@ -60,7 +60,7 @@ export function ExportModal({ isOpen, onOpenChange, onExport, loading, title }: 
         {
             id: "mensal",
             title: "Mensal (Resumo)",
-            description: "Relatório ultra-simplificado com foco em totais mensais (Less is more).",
+            description: "Relatório ultra-simplificado com foco em totais mensais (O essencial com clareza).",
             icon: Download,
             color: "text-orange-600",
             bgColor: "bg-orange-50"
