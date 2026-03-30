@@ -84,37 +84,50 @@ export async function getAttendanceRecords(
   const token = await getAuthToken();
   let allRecords: AttendanceRecord[] = [];
   let page = 1;
-  const perPage = 100;
-  const MAX_PAGES = 50; // Safety cap to avoid infinite loops
+  const perPage = 200;
+  const MAX_PAGES = 50;
+  const MAX_RETRIES = 3;
 
   while (page <= MAX_PAGES) {
-    const response = await fetch('/api/attendance/records', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token, beginTime, endTime, page, perPage }),
-    });
+    let retries = 0;
+    let data: any = null;
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-    }
+    while (retries < MAX_RETRIES) {
+      const response = await fetch('/api/attendance/records', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, beginTime, endTime, page, perPage }),
+      });
 
-    const data: any = await response.json();
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
 
-    // Check for CrossChex custom exception in a 200 OK response
-    if (data.header?.nameSpace === "System" && data.payload?.type === "FREQUENT_REQUEST") {
-      throw new Error("Por favor, aguarde 30 segundos entre as atualizações (Limite da API CrossChex).");
+      data = await response.json();
+
+      // Auto-retry on rate limit
+      if (data.header?.nameSpace === "System" && data.payload?.type === "FREQUENT_REQUEST") {
+        retries++;
+        if (retries >= MAX_RETRIES) {
+          throw new Error("Limite da API CrossChex excedido. Tente novamente em 30 segundos.");
+        }
+        // Wait 31 seconds and retry
+        if (onProgress) onProgress(-1); // Signal: waiting for rate limit
+        await new Promise(resolve => setTimeout(resolve, 31000));
+        continue;
+      }
+      break; // Success, exit retry loop
     }
 
     const records = data.payload?.list || [];
 
-    if (records.length === 0) break; // No more records
+    if (records.length === 0) break;
 
     allRecords = [...allRecords, ...records];
 
     if (onProgress) onProgress(allRecords.length);
 
-    // If we received fewer records than requested, we are on the last page.
     if (records.length < perPage) break;
 
     page++;
