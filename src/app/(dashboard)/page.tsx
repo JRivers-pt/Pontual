@@ -118,9 +118,7 @@ export default function DashboardPage() {
 
   React.useEffect(() => {
     fetchData()
-    // Auto-refresh every 60 seconds
-    const interval = setInterval(fetchData, 60 * 1000)
-    return () => clearInterval(interval)
+    // No auto-refresh — manual only to avoid CrossChex API rate limits
   }, [fetchData])
 
   // Process employee statuses
@@ -187,8 +185,9 @@ export default function DashboardPage() {
       // Calculate total minutes worked using smart logic
       const calcChecks = sortedChecks.map(c => ({ time: c.time, type: c.type }))
 
-      if (lastWasEntry) {
-        // Add synthetic checkout at current time to include ongoing session
+      // Only add synthetic checkout if there are at least 2 real punches
+      // to avoid showing wrong time when employee only has 1 punch (entry only)
+      if (lastWasEntry && sortedChecks.length >= 2) {
         calcChecks.push({ time: new Date().toISOString(), type: 1 })
       }
 

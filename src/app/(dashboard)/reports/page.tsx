@@ -132,16 +132,8 @@ export default function ReportsPage() {
         }).catch(err => console.error("Error fetching initial data", err));
     }, []);
 
-    // Buscar a lista mestre de colaboradores (dos últimos 30 dias para base)
-    React.useEffect(() => {
-        fetchAllEmployeesApi().then(emps => {
-            setAllEmployees(emps.map(e => ({
-                id: e.workno,
-                name: e.fullName,
-                recordCount: 0
-            })).sort((a, b) => a.name.localeCompare(b.name)))
-        }).catch(err => console.error("Could not fetch master employees list", err))
-    }, [])
+    // Employee list is populated from records fetched manually by the user
+    // (No auto-fetch on load to avoid CrossChex API rate limit FREQUENT_REQUEST errors)
 
     // Contador de rate limit
     React.useEffect(() => {
