@@ -124,7 +124,13 @@ export async function getAttendanceRecords(
 
     if (records.length === 0) break;
 
-    allRecords = [...allRecords, ...records];
+    // Strip timezone to avoid Daylight Saving Time (DST) shift on frontend parsing
+    const mappedRecords = records.map((r: any) => ({
+      ...r,
+      checktime: r.checktime.replace(/([+-]\d{2}:\d{2}|Z)$/, '')
+    }));
+
+    allRecords = [...allRecords, ...mappedRecords];
 
     if (onProgress) onProgress(allRecords.length);
 
