@@ -64,6 +64,7 @@ type DayRecord = {
     workedMinutes: number
     overtimeMinutes: number
     status: 'normal' | 'late' | 'absent' | 'weekend' | 'holiday'
+    observations?: string
 }
 
 type Employee = {
@@ -157,38 +158,11 @@ export default function TimesheetPage() {
         }
     }, [currentMonth])
 
-    // On mount: first load the employee list, then load the month data
+    // On mount: fetch the current month's data
+    // Employee list will be populated dynamically from this data
     React.useEffect(() => {
-        const init = async () => {
-            // Step 1: Quick fetch to populate the employee dropdown from recent months
-            try {
-                const now = new Date()
-                const ago = subMonths(now, 2)
-                const response = await getAttendanceRecords(
-                    ago.toISOString().replace('Z', '+00:00'),
-                    now.toISOString().replace('Z', '+00:00')
-                )
-                const found: Employee[] = []
-                const seen = new Set<string>()
-                response.payload.list.forEach((r: any) => {
-                    if (!seen.has(r.employee.workno)) {
-                        seen.add(r.employee.workno)
-                        found.push({ id: r.employee.workno, name: `${r.employee.first_name} ${r.employee.last_name}`.trim() })
-                    }
-                })
-                setAllEmployees(found.sort((a, b) => a.name.localeCompare(b.name)))
-            } catch (e) {
-                console.error("Error fetching initial employees:", e)
-            }
-
-            // Step 2: Then load the current month's data
-            await fetchMonthData()
-        }
-        init()
-
-        // Auto-refresh every 60 seconds
-        const interval = setInterval(fetchMonthData, 60 * 1000)
-        return () => clearInterval(interval)
+        fetchMonthData()
+        // Removed 60s auto-refresh to prevent API rate limits
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
@@ -275,18 +249,31 @@ export default function TimesheetPage() {
             // If a past day has an open check-in (no check-out), estimate the checkout
             // using the employee's scheduled end time
             let autoCheckout = false
-            if (lastInTime !== null && isPastDay && employeeSchedule) {
-                const endTime = typeof employeeSchedule.endTime === 'string'
-                    ? (() => { const [h, m] = (employeeSchedule.endTime as string).split(':').map(Number); return { hour: h, minute: m } })()
-                    : employeeSchedule.endTime as { hour: number; minute: number }
-                const estimatedOut = new Date(day)
-                estimatedOut.setHours(endTime.hour, endTime.minute, 0, 0)
-                const estimatedMs = estimatedOut.getTime()
-                if (estimatedMs > lastInTime) {
-                    workedMinutes += (estimatedMs - lastInTime) / (1000 * 60)
-                    lastInTime = null
-                    autoCheckout = true
+            let observations = ""
+
+            // Handle missing checkouts or double-punches
+            if (sorted.length > 1 && workedMinutes < 5 && workedMinutes > 0) {
+                observations = "Dupla picagem"
+                workedMinutes = 0 // Ignore accidental 1-min duration
+            } else if (lastInTime !== null && isPastDay) {
+                observations = "Falta picagem"
+                if (employeeSchedule) {
+                    const endTime = typeof employeeSchedule.endTime === 'string'
+                        ? (() => { const [h, m] = (employeeSchedule.endTime as string).split(':').map(Number); return { hour: h, minute: m } })()
+                        : employeeSchedule.endTime as { hour: number; minute: number }
+                    const estimatedOut = new Date(day)
+                    estimatedOut.setHours(endTime.hour, endTime.minute, 0, 0)
+                    const estimatedMs = estimatedOut.getTime()
+                    if (estimatedMs > lastInTime) {
+                        workedMinutes += (estimatedMs - lastInTime) / (1000 * 60)
+                        lastInTime = null
+                        autoCheckout = true
+                    }
                 }
+            } else if (workedMinutes === 0 && sorted.length >= 1 && lastInTime === null) {
+                 if (sorted.length > 1) {
+                     observations = "Dupla picagem"
+                 }
             }
 
             workedMinutes = Math.round(workedMinutes)
@@ -305,7 +292,8 @@ export default function TimesheetPage() {
                     : autoCheckout ? 'auto' : null,
                 workedMinutes,
                 overtimeMinutes,
-                status: (isLate && !employeeSchedule.warningsDisabled) ? 'late' as const : 'normal' as const
+                status: (isLate && !employeeSchedule.warningsDisabled) ? 'late' as const : 'normal' as const,
+                observations
             }
         })
     }, [currentMonth, filteredRecords, schedules, isVilaPeixoto])
@@ -450,12 +438,15 @@ export default function TimesheetPage() {
                 saida: d.lastOut ? format(parseISO(d.lastOut), 'HH:mm') : '-',
                 duracao: formatMinutes(d.workedMinutes),
                 horasExtra: d.overtimeMinutes > 0 ? formatMinutes(d.overtimeMinutes) : '-',
-                estado: d.status === 'absent' ? 'Falta' : (d.status === 'late' ? 'Atraso' : 'OK')
+                estado: d.status === 'absent' ? 'Falta' : (d.status === 'late' ? 'Atraso' : 'OK'),
+                observacoes: d.observations || '-'
             }))
 
         exportToPDF(
             dataToExport,
-            `Folha de Ponto - ${selectedEmployeeName} - ${format(currentMonth, 'MMMM yyyy', { locale: pt })}`
+            format(currentMonth, 'MMMM yyyy', { locale: pt }),
+            `Folha de Ponto - ${selectedEmployeeName}`,
+            "timesheet"
         )
     }
 
@@ -667,6 +658,7 @@ export default function TimesheetPage() {
                                             <th className="px-3 py-2 text-center font-medium">Duração</th>
                                             <th className="px-3 py-2 text-center font-medium">H. Extra</th>
                                             <th className="px-3 py-2 text-center font-medium print:hidden">Estado</th>
+                                            <th className="px-3 py-2 text-left font-medium">Observações</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -732,6 +724,9 @@ export default function TimesheetPage() {
                                                     <td className="px-3 py-2 text-center print:hidden">
                                                         {getStatusBadge(day.status)}
                                                     </td>
+                                                    <td className="px-3 py-2 text-xs text-neutral-500">
+                                                        {day.observations || "-"}
+                                                    </td>
                                                 </tr>
                                             ))
                                         )}
@@ -748,6 +743,7 @@ export default function TimesheetPage() {
                                                 {summary.totalOvertime}
                                             </td>
                                             <td className="print:hidden"></td>
+                                            <td></td>
                                         </tr>
                                     </tfoot>
                                 </table>

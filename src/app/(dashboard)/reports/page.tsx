@@ -83,7 +83,7 @@ const PRESET_PERIODS = [
     { label: "Últimos 3 meses", value: "3m", getDates: () => ({ from: addDays(new Date(), -90), to: endOfDay(new Date()) }) },
     { label: "Últimos 6 meses", value: "6m", getDates: () => ({ from: addDays(new Date(), -180), to: endOfDay(new Date()) }) },
     { label: "Este ano", value: "thisYear", getDates: () => ({ from: new Date(new Date().getFullYear(), 0, 1), to: endOfDay(new Date()) }) },
-    { label: "Mês Específico...", value: "specificMonth", getDates: () => ({ from: startOfMonth(new Date()), to: endOfMonth(new Date()) }) },
+    { label: "Personalizado...", value: "specificMonth", getDates: () => ({ from: startOfMonth(new Date()), to: endOfMonth(new Date()) }) },
 ]
 
 export default function ReportsPage() {

@@ -35,10 +35,11 @@ async function getBase64ImageFromUrl(imageUrl: string): Promise<string> {
     }
 }
 
-export async function exportToPDF(data: AttendanceData[], period: string, headerTitle?: string, type: "summary" | "detailed" | "matrix" = "summary", logoUrl?: string) {
+export async function exportToPDF(data: AttendanceData[], period: string, headerTitle?: string, type: "summary" | "detailed" | "matrix" | "timesheet" = "summary", logoUrl?: string) {
     const doc = new jsPDF();
     const isDetailed = type === 'detailed';
     const isMatrix = type === 'matrix';
+    const isTimesheet = type === 'timesheet';
 
     if (isMatrix) {
         // Landscape Report
@@ -253,6 +254,62 @@ export async function exportToPDF(data: AttendanceData[], period: string, header
                 doc.text("__________________________________", 120, 40);
                 doc.text("Assinatura do Responsável", 125, 46);
             }
+        });
+    } else if (isTimesheet) {
+        let textStartX = 14;
+        let startY = 45;
+
+        if (logoUrl) {
+            const logoBase64 = await getBase64ImageFromUrl(logoUrl);
+            if (logoBase64) {
+                const imgFormat = logoBase64.substring(11, logoBase64.indexOf(";base64")).toUpperCase();
+                doc.addImage(logoBase64, imgFormat === 'PNG' ? 'PNG' : 'JPEG', 14, 12, 35, 25, undefined, 'FAST');
+                textStartX = 55;
+                startY = 48;
+            }
+        }
+
+        doc.setFontSize(18);
+        doc.setTextColor(40, 40, 40);
+        doc.text(headerTitle || "Pontual | Folha de Ponto", textStartX, 22);
+
+        doc.setFontSize(11);
+        doc.setTextColor(100);
+        doc.text(period, textStartX, 30);
+        doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-PT')} ${new Date().toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' })}`, textStartX, 36);
+
+        const tableColumn = ["Data", "Dia", "Entrada", "Saída", "Duração", "H. Extra", "Estado", "Observações"];
+        const tableRows = data.map(ticket => [
+            ticket.data || '-',
+            ticket.dia || '-',
+            ticket.entrada || '-',
+            ticket.saida || '-',
+            ticket.duracao || '-',
+            ticket.horasExtra || '-',
+            ticket.estado || '-',
+            ticket.observacoes || '-',
+        ]);
+
+        autoTable(doc, {
+            head: [tableColumn],
+            body: tableRows,
+            startY: startY,
+            theme: 'grid',
+            styles: { fontSize: 8, cellPadding: 2.5, halign: 'center' },
+            headStyles: { fillColor: [37, 99, 235], textColor: 255 },
+            alternateRowStyles: { fillColor: [249, 250, 251] },
+        });
+
+        // Signature area
+        const finalY = (doc as any).lastAutoTable.finalY + 20;
+        if (finalY < 250) {
+            doc.setFontSize(10);
+            doc.setTextColor(50);
+            doc.text("__________________________________", 30, finalY + 10);
+            doc.text("Assinatura do Colaborador", 35, finalY + 16);
+
+            doc.text("__________________________________", 120, finalY + 10);
+            doc.text("Assinatura do Responsável", 125, finalY + 16);
         }
     } else {
         let textStartX = 14;
