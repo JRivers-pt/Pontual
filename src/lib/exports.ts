@@ -254,7 +254,7 @@ export async function exportToPDF(data: AttendanceData[], period: string, header
                 doc.text("__________________________________", 120, 40);
                 doc.text("Assinatura do Responsável", 125, 46);
             }
-        });
+        }
     } else if (isTimesheet) {
         let textStartX = 14;
         let startY = 45;
