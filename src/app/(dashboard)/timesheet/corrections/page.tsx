@@ -208,7 +208,7 @@ export default function CorrectionsPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Form Card (1 col on large screens) */}
                 <div className="lg:col-span-1">
-                    <Card className="border-neutral-800 bg-neutral-900/50">
+                    <Card className="shadow-sm">
                         <CardHeader>
                             <CardTitle>Adicionar Picagem</CardTitle>
                             <CardDescription>Insira os dados da picagem em falta.</CardDescription>
@@ -222,7 +222,6 @@ export default function CorrectionsPage() {
                                         placeholder="Ex: 3"
                                         value={workno}
                                         onChange={e => setWorkno(e.target.value)}
-                                        className="bg-neutral-900 border-neutral-800"
                                         required
                                     />
                                 </div>
@@ -235,7 +234,6 @@ export default function CorrectionsPage() {
                                             placeholder="Ex: Guilherme"
                                             value={firstName}
                                             onChange={e => setFirstName(e.target.value)}
-                                            className="bg-neutral-900 border-neutral-800"
                                             required
                                         />
                                     </div>
@@ -246,7 +244,6 @@ export default function CorrectionsPage() {
                                             placeholder="Ex: Santos"
                                             value={lastName}
                                             onChange={e => setLastName(e.target.value)}
-                                            className="bg-neutral-900 border-neutral-800"
                                             required
                                         />
                                     </div>
@@ -260,7 +257,6 @@ export default function CorrectionsPage() {
                                             type="date"
                                             value={date}
                                             onChange={e => setDate(e.target.value)}
-                                            className="bg-neutral-900 border-neutral-800 text-white scheme-dark"
                                             required
                                         />
                                     </div>
@@ -271,7 +267,6 @@ export default function CorrectionsPage() {
                                             type="time"
                                             value={time}
                                             onChange={e => setTime(e.target.value)}
-                                            className="bg-neutral-900 border-neutral-800 text-white scheme-dark"
                                             required
                                         />
                                     </div>
@@ -283,10 +278,10 @@ export default function CorrectionsPage() {
                                         value={checktype} 
                                         onValueChange={setChecktype}
                                     >
-                                        <SelectTrigger className="bg-neutral-900 border-neutral-800">
+                                        <SelectTrigger>
                                             <SelectValue placeholder="Selecione o tipo..." />
                                         </SelectTrigger>
-                                        <SelectContent className="bg-neutral-900 border-neutral-800 text-white">
+                                        <SelectContent>
                                             {CHECK_TYPES.map(type => (
                                                 <SelectItem key={type.value} value={String(type.value)}>
                                                     {type.label}
@@ -303,7 +298,6 @@ export default function CorrectionsPage() {
                                         placeholder="Ex: Manual"
                                         value={device}
                                         onChange={e => setDevice(e.target.value)}
-                                        className="bg-neutral-900 border-neutral-800"
                                     />
                                 </div>
 
@@ -331,7 +325,7 @@ export default function CorrectionsPage() {
 
                 {/* Corrections List Table (2 cols on large screens) */}
                 <div className="lg:col-span-2 space-y-4">
-                    <Card className="border-neutral-800 bg-neutral-900/50 min-h-[450px]">
+                    <Card className="min-h-[450px] shadow-sm">
                         <CardHeader className="pb-3">
                             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                                 <div>
@@ -344,7 +338,7 @@ export default function CorrectionsPage() {
                                         placeholder="Pesquisar..." 
                                         value={searchTerm}
                                         onChange={e => setSearchTerm(e.target.value)}
-                                        className="pl-8 bg-neutral-900 border-neutral-800"
+                                        className="pl-8"
                                     />
                                 </div>
                             </div>
@@ -356,16 +350,16 @@ export default function CorrectionsPage() {
                                     <span className="text-sm text-neutral-500">A carregar registos...</span>
                                 </div>
                             ) : filteredCorrections.length === 0 ? (
-                                <div className="text-center py-16 border border-dashed border-neutral-800 rounded-lg">
+                                <div className="text-center py-16 border border-dashed border-neutral-200 dark:border-neutral-800 rounded-lg">
                                     <Clock className="mx-auto h-8 w-8 text-neutral-600 mb-2" />
                                     <h3 className="font-semibold text-neutral-400">Nenhum registo encontrado</h3>
                                     <p className="text-sm text-neutral-500 mt-1">Insira uma picagem em falta no formulário ao lado.</p>
                                 </div>
                             ) : (
-                                <div className="border border-neutral-800 rounded-lg overflow-hidden">
+                                <div className="border border-neutral-200 dark:border-neutral-800 rounded-lg overflow-hidden">
                                     <Table>
-                                        <TableHeader className="bg-neutral-950/50">
-                                            <TableRow className="border-neutral-800">
+                                        <TableHeader className="bg-neutral-50 dark:bg-neutral-900/50">
+                                            <TableRow className="border-neutral-200 dark:border-neutral-800">
                                                 <TableHead className="w-[80px]">ID</TableHead>
                                                 <TableHead>Colaborador</TableHead>
                                                 <TableHead>Data/Hora</TableHead>
@@ -379,7 +373,7 @@ export default function CorrectionsPage() {
                                                 const typeInfo = CHECK_TYPES.find(t => t.value === corr.checktype)
                                                 const dateObj = parseISO(corr.checktime)
                                                 return (
-                                                    <TableRow key={corr.id} className="border-neutral-800 hover:bg-neutral-800/20">
+                                                    <TableRow key={corr.id} className="border-neutral-200 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800/20">
                                                         <TableCell className="font-mono text-xs">{corr.workno}</TableCell>
                                                         <TableCell className="font-medium">{`${corr.firstName} ${corr.lastName}`}</TableCell>
                                                         <TableCell>
