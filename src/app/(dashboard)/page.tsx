@@ -54,6 +54,7 @@ type EmployeeStatus = {
   scheduleName: string
   scheduleStart: string
   warningsDisabled?: boolean
+  warning?: string
 }
 
 export default function DashboardPage() {
@@ -180,19 +181,47 @@ export default function DashboardPage() {
       const scheduleInfo = getFormattedScheduleInfo(employeeSchedule)
 
       // Determine if still present (last check was entry type)
-      const lastWasEntry = lastCheck.type === 0 || lastCheck.type === 128
+      // Entry types: Check-In (0), Overtime In (128), Break End (3)
+      const lastWasEntry = lastCheck.type === 0 || lastCheck.type === 128 || lastCheck.type === 3
 
       // Calculate total minutes worked using smart logic
       const calcChecks = sortedChecks.map(c => ({ time: c.time, type: c.type }))
 
-      // Only add synthetic checkout if there are at least 2 real punches
-      // to avoid showing wrong time when employee only has 1 punch (entry only)
-      if (lastWasEntry && sortedChecks.length >= 2) {
+      // Determine warnings/anomalies
+      let warning: string | undefined = undefined
+
+      const firstWasExit = firstCheck.type === 1 || firstCheck.type === 129 || firstCheck.type === 2
+      if (firstWasExit) {
+        warning = "Falta Entrada"
+      }
+
+      if (lastWasEntry) {
+        // If still working, calculate active work time up to now
         calcChecks.push({ time: new Date().toISOString(), type: 1 })
+
+        // Check if probably forgot to clock out (current time is past shift end by 45+ minutes)
+        if (employeeSchedule && !firstWasExit) {
+          const endTime = typeof employeeSchedule.endTime === 'string'
+              ? (() => { const [h, m] = (employeeSchedule.endTime as string).split(':').map(Number); return { hour: h, minute: m } })()
+              : employeeSchedule.endTime as { hour: number; minute: number }
+          const now = new Date()
+          const scheduleEndMinutes = endTime.hour * 60 + endTime.minute
+          const currentMinutes = now.getHours() * 60 + now.getMinutes()
+          
+          if (currentMinutes > scheduleEndMinutes + 45) {
+            warning = "Falta Saída"
+          }
+        }
       }
 
       const { totalWorkMs } = calculateSmartWorkHours(calcChecks)
-      const totalMinutes = totalWorkMs / (1000 * 60)
+      let totalMinutes = totalWorkMs / (1000 * 60)
+
+      // Double punch check: multiple punches but duration is near 0
+      if (sortedChecks.length >= 2 && totalMinutes < 5) {
+        warning = "Dupla Picagem"
+        totalMinutes = 0
+      }
 
       let status: 'present' | 'absent' | 'late' | 'left'
       if (lastWasEntry) {
@@ -210,7 +239,8 @@ export default function DashboardPage() {
         totalMinutes: Math.round(totalMinutes),
         scheduleName: scheduleInfo.scheduleName,
         scheduleStart: scheduleInfo.startTimeStr,
-        warningsDisabled: (employeeSchedule as any).warningsDisabled
+        warningsDisabled: (employeeSchedule as any).warningsDisabled,
+        warning
       })
     })
 
@@ -479,7 +509,19 @@ export default function DashboardPage() {
                           {formatMinutes(emp.totalMinutes)} trabalhadas
                         </p>
                       </div>
-                      {getStatusBadge(emp.status)}
+                      <div className="flex items-center gap-1.5">
+                        {emp.warning && (
+                          <Badge className={cn(
+                            "text-[10px] font-semibold border px-1.5 py-0.5",
+                            emp.warning === "Falta Entrada" && "bg-red-100 text-red-700 border-red-200 hover:bg-red-100",
+                            emp.warning === "Falta Saída" && "bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-100",
+                            emp.warning === "Dupla Picagem" && "bg-neutral-100 text-neutral-700 border-neutral-200 hover:bg-neutral-100"
+                          )}>
+                            {emp.warning}
+                          </Badge>
+                        )}
+                        {getStatusBadge(emp.status)}
+                      </div>
                     </div>
                   </div>
                 ))}
