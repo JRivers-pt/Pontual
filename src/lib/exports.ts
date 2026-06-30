@@ -420,7 +420,8 @@ export function exportToExcel(data: AttendanceData[]) {
         "Faltas",
         "Atrasos",
         "Horas Trabalhadas",
-        "Horas Extra"
+        "H. Extra Trabalhadas",
+        "H. Extra a Pagar"
     ];
 
     Object.values(employeeGroups).forEach(emp => {
@@ -483,6 +484,15 @@ export function exportToExcel(data: AttendanceData[]) {
         const otMins = Math.floor((totalOvertimeMs % 3600000) / 60000);
         const totalOtStr = totalOvertimeMs > 0 ? `${otHours}h ${otMins.toString().padStart(2, '0')}m` : "-";
 
+        // Paid overtime calculation (20 hours exemption for Ademir and Evelyn)
+        const empNameLower = emp.name.toLowerCase();
+        const isExempt = empNameLower.includes("ademir") || empNameLower.includes("evelyn");
+        const paidOvertimeMs = isExempt ? Math.max(0, totalOvertimeMs - 20 * 60 * 60 * 1000) : totalOvertimeMs;
+
+        const paidOtHours = Math.floor(paidOvertimeMs / 3600000);
+        const paidOtMins = Math.floor((paidOvertimeMs % 3600000) / 60000);
+        const paidOtStr = paidOvertimeMs > 0 ? `${paidOtHours}h ${paidOtMins.toString().padStart(2, '0')}m` : "-";
+
         matrixRows.push([
             emp.id,
             emp.name,
@@ -492,7 +502,8 @@ export function exportToExcel(data: AttendanceData[]) {
             absencesCount,
             latesCount,
             totalWorkStr,
-            totalOtStr
+            totalOtStr,
+            paidOtStr
         ]);
     });
 
@@ -537,7 +548,8 @@ export function exportToExcel(data: AttendanceData[]) {
         { wch: 10 }, // Absences
         { wch: 10 }, // Lates
         { wch: 18 }, // Total Hours
-        { wch: 15 }  // Overtime
+        { wch: 18 }, // Overtime Worked
+        { wch: 18 }  // Overtime to Pay
     ];
     matrixWorksheet['!cols'] = matrixCols;
 
@@ -635,11 +647,18 @@ export async function exportToMensalPDF(
         const oh = Math.floor(emp.overtimeMs / 3600000);
         const om = Math.floor((emp.overtimeMs % 3600000) / 60000);
 
+        const empNameLower = emp.name.toLowerCase();
+        const isExempt = empNameLower.includes("ademir") || empNameLower.includes("evelyn");
+        const paidOvertimeMs = isExempt ? Math.max(0, emp.overtimeMs - 20 * 60 * 60 * 1000) : emp.overtimeMs;
+        const poh = Math.floor(paidOvertimeMs / 3600000);
+        const pom = Math.floor((paidOvertimeMs % 3600000) / 60000);
+
         return [
             emp.name,
             emp.dept,
             `${h}h ${m}m`,
             emp.overtimeMs > 0 ? `+${oh}h ${om}m` : "-",
+            paidOvertimeMs > 0 ? `+${poh}h ${pom}m` : "-",
             emp.absences > 0 ? emp.absences : "0",
             emp.lates > 0 ? emp.lates : "0"
         ];
@@ -647,15 +666,15 @@ export async function exportToMensalPDF(
 
     (doc as any).autoTable({
         startY: currentY,
-        head: [['Colaborador', 'Dep.', 'Total Horas', 'H. Extra', 'Faltas', 'Atrasos']],
+        head: [['Colaborador', 'Dep.', 'Total Horas', 'H. Extra Trab.', 'H. Extra a Pagar', 'Faltas', 'Atrasos']],
         body: tableRows,
         theme: 'striped',
         headStyles: { fillColor: [51, 65, 85], textColor: [255, 255, 255] },
-        styles: { fontSize: 9, cellPadding: 3 },
+        styles: { fontSize: 8, cellPadding: 2.5 },
         columnStyles: {
             2: { fontStyle: 'bold' },
-            4: { textColor: [220, 38, 38] },
-            5: { textColor: [180, 83, 9] }
+            5: { textColor: [220, 38, 38] },
+            6: { textColor: [180, 83, 9] }
         }
     });
 
