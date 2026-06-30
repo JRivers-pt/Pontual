@@ -71,6 +71,51 @@ export async function POST(request: NextRequest) {
 
         const data = await response.json();
 
+        // Update discovered devices in the database
+        try {
+            const apiRecords = data.payload?.list || [];
+            const devicesToUpsert = new Map<string, { serialNumber: string; name: string; lastSeen: Date }>();
+            
+            apiRecords.forEach((r: any) => {
+                if (!r.device || r.device.serial_number === 'MANUAL') return;
+                const serial = r.device.serial_number;
+                const name = r.device.name || 'Equipamento';
+                const checktime = new Date(r.checktime);
+                
+                const existing = devicesToUpsert.get(serial);
+                if (!existing || checktime > existing.lastSeen) {
+                    devicesToUpsert.set(serial, {
+                        serialNumber: serial,
+                        name,
+                        lastSeen: checktime
+                    });
+                }
+            });
+
+            for (const dev of devicesToUpsert.values()) {
+                await prisma.device.upsert({
+                    where: {
+                        serialNumber_userId: {
+                            serialNumber: dev.serialNumber,
+                            userId: user.id
+                        }
+                    },
+                    update: {
+                        name: dev.name,
+                        lastSeen: dev.lastSeen
+                    },
+                    create: {
+                        serialNumber: dev.serialNumber,
+                        name: dev.name,
+                        lastSeen: dev.lastSeen,
+                        userId: user.id
+                    }
+                });
+            }
+        } catch (deviceError) {
+            console.error('Error updating devices cache:', deviceError);
+        }
+
         // Query manual missed punches from our database
         try {
             const missedPunches = await prisma.missedPunch.findMany({

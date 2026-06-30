@@ -22,104 +22,135 @@ export async function GET(request: NextRequest) {
             where: { id: session.user.id }
         });
 
-        if (!user || !user.apiKey || !user.apiSecret) {
-            return NextResponse.json({ devices: [] });
+        if (!user) {
+            return NextResponse.json({ error: 'User not found' }, { status: 404 });
         }
 
-        // 1. Get Auth Token
-        const tokenRequestBody = {
-            header: {
-                nameSpace: 'authorize.token',
-                nameAction: 'token',
-                version: '1.0',
-                requestId: generateRequestId(),
-                timestamp: generateTimestamp()
-            },
-            payload: {
-                api_key: user.apiKey,
-                api_secret: user.apiSecret
-            }
-        };
-
-        const tokenResponse = await fetch(user.apiUrl || 'https://api.eu.crosschexcloud.com/', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(tokenRequestBody),
+        // 1. Query devices from local database cache
+        let dbDevices = await prisma.device.findMany({
+            where: { userId: user.id }
         });
 
-        if (!tokenResponse.ok) {
-            throw new Error(`Token authentication failed: ${tokenResponse.status}`);
-        }
+        // 2. Self-warm cache if empty (first load ever)
+        if (dbDevices.length === 0 && user.apiKey && user.apiSecret) {
+            try {
+                console.log(`Devices API: Warming cache for user ${user.username}`);
+                
+                // Get Auth Token
+                const tokenRequestBody = {
+                    header: {
+                        nameSpace: 'authorize.token',
+                        nameAction: 'token',
+                        version: '1.0',
+                        requestId: generateRequestId(),
+                        timestamp: generateTimestamp()
+                    },
+                    payload: {
+                        api_key: user.apiKey,
+                        api_secret: user.apiSecret
+                    }
+                };
 
-        const tokenData = await tokenResponse.json();
-        const token = tokenData.payload?.token;
-
-        if (!token) {
-            return NextResponse.json({ devices: [] });
-        }
-
-        // 2. Fetch last 15 days of records to discover devices and their last activity
-        const endDate = new Date();
-        const startDate = new Date();
-        startDate.setDate(startDate.getDate() - 15);
-
-        const recordsRequestBody = {
-            header: {
-                nameSpace: 'attendance.record',
-                nameAction: 'getrecord',
-                version: '1.0',
-                requestId: generateRequestId(),
-                timestamp: generateTimestamp()
-            },
-            authorize: {
-                type: 'token',
-                token: token
-            },
-            payload: {
-                begin_time: startDate.toISOString().replace('Z', '+00:00'),
-                end_time: endDate.toISOString().replace('Z', '+00:00'),
-                order: 'desc', // get latest first
-                page: 1,
-                per_page: 200
-            }
-        };
-
-        const recordsResponse = await fetch(user.apiUrl || 'https://api.eu.crosschexcloud.com/', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(recordsRequestBody),
-        });
-
-        if (!recordsResponse.ok) {
-            throw new Error(`Records fetch failed: ${recordsResponse.status}`);
-        }
-
-        const recordsData = await recordsResponse.json();
-        const apiRecords = recordsData.payload?.list || [];
-
-        // 3. Group by device and identify last activity
-        const devicesMap = new Map<string, { serialNumber: string; name: string; lastSeen: string }>();
-
-        apiRecords.forEach((r: any) => {
-            if (!r.device || r.device.serial_number === 'MANUAL') return;
-            
-            const serial = r.device.serial_number;
-            const name = r.device.name || 'Equipamento';
-            const checktime = r.checktime.replace(/([+-]\d{2}:\d{2}|Z)$/, '');
-
-            const existing = devicesMap.get(serial);
-            if (!existing || new Date(checktime).getTime() > new Date(existing.lastSeen).getTime()) {
-                devicesMap.set(serial, {
-                    serialNumber: serial,
-                    name,
-                    lastSeen: checktime
+                const tokenResponse = await fetch(user.apiUrl || 'https://api.eu.crosschexcloud.com/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(tokenRequestBody),
                 });
+
+                if (tokenResponse.ok) {
+                    const tokenData = await tokenResponse.json();
+                    const token = tokenData.payload?.token;
+
+                    if (token) {
+                        const endDate = new Date();
+                        const startDate = new Date();
+                        startDate.setDate(startDate.getDate() - 15);
+
+                        const recordsRequestBody = {
+                            header: {
+                                nameSpace: 'attendance.record',
+                                nameAction: 'getrecord',
+                                version: '1.0',
+                                requestId: generateRequestId(),
+                                timestamp: generateTimestamp()
+                            },
+                            authorize: {
+                                type: 'token',
+                                token
+                            },
+                            payload: {
+                                begin_time: startDate.toISOString().replace('Z', '+00:00'),
+                                end_time: endDate.toISOString().replace('Z', '+00:00'),
+                                order: 'desc',
+                                page: 1,
+                                per_page: 200
+                            }
+                        };
+
+                        const recordsResponse = await fetch(user.apiUrl || 'https://api.eu.crosschexcloud.com/', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(recordsRequestBody),
+                        });
+
+                        if (recordsResponse.ok) {
+                            const recordsData = await recordsResponse.json();
+                            const apiRecords = recordsData.payload?.list || [];
+
+                            const devicesToUpsert = new Map<string, { serialNumber: string; name: string; lastSeen: Date }>();
+                            
+                            apiRecords.forEach((r: any) => {
+                                if (!r.device || r.device.serial_number === 'MANUAL') return;
+                                const serial = r.device.serial_number;
+                                const name = r.device.name || 'Equipamento';
+                                const checktime = new Date(r.checktime);
+                                
+                                const existing = devicesToUpsert.get(serial);
+                                if (!existing || checktime > existing.lastSeen) {
+                                    devicesToUpsert.set(serial, {
+                                        serialNumber: serial,
+                                        name,
+                                        lastSeen: checktime
+                                    });
+                                }
+                            });
+
+                            for (const dev of devicesToUpsert.values()) {
+                                await prisma.device.upsert({
+                                    where: {
+                                        serialNumber_userId: {
+                                            serialNumber: dev.serialNumber,
+                                            userId: user.id
+                                        }
+                                    },
+                                    update: {
+                                        name: dev.name,
+                                        lastSeen: dev.lastSeen
+                                    },
+                                    create: {
+                                        serialNumber: dev.serialNumber,
+                                        name: dev.name,
+                                        lastSeen: dev.lastSeen,
+                                        userId: user.id
+                                    }
+                                });
+                            }
+
+                            // Re-query from database
+                            dbDevices = await prisma.device.findMany({
+                                where: { userId: user.id }
+                            });
+                        }
+                    }
+                }
+            } catch (warmError) {
+                console.error("Error warming devices cache:", warmError);
             }
-        });
+        }
 
         const nowMs = Date.now();
-        const devicesList = Array.from(devicesMap.values()).map(dev => {
-            const lastSeenMs = new Date(dev.lastSeen).getTime();
+        const devicesList = dbDevices.map(dev => {
+            const lastSeenMs = dev.lastSeen.getTime();
             const diffHours = (nowMs - lastSeenMs) / (1000 * 60 * 60);
 
             let status: 'online' | 'warning' | 'offline' = 'online';
@@ -130,7 +161,9 @@ export async function GET(request: NextRequest) {
             }
 
             return {
-                ...dev,
+                serialNumber: dev.serialNumber,
+                name: dev.name,
+                lastSeen: dev.lastSeen.toISOString(),
                 status,
                 diffHours: Math.round(diffHours)
             };

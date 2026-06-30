@@ -42,6 +42,9 @@ model User {
 
   // Missed punches added manually
   missedPunches MissedPunch[]
+
+  // Discovered biometric devices
+  devices Device[]
 }
 
 model Schedule {
@@ -87,4 +90,19 @@ model MissedPunch {
   
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+}
+
+model Device {
+  id           String   @id @default(cuid())
+  serialNumber String
+  name         String
+  lastSeen     DateTime
+  
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([serialNumber, userId])
 }
