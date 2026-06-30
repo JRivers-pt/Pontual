@@ -105,6 +105,11 @@ export default function ReportsPage() {
     const [isExportModalOpen, setIsExportModalOpen] = React.useState(false)
     const [reportType, setReportType] = React.useState<"summary" | "detailed" | "matrix">("summary")
     const [managedWorknos, setManagedWorknos] = React.useState<string[]>([])
+    const [companyName, setCompanyName] = React.useState<string>("")
+
+    const isGengibre = companyName.toLowerCase().includes("cozinha") ||
+        companyName.toLowerCase().includes("gengibre") ||
+        companyName.toLowerCase().includes("criativa");
 
     // Fetch user profile for settings
     React.useEffect(() => {
@@ -113,6 +118,7 @@ export default function ReportsPage() {
             .then(data => {
                 if (data.reportHeader) setReportHeader(data.reportHeader);
                 if (data.logoUrl) setLogoUrl(data.logoUrl);
+                if (data.company) setCompanyName(data.company);
             })
             .catch(err => console.error("Error fetching profile", err));
 
@@ -230,13 +236,18 @@ export default function ReportsPage() {
             const first = sorted[0];
             const last = sorted[sorted.length - 1];
 
-            const { totalWorkMs, overtimeHours } = calculateSmartWorkHours(
-                sorted.map(r => ({ time: r.checktime, type: r.checktype }))
+            const { totalWorkMs, overtimeHours, observation } = calculateSmartWorkHours(
+                sorted.map(r => ({ time: r.checktime, type: r.checktype })),
+                { isGengibre }
             );
 
             const hours = Math.floor(totalWorkMs / (1000 * 60 * 60));
             const minutes = Math.floor((totalWorkMs % (1000 * 60 * 60)) / (1000 * 60));
-            const durationStr = totalWorkMs > 0 ? `${hours}h ${minutes}m` : "-";
+            
+            let durationStr = totalWorkMs > 0 ? `${hours}h ${minutes}m` : "-";
+            if (isGengibre && observation === "Erro: Dupla picagem") {
+                durationStr = "Erro: Dupla picagem";
+            }
 
             const overtimeMs = overtimeHours * 60 * 60 * 1000;
             const otHours = Math.floor(overtimeMs / (1000 * 60 * 60));
@@ -263,7 +274,8 @@ export default function ReportsPage() {
                 allRecords: sorted,
                 isPlaceholder: false,
                 isLate: false,
-                isEarly: false
+                isEarly: false,
+                observation: observation || "-"
             };
         });
 
@@ -327,7 +339,8 @@ export default function ReportsPage() {
                         allRecords: [],
                         isPlaceholder: true,
                         isLate: false,
-                        isEarly: false
+                        isEarly: false,
+                        observation: "-"
                     });
                 }
                 current = addDays(current, 1);
@@ -450,7 +463,8 @@ export default function ReportsPage() {
                         saida: s.lastOut ? format(parseISO(s.lastOut), 'HH:mm') : '-',
                         movimentos: s.allRecords.map((r: AttendanceRecord) => format(parseISO(r.checktime), 'HH:mm')).join(', '),
                         duracao: s.duration,
-                        horasExtra: s.overtime
+                        horasExtra: s.overtime,
+                        observacoes: s.observation || "-"
                     }));
                     
                     await exportToPDF(
@@ -473,7 +487,8 @@ export default function ReportsPage() {
                     duracao_total: s.duration,
                     horas_extra: s.overtime,
                     registos_no_dia: s.recordCount,
-                    isLate: s.isLate
+                    isLate: s.isLate,
+                    observacoes: s.observation || "-"
                 }));
                 exportToExcel(dataToExport);
             }

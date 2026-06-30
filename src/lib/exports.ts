@@ -520,7 +520,8 @@ export function exportToExcel(data: AttendanceData[]) {
         "Duração Total",
         "Horas Extra",
         "Movimentos",
-        "Atrasado"
+        "Atrasado",
+        "Observações"
     ];
 
     const detailedRows = data.map(row => [
@@ -533,7 +534,8 @@ export function exportToExcel(data: AttendanceData[]) {
         row.duracao_total,
         row.horas_extra,
         row.movimentos,
-        row.isLate ? "Sim" : "Não"
+        row.isLate ? "Sim" : "Não",
+        row.observacoes || "-"
     ]);
 
     const detailedWorksheet = XLSX.utils.aoa_to_sheet([detailedHeader, ...detailedRows]);

@@ -46,7 +46,7 @@ import { Badge } from "@/components/ui/badge"
 import { useSession } from "next-auth/react"
 import { exportToPDF } from "@/lib/exports"
 import { getAttendanceRecords, getSchedules } from "@/lib/api"
-import { isLate as checkIsLate, calculateOvertime, getFormattedScheduleInfo, Schedule, getVilaPeixotoSchedule, getGengibreSchedule } from "@/lib/schedules"
+import { isLate as checkIsLate, calculateOvertime, getFormattedScheduleInfo, Schedule, getVilaPeixotoSchedule, getGengibreSchedule, calculateSmartWorkHours } from "@/lib/schedules"
 
 type AttendanceRecord = {
     uuid: string
@@ -235,60 +235,50 @@ export default function TimesheetPage() {
             const firstCheckDate = parseISO(firstCheck.checktime)
 
             // Calculate worked time
-            let workedMinutes = 0
+            const { totalWorkMs, overtimeHours, observation } = calculateSmartWorkHours(
+                sorted.map(r => ({ time: r.checktime, type: r.checktype })),
+                { isGengibre }
+            )
+
+            let workedMinutes = totalWorkMs / (1000 * 60)
+            let overtimeMinutes = overtimeHours * 60
+            let observations = observation || ""
+            let autoCheckout = false
             let lastInTime: number | null = null
-
-            sorted.forEach(record => {
-                const time = parseISO(record.checktime).getTime()
-                // Entry types: Check-In (0), Overtime In (128), Break End (3)
-                const isEntry = record.checktype === 0 || record.checktype === 128 || record.checktype === 3
-                // Exit types: Check-Out (1), Overtime Out (129), Break Start (2)
-                const isExit = record.checktype === 1 || record.checktype === 129 || record.checktype === 2
-
-                if (isEntry) {
-                    lastInTime = time
-                } else if (isExit && lastInTime !== null) {
-                    workedMinutes += (time - lastInTime) / (1000 * 60)
-                    lastInTime = null
-                }
-            })
 
             const isPastDay = day < startOfDay(new Date())
 
-            // If a past day has an open check-in (no check-out), estimate the checkout
-            // using the employee's scheduled end time
-            let autoCheckout = false
-            let observations = ""
-
-            // Handle missing checkouts or double-punches
-            if (sorted.length > 1 && workedMinutes < 5 && workedMinutes > 0) {
-                observations = "Dupla picagem"
-                workedMinutes = 0 // Ignore accidental 1-min duration
-            } else if (lastInTime !== null && isPastDay) {
-                observations = "Falta picagem"
-                if (employeeSchedule) {
-                    const endTime = typeof employeeSchedule.endTime === 'string'
-                        ? (() => { const [h, m] = (employeeSchedule.endTime as string).split(':').map(Number); return { hour: h, minute: m } })()
-                        : employeeSchedule.endTime as { hour: number; minute: number }
-                    const estimatedOut = new Date(day)
-                    estimatedOut.setHours(endTime.hour, endTime.minute, 0, 0)
-                    const estimatedMs = estimatedOut.getTime()
-                    if (estimatedMs > lastInTime) {
-                        workedMinutes += (estimatedMs - lastInTime) / (1000 * 60)
-                        lastInTime = null
-                        autoCheckout = true
+            // Estimate checkouts for open entry on past days (only for non-Gengibre)
+            if (!isGengibre) {
+                const isEntry = lastCheck.checktype === 0 || lastCheck.checktype === 128 || lastCheck.checktype === 3
+                if (isEntry && isPastDay) {
+                    lastInTime = parseISO(lastCheck.checktime).getTime()
+                    observations = "Falta picagem"
+                    if (employeeSchedule) {
+                        const endTime = typeof employeeSchedule.endTime === 'string'
+                            ? (() => { const [h, m] = (employeeSchedule.endTime as string).split(':').map(Number); return { hour: h, minute: m } })()
+                            : employeeSchedule.endTime as { hour: number; minute: number }
+                        const estimatedOut = new Date(day)
+                        estimatedOut.setHours(endTime.hour, endTime.minute, 0, 0)
+                        const estimatedMs = estimatedOut.getTime()
+                        if (estimatedMs > lastInTime) {
+                            workedMinutes += (estimatedMs - lastInTime) / (1000 * 60)
+                            lastInTime = null
+                            autoCheckout = true
+                        }
                     }
+                } else if (sorted.length > 1 && workedMinutes < 5 && workedMinutes > 0) {
+                    observations = "Dupla picagem"
+                    workedMinutes = 0
+                } else if (workedMinutes === 0 && sorted.length >= 1 && !isEntry) {
+                     if (sorted.length > 1) {
+                         observations = "Dupla picagem"
+                     }
                 }
-            } else if (workedMinutes === 0 && sorted.length >= 1 && lastInTime === null) {
-                 if (sorted.length > 1) {
-                     observations = "Dupla picagem"
-                 }
             }
 
             workedMinutes = Math.round(workedMinutes)
-
-            const lastCheckDate = sorted.length > 1 && lastInTime === null ? parseISO(lastCheck.checktime) : null
-            const overtimeMinutes = calculateOvertime(firstCheckDate, lastCheckDate, employeeSchedule)
+            overtimeMinutes = Math.round(overtimeMinutes)
 
             const isLate = checkIsLate(firstCheckDate, employeeSchedule)
 
@@ -305,7 +295,7 @@ export default function TimesheetPage() {
                 observations
             }
         })
-    }, [currentMonth, filteredRecords, schedules, isVilaPeixoto])
+    }, [currentMonth, filteredRecords, schedules, isVilaPeixoto, isGengibre])
 
     // Calculate monthly summary
     const calculateFullSummary = (recordsForEmployee: AttendanceRecord[]) => {
