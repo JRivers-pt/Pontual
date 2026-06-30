@@ -15,7 +15,9 @@ import {
   Calendar,
   Activity,
   LogOut,
-  HelpCircle
+  HelpCircle,
+  Wifi,
+  WifiOff
 } from "lucide-react"
 
 import Link from "next/link"
@@ -64,6 +66,8 @@ export default function DashboardPage() {
   const [loading, setLoading] = React.useState(true)
   const [error, setError] = React.useState<string | null>(null)
   const [lastUpdate, setLastUpdate] = React.useState<Date>(new Date())
+  const [devices, setDevices] = React.useState<any[]>([])
+  const [loadingDevices, setLoadingDevices] = React.useState(true)
 
   const companyName = (session?.user as any)?.company || ""
   const isVilaPeixoto = companyName.toLowerCase().includes("vila peixoto")
@@ -101,6 +105,19 @@ export default function DashboardPage() {
       setRecords(formattedRecords)
       setSchedules(schedulesData)
       setLastUpdate(new Date())
+
+      // Fetch devices status in background
+      setLoadingDevices(true)
+      fetch('/api/devices')
+        .then(res => res.json())
+        .then(data => {
+          if (data.devices) setDevices(data.devices)
+          setLoadingDevices(false)
+        })
+        .catch(err => {
+          console.error("Error fetching devices:", err)
+          setLoadingDevices(false)
+        })
     } catch (err: any) {
       const errorMsg = err.message || 'Erro ao carregar dados'
       setError(errorMsg)
@@ -552,6 +569,68 @@ export default function DashboardPage() {
                 <span className="text-neutral-600 dark:text-neutral-400">Total Registos</span>
                 <span className="font-bold">{loading ? "-" : records.length}</span>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Biometric Devices Status */}
+          <Card className="border-none shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Wifi className="h-5 w-5 text-neutral-600" />
+                Estado dos Equipamentos
+              </CardTitle>
+              <CardDescription>
+                Sinal dos relógios de ponto biométricos
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {loadingDevices ? (
+                <div className="space-y-3">
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              ) : devices.length === 0 ? (
+                <p className="text-sm text-neutral-500 py-2">
+                  Nenhum equipamento detetado nos últimos 15 dias.
+                </p>
+              ) : (
+                <div className="divide-y divide-neutral-100 dark:divide-neutral-800">
+                  {devices.map((dev) => (
+                    <div key={dev.serialNumber} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
+                      <div>
+                        <p className="text-sm font-medium text-neutral-900 dark:text-neutral-50">
+                          {dev.name}
+                        </p>
+                        <p className="text-xs text-neutral-500 font-mono">
+                          S/N: {dev.serialNumber}
+                        </p>
+                      </div>
+                      <div className="flex flex-col items-end gap-1">
+                        {dev.status === 'online' && (
+                          <Badge className="bg-green-100 text-green-700 border-green-200 hover:bg-green-100 flex items-center gap-1">
+                            <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                            Online
+                          </Badge>
+                        )}
+                        {dev.status === 'warning' && (
+                          <Badge className="bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-100 flex items-center gap-1">
+                            Sem Picagens
+                          </Badge>
+                        )}
+                        {dev.status === 'offline' && (
+                          <Badge className="bg-red-100 text-red-700 border-red-200 hover:bg-red-100 flex items-center gap-1">
+                            <WifiOff className="h-3 w-3" />
+                            Offline
+                          </Badge>
+                        )}
+                        <span className="text-[10px] text-neutral-400">
+                          {dev.status === 'online' ? 'Ativo recentemente' : `Último registo: ${dev.diffHours}h atrás`}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
 
