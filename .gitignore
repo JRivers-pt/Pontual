@@ -47,3 +47,7 @@ next-env.d.ts
 *.swp
 *.swo
 *~
+
+# Prisma Local
+/prisma/schema.local.prisma
+

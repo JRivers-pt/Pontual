@@ -4,6 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:local": "prisma generate --schema=prisma/schema.local.prisma && next dev",
+    "generate:local": "prisma generate --schema=prisma/schema.local.prisma",
+    "db:push:local": "prisma db push --schema=prisma/schema.local.prisma",
     "build": "prisma generate && prisma db push --accept-data-loss && next build",
     "start": "npx prisma db push --accept-data-loss && next start",
     "lint": "eslint",
