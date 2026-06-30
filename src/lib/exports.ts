@@ -364,12 +364,204 @@ export async function exportToPDF(data: AttendanceData[], period: string, header
 }
 
 export function exportToExcel(data: AttendanceData[]) {
-    const worksheet = XLSX.utils.json_to_sheet(data);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Relatório");
+    if (data.length === 0) return;
 
-    // Gerar buffer e download
-    XLSX.writeFile(workbook, `relatorio_assiduidade_${new Date().getTime()}.xlsx`);
+    // 1. Get all unique dates sorted chronologically
+    const parseDate = (dStr: string) => {
+        const [d, m, y] = dStr.split('/').map(Number);
+        return new Date(y, m - 1, d);
+    };
+
+    const uniqueDates = Array.from(new Set(data.map(d => d.data))).filter(Boolean);
+    uniqueDates.sort((a, b) => parseDate(a).getTime() - parseDate(b).getTime());
+
+    // Generate list of days of the month (e.g., 1, 2, 3...)
+    const dayHeaders = uniqueDates.map(dateStr => {
+        return dateStr.split('/')[0]; // The day part, e.g. "01"
+    });
+
+    // 2. Group by employee name/ID
+    const employeeGroups: Record<string, {
+        id: string;
+        name: string;
+        dept: string;
+        days: Record<string, { entrada: string, saida: string, duracao: string, horasExtra: string, isLate?: boolean }>;
+    }> = {};
+
+    data.forEach(row => {
+        const key = row.id_funcionario || row.funcionario || 'default';
+        if (!employeeGroups[key]) {
+            employeeGroups[key] = {
+                id: row.id_funcionario || '-',
+                name: row.funcionario || 'Desconhecido',
+                dept: row.departamento || '-',
+                days: {}
+            };
+        }
+        employeeGroups[key].days[row.data] = {
+            entrada: row.entrada || '-',
+            saida: row.saida || '-',
+            duracao: row.duracao_total || '-',
+            horasExtra: row.horas_extra || '-',
+            isLate: row.isLate
+        };
+    });
+
+    // 3. Prepare Sheet 1: Matrix Grid ("Resumo Mensal")
+    const matrixRows: any[] = [];
+    
+    // Header for Matrix
+    const matrixHeader = [
+        "Nº Colaborador",
+        "Nome",
+        "Departamento",
+        ...dayHeaders,
+        "Dias Trabalhados",
+        "Faltas",
+        "Atrasos",
+        "Horas Trabalhadas",
+        "Horas Extra"
+    ];
+
+    Object.values(employeeGroups).forEach(emp => {
+        let workedDaysCount = 0;
+        let absencesCount = 0;
+        let latesCount = 0;
+        let totalWorkedMs = 0;
+        let totalOvertimeMs = 0;
+
+        const dayColumns = uniqueDates.map(dateStr => {
+            const dayRecord = emp.days[dateStr];
+            if (!dayRecord) {
+                const dateObj = parseDate(dateStr);
+                const isWeekend = dateObj.getDay() === 0 || dateObj.getDay() === 6;
+                return isWeekend ? "FIM" : "-";
+            }
+
+            if (dayRecord.duracao === "Falta") {
+                absencesCount++;
+                return "F";
+            }
+
+            workedDaysCount++;
+            if (dayRecord.isLate) {
+                latesCount++;
+            }
+
+            // Sum duration
+            const workParts = dayRecord.duracao.match(/(\d+)h\s*(\d+)m/);
+            if (workParts) {
+                totalWorkedMs += (parseInt(workParts[1]) * 60 + parseInt(workParts[2])) * 60000;
+            }
+
+            // Sum overtime
+            if (dayRecord.horasExtra && dayRecord.horasExtra !== "-") {
+                const otParts = dayRecord.horasExtra.match(/\+?(\d+)h\s*(\d+)m/);
+                if (otParts) {
+                    totalOvertimeMs += (parseInt(otParts[1]) * 60 + parseInt(otParts[2])) * 60000;
+                }
+            }
+
+            // Show time range (e.g. 08:30-17:30)
+            if (dayRecord.entrada !== "-" && dayRecord.saida !== "-") {
+                return `${dayRecord.entrada}-${dayRecord.saida}`;
+            } else if (dayRecord.entrada !== "-") {
+                return `${dayRecord.entrada}-`;
+            } else if (dayRecord.saida !== "-") {
+                return `-${dayRecord.saida}`;
+            }
+            return "-";
+        });
+
+        // Format total work time
+        const workHours = Math.floor(totalWorkedMs / 3600000);
+        const workMins = Math.floor((totalWorkedMs % 3600000) / 60000);
+        const totalWorkStr = `${workHours}h ${workMins.toString().padStart(2, '0')}m`;
+
+        // Format total overtime
+        const otHours = Math.floor(totalOvertimeMs / 3600000);
+        const otMins = Math.floor((totalOvertimeMs % 3600000) / 60000);
+        const totalOtStr = totalOvertimeMs > 0 ? `${otHours}h ${otMins.toString().padStart(2, '0')}m` : "-";
+
+        matrixRows.push([
+            emp.id,
+            emp.name,
+            emp.dept,
+            ...dayColumns,
+            workedDaysCount,
+            absencesCount,
+            latesCount,
+            totalWorkStr,
+            totalOtStr
+        ]);
+    });
+
+    const matrixWorksheet = XLSX.utils.aoa_to_sheet([matrixHeader, ...matrixRows]);
+
+    // 4. Prepare Sheet 2: Detailed logs
+    const detailedHeader = [
+        "Data",
+        "Nº Colaborador",
+        "Nome",
+        "Departamento",
+        "Entrada",
+        "Saída",
+        "Duração Total",
+        "Horas Extra",
+        "Movimentos",
+        "Atrasado"
+    ];
+
+    const detailedRows = data.map(row => [
+        row.data,
+        row.id_funcionario,
+        row.funcionario,
+        row.departamento,
+        row.entrada,
+        row.saida,
+        row.duracao_total,
+        row.horas_extra,
+        row.movimentos,
+        row.isLate ? "Sim" : "Não"
+    ]);
+
+    const detailedWorksheet = XLSX.utils.aoa_to_sheet([detailedHeader, ...detailedRows]);
+
+    // Set column widths for better readability
+    const matrixCols = [
+        { wch: 15 }, // ID
+        { wch: 25 }, // Name
+        { wch: 15 }, // Dept
+        ...dayHeaders.map(() => ({ wch: 13 })), // Days
+        { wch: 16 }, // Worked Days
+        { wch: 10 }, // Absences
+        { wch: 10 }, // Lates
+        { wch: 18 }, // Total Hours
+        { wch: 15 }  // Overtime
+    ];
+    matrixWorksheet['!cols'] = matrixCols;
+
+    const detailedCols = [
+        { wch: 12 }, // Date
+        { wch: 15 }, // ID
+        { wch: 25 }, // Name
+        { wch: 15 }, // Dept
+        { wch: 10 }, // In
+        { wch: 10 }, // Out
+        { wch: 15 }, // Duration
+        { wch: 12 }, // OT
+        { wch: 35 }, // Punches
+        { wch: 10 }  // Is Late
+    ];
+    detailedWorksheet['!cols'] = detailedCols;
+
+    // Create workbook and append sheets
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, matrixWorksheet, "Grelha Mensal");
+    XLSX.utils.book_append_sheet(workbook, detailedWorksheet, "Registos Detalhados");
+
+    // Write file
+    XLSX.writeFile(workbook, `Relatorio_Mensal_Assiduidade_${new Date().getTime()}.xlsx`);
 }
 
 export async function exportToMensalPDF(

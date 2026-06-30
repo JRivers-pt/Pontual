@@ -472,7 +472,8 @@ export default function ReportsPage() {
                     movimentos: s.allRecords.map((r: AttendanceRecord) => format(parseISO(r.checktime), 'HH:mm')).join(', '),
                     duracao_total: s.duration,
                     horas_extra: s.overtime,
-                    registos_no_dia: s.recordCount
+                    registos_no_dia: s.recordCount,
+                    isLate: s.isLate
                 }));
                 exportToExcel(dataToExport);
             }
