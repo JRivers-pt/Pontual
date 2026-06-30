@@ -10,7 +10,8 @@ import {
     isWeekend,
     getDay,
     subMonths,
-    addMonths
+    addMonths,
+    startOfDay
 } from "date-fns"
 import { pt } from "date-fns/locale"
 import {
@@ -189,6 +190,14 @@ export default function TimesheetPage() {
             const dayRecords = filteredRecords.filter(r =>
                 format(parseISO(r.checktime), 'yyyy-MM-dd') === dateStr
             )
+
+            const employeeId = selectedEmployee !== "all" ? selectedEmployee : (dayRecords[0]?.employeeId || '')
+            const employeeName = employees.find(e => e.id === employeeId)?.name || ''
+            
+            let employeeSchedule: Schedule;
+            if (isVilaPeixoto) employeeSchedule = getVilaPeixotoSchedule(employeeName);
+            else if (isGengibre) employeeSchedule = getGengibreSchedule(employeeName);
+            else employeeSchedule = schedules.find(s => (s as any).employeeSchedules?.some((es: any) => es.workno === employeeId)) || schedules[0];
 
             if (isWeekend(day)) {
                 return {
