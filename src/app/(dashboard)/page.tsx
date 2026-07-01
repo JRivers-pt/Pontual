@@ -158,9 +158,33 @@ export default function DashboardPage() {
     const statuses: EmployeeStatus[] = []
 
     empMap.forEach((data, id) => {
-      const sortedChecks = [...data.checks].sort((a, b) =>
+      const rawSorted = [...data.checks].sort((a, b) =>
         parseISO(a.time).getTime() - parseISO(b.time).getTime()
       )
+
+      // 1. Filter out double punches (punches within 5 minutes of each other)
+      const sortedChecks: typeof rawSorted = []
+      rawSorted.forEach(check => {
+        if (sortedChecks.length === 0) {
+          sortedChecks.push(check)
+        } else {
+          const prev = sortedChecks[sortedChecks.length - 1]
+          const diffMin = differenceInMinutes(parseISO(check.time), parseISO(prev.time))
+          if (diffMin > 5) {
+            sortedChecks.push(check)
+          }
+        }
+      })
+
+      // 2. Correct check type for the first check of the day (if before 13:00, it's always Check-In/Entrada)
+      if (sortedChecks.length > 0) {
+        const first = sortedChecks[0]
+        const firstDate = parseISO(first.time)
+        const hour = firstDate.getHours()
+        if (hour < 13 && first.type !== 0 && first.type !== 128 && first.type !== 3) {
+          first.type = 0 // Force Check-In
+        }
+      }
 
       const firstCheck = sortedChecks[0]
       const lastCheck = sortedChecks[sortedChecks.length - 1]
