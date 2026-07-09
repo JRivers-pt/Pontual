@@ -39,12 +39,6 @@ model User {
 
   // Schedules associated with this client
   schedules Schedule[]
-
-  // Missed punches added manually
-  missedPunches MissedPunch[]
-
-  // Discovered biometric devices
-  devices Device[]
 }
 
 model Schedule {
@@ -74,35 +68,4 @@ model EmployeeSchedule {
   updatedAt  DateTime @updatedAt
 
   @@unique([workno, scheduleId])
-}
-
-model MissedPunch {
-  id         String   @id @default(cuid())
-  workno     String
-  firstName  String
-  lastName   String
-  checktime  DateTime
-  checktype  Int      // 0: Check-In, 1: Check-Out, 2: Break Start, 3: Break End, 128: Overtime In, 129: Overtime Out
-  device     String   @default("Manual")
-  
-  userId     String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-}
-
-model Device {
-  id           String   @id @default(cuid())
-  serialNumber String
-  name         String
-  lastSeen     DateTime
-  
-  userId       String
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  @@unique([serialNumber, userId])
 }

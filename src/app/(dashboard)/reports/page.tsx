@@ -83,7 +83,7 @@ const PRESET_PERIODS = [
     { label: "Últimos 3 meses", value: "3m", getDates: () => ({ from: addDays(new Date(), -90), to: endOfDay(new Date()) }) },
     { label: "Últimos 6 meses", value: "6m", getDates: () => ({ from: addDays(new Date(), -180), to: endOfDay(new Date()) }) },
     { label: "Este ano", value: "thisYear", getDates: () => ({ from: new Date(new Date().getFullYear(), 0, 1), to: endOfDay(new Date()) }) },
-    { label: "Personalizado...", value: "specificMonth", getDates: () => ({ from: startOfMonth(new Date()), to: endOfMonth(new Date()) }) },
+    { label: "Mês Específico...", value: "specificMonth", getDates: () => ({ from: startOfMonth(new Date()), to: endOfMonth(new Date()) }) },
 ]
 
 export default function ReportsPage() {
@@ -105,11 +105,6 @@ export default function ReportsPage() {
     const [isExportModalOpen, setIsExportModalOpen] = React.useState(false)
     const [reportType, setReportType] = React.useState<"summary" | "detailed" | "matrix">("summary")
     const [managedWorknos, setManagedWorknos] = React.useState<string[]>([])
-    const [companyName, setCompanyName] = React.useState<string>("")
-
-    const isGengibre = companyName.toLowerCase().includes("cozinha") ||
-        companyName.toLowerCase().includes("gengibre") ||
-        companyName.toLowerCase().includes("criativa");
 
     // Fetch user profile for settings
     React.useEffect(() => {
@@ -118,7 +113,6 @@ export default function ReportsPage() {
             .then(data => {
                 if (data.reportHeader) setReportHeader(data.reportHeader);
                 if (data.logoUrl) setLogoUrl(data.logoUrl);
-                if (data.company) setCompanyName(data.company);
             })
             .catch(err => console.error("Error fetching profile", err));
 
@@ -205,15 +199,22 @@ export default function ReportsPage() {
         }
     }, [date]);
 
-    React.useEffect(() => {
-        fetchRecords();
-    }, [fetchRecords]);
+    // Auto-fetch removed — triggered manually via 'Atualizar' button
+    // to avoid CrossChex FREQUENT_REQUEST rate limit errors on page load
 
-    // Filtrar registos pelo colaborador selecionado
+    // Filtrar registos pelo colaborador selecionado e excluir Julio (ID 8) para VP
     const filteredRecords = React.useMemo(() => {
-        if (selectedEmployee === "all") return records
-        return records.filter(r => r.employeeId === selectedEmployee)
-    }, [records, selectedEmployee])
+        const company = session?.user?.company?.toLowerCase() || "";
+        const isVP = company.includes("vila peixoto") || company.includes("vp");
+        
+        let filtered = records;
+        if (isVP) {
+            filtered = filtered.filter(r => String(r.employeeId) !== '8');
+        }
+        
+        if (selectedEmployee === "all") return filtered;
+        return filtered.filter(r => r.employeeId === selectedEmployee);
+    }, [records, selectedEmployee, session]);
 
     // Agrupar registos por data e funcionário e calcular horas reais
     const dailySummaries = React.useMemo(() => {
@@ -236,18 +237,14 @@ export default function ReportsPage() {
             const first = sorted[0];
             const last = sorted[sorted.length - 1];
 
-            const { totalWorkMs, overtimeHours, observation } = calculateSmartWorkHours(
+            const { totalWorkMs, overtimeHours } = calculateSmartWorkHours(
                 sorted.map(r => ({ time: r.checktime, type: r.checktype })),
-                { isGengibre }
+                session?.user?.company || ""
             );
 
             const hours = Math.floor(totalWorkMs / (1000 * 60 * 60));
             const minutes = Math.floor((totalWorkMs % (1000 * 60 * 60)) / (1000 * 60));
-            
-            let durationStr = totalWorkMs > 0 ? `${hours}h ${minutes}m` : "-";
-            if (isGengibre && observation === "Erro: Dupla picagem") {
-                durationStr = "Erro: Dupla picagem";
-            }
+            const durationStr = totalWorkMs > 0 ? `${hours}h ${minutes}m` : "-";
 
             const overtimeMs = overtimeHours * 60 * 60 * 1000;
             const otHours = Math.floor(overtimeMs / (1000 * 60 * 60));
@@ -274,8 +271,7 @@ export default function ReportsPage() {
                 allRecords: sorted,
                 isPlaceholder: false,
                 isLate: false,
-                isEarly: false,
-                observation: observation || "-"
+                isEarly: false
             };
         });
 
@@ -339,8 +335,7 @@ export default function ReportsPage() {
                         allRecords: [],
                         isPlaceholder: true,
                         isLate: false,
-                        isEarly: false,
-                        observation: "-"
+                        isEarly: false
                     });
                 }
                 current = addDays(current, 1);
@@ -366,10 +361,28 @@ export default function ReportsPage() {
         const workMinutes = Math.floor((totalWorkMs % (1000 * 60 * 60)) / (1000 * 60));
         const totalWorkStr = `${workHours}h ${workMinutes}m`;
 
-        const totalOtMs = dailySummaries.reduce((acc, s) => acc + s.overtimeMs, 0);
+        // Client specific logic
+        const company = session?.user?.company?.toLowerCase() || "";
+        const isGengibre = company.includes("gengibre") || company.includes("cozinha criativa");
+        const isVP = company.includes("vila peixoto") || company.includes("vp");
+        const isVE = company.includes("ve") || company.includes("vontade e empenho");
+        
+        const showOvertime = isGengibre || isVE;
+        const isExempt = isGengibre && (selectedEmployee === "18" || selectedEmployee === "11");
+        
+        const rawOtMs = dailySummaries.reduce((acc, s) => acc + s.overtimeMs, 0);
+        const { getClientRules } = require("@/lib/schedules");
+        const rules = getClientRules(company);
+        const EXEMPTION_MS = 20 * 60 * 60 * 1000;
+        
+        // Use exempt IDs from rules
+        const rulesExemptIds = rules?.exemptIds || [];
+        const isEmployeeExempt = rulesExemptIds.includes(selectedEmployee);
+        const totalOtMs = isEmployeeExempt ? Math.max(0, rawOtMs - EXEMPTION_MS) : rawOtMs;
+        
         const otHours = Math.floor(totalOtMs / (1000 * 60 * 60));
         const otMinutes = Math.floor((totalOtMs % (1000 * 60 * 60)) / (1000 * 60));
-        const totalOvertimeStr = `${otHours}h ${otMinutes}m`;
+        const totalOvertimeStr = showOvertime ? `${otHours}h ${otMinutes}m` : "-";
 
         const avgHoursPerDay = totalDaysWork > 0
             ? (totalWorkMs / totalDaysWork / (1000 * 60 * 60)).toFixed(1)
@@ -406,9 +419,11 @@ export default function ReportsPage() {
             uniqueEmployees,
             totalAbsences,
             totalLate,
-            totalEarlyExits
+            totalEarlyExits,
+            isGengibre,
+            showOvertime
         };
-    }, [dailySummaries, filteredRecords, selectedEmployee, date]);
+    }, [dailySummaries, filteredRecords, selectedEmployee, date, session]);
 
     // Histórico detalhado de todas as picagens
     const detailedHistory = React.useMemo(() => {
@@ -463,8 +478,7 @@ export default function ReportsPage() {
                         saida: s.lastOut ? format(parseISO(s.lastOut), 'HH:mm') : '-',
                         movimentos: s.allRecords.map((r: AttendanceRecord) => format(parseISO(r.checktime), 'HH:mm')).join(', '),
                         duracao: s.duration,
-                        horasExtra: s.overtime,
-                        observacoes: s.observation || "-"
+                        horasExtra: s.overtime
                     }));
                     
                     await exportToPDF(
@@ -486,9 +500,7 @@ export default function ReportsPage() {
                     movimentos: s.allRecords.map((r: AttendanceRecord) => format(parseISO(r.checktime), 'HH:mm')).join(', '),
                     duracao_total: s.duration,
                     horas_extra: s.overtime,
-                    registos_no_dia: s.recordCount,
-                    isLate: s.isLate,
-                    observacoes: s.observation || "-"
+                    registos_no_dia: s.recordCount
                 }));
                 exportToExcel(dataToExport);
             }
@@ -745,17 +757,19 @@ export default function ReportsPage() {
                         <div className="text-2xl font-bold">{stats.totalWorkStr}</div>
                     </CardContent>
                 </Card>
-                <Card className="border-none shadow-sm">
-                    <CardHeader className="pb-2">
-                        <CardDescription className="flex items-center gap-2">
-                            <Clock className="h-4 w-4 text-orange-600" />
-                            Horas Extra
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold text-orange-600">{stats.totalOvertimeStr}</div>
-                    </CardContent>
-                </Card>
+                {stats.showOvertime && (
+                    <Card className="border-none shadow-sm">
+                        <CardHeader className="pb-2">
+                            <CardDescription className="flex items-center gap-2">
+                                <Clock className="h-4 w-4 text-orange-600" />
+                                Horas Extra
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold text-orange-600">{stats.totalOvertimeStr}</div>
+                        </CardContent>
+                    </Card>
+                )}
                 <Card className="border-none shadow-sm">
                     <CardHeader className="pb-2">
                         <CardDescription className="flex items-center gap-2">
@@ -802,7 +816,7 @@ export default function ReportsPage() {
                                             <TableHead className="text-center">Saída</TableHead>
                                             <TableHead className="text-center">Movimentos (24h)</TableHead>
                                             <TableHead className="text-center">Duração</TableHead>
-                                            <TableHead className="text-center">Horas Extra</TableHead>
+                                            {stats.showOvertime && <TableHead className="text-center">Horas Extra</TableHead>}
                                             <TableHead className="text-right">Registos</TableHead>
                                         </TableRow>
                                     </TableHeader>
@@ -812,6 +826,14 @@ export default function ReportsPage() {
                                                 <TableCell colSpan={8} className="text-center py-8 text-neutral-500">
                                                     <RefreshCw className="h-5 w-5 animate-spin mx-auto mb-2" />
                                                     A carregar relatórios...
+                                                </TableCell>
+                                            </TableRow>
+                                        ) : selectedEmployee === "all" && dailySummaries.length === 0 ? (
+                                            <TableRow>
+                                                <TableCell colSpan={8} className="text-center py-12 text-neutral-500">
+                                                    <User className="h-10 w-10 mx-auto mb-3 opacity-30" />
+                                                    <p className="font-medium text-neutral-600 dark:text-neutral-400">Selecione um colaborador</p>
+                                                    <p className="text-xs text-neutral-400 mt-1">Escolha um colaborador no filtro acima e clique em &quot;Atualizar&quot; para ver o resumo diário</p>
                                                 </TableCell>
                                             </TableRow>
                                         ) : dailySummaries.length === 0 ? (
@@ -877,15 +899,17 @@ export default function ReportsPage() {
                                                                 {summary.duration}
                                                             </span>
                                                         </TableCell>
-                                                        <TableCell className="text-center">
-                                                            {hasOvertime ? (
-                                                                <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200 font-bold">
-                                                                    {summary.overtime}
-                                                                </Badge>
-                                                            ) : (
-                                                                <span className="text-neutral-300">-</span>
-                                                            )}
-                                                        </TableCell>
+                                                        {stats.showOvertime && (
+                                                            <TableCell className="text-center">
+                                                                {hasOvertime ? (
+                                                                    <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200 font-bold">
+                                                                        {summary.overtime}
+                                                                    </Badge>
+                                                                ) : (
+                                                                    <span className="text-neutral-300">-</span>
+                                                                )}
+                                                            </TableCell>
+                                                        )}
                                                         <TableCell className="text-right">
                                                             <Badge variant="secondary" className="font-mono text-[10px]">
                                                                 {summary.recordCount} logs

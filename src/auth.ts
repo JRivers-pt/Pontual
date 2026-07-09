@@ -24,9 +24,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
                 const { username, password } = parsedCredentials.data;
 
+                // We use findFirst with mode 'insensitive' to ignore casing during the DB lookup
                 let user = await prisma.user.findFirst({
                     where: {
-                        username: username
+                        username: {
+                            equals: username,
+                            mode: 'insensitive'
+                        }
                     }
                 });
 

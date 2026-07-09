@@ -10,8 +10,7 @@ import {
     isWeekend,
     getDay,
     subMonths,
-    addMonths,
-    startOfDay
+    addMonths
 } from "date-fns"
 import { pt } from "date-fns/locale"
 import {
@@ -46,7 +45,7 @@ import { Badge } from "@/components/ui/badge"
 import { useSession } from "next-auth/react"
 import { exportToPDF } from "@/lib/exports"
 import { getAttendanceRecords, getSchedules } from "@/lib/api"
-import { isLate as checkIsLate, calculateOvertime, getFormattedScheduleInfo, Schedule, getVilaPeixotoSchedule, getGengibreSchedule, calculateSmartWorkHours } from "@/lib/schedules"
+import { isLate as checkIsLate, calculateOvertime, getFormattedScheduleInfo, Schedule, getVilaPeixotoSchedule, getGengibreSchedule } from "@/lib/schedules"
 
 type AttendanceRecord = {
     uuid: string
@@ -65,7 +64,6 @@ type DayRecord = {
     workedMinutes: number
     overtimeMinutes: number
     status: 'normal' | 'late' | 'absent' | 'weekend' | 'holiday'
-    observations?: string
 }
 
 type Employee = {
@@ -159,11 +157,38 @@ export default function TimesheetPage() {
         }
     }, [currentMonth])
 
-    // On mount: fetch the current month's data
-    // Employee list will be populated dynamically from this data
+    // On mount: first load the employee list, then load the month data
     React.useEffect(() => {
-        fetchMonthData()
-        // Removed 60s auto-refresh to prevent API rate limits
+        const init = async () => {
+            // Step 1: Quick fetch to populate the employee dropdown from recent months
+            try {
+                const now = new Date()
+                const ago = subMonths(now, 2)
+                const response = await getAttendanceRecords(
+                    ago.toISOString().replace('Z', '+00:00'),
+                    now.toISOString().replace('Z', '+00:00')
+                )
+                const found: Employee[] = []
+                const seen = new Set<string>()
+                response.payload.list.forEach((r: any) => {
+                    if (!seen.has(r.employee.workno)) {
+                        seen.add(r.employee.workno)
+                        found.push({ id: r.employee.workno, name: `${r.employee.first_name} ${r.employee.last_name}`.trim() })
+                    }
+                })
+                setAllEmployees(found.sort((a, b) => a.name.localeCompare(b.name)))
+            } catch (e) {
+                console.error("Error fetching initial employees:", e)
+            }
+
+            // Step 2: Then load the current month's data
+            await fetchMonthData()
+        }
+        init()
+
+        // Auto-refresh every 60 seconds
+        const interval = setInterval(fetchMonthData, 60 * 1000)
+        return () => clearInterval(interval)
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
@@ -190,14 +215,6 @@ export default function TimesheetPage() {
             const dayRecords = filteredRecords.filter(r =>
                 format(parseISO(r.checktime), 'yyyy-MM-dd') === dateStr
             )
-
-            const employeeId = selectedEmployee !== "all" ? selectedEmployee : (dayRecords[0]?.employeeId || '')
-            const employeeName = employees.find(e => e.id === employeeId)?.name || ''
-            
-            let employeeSchedule: Schedule;
-            if (isVilaPeixoto) employeeSchedule = getVilaPeixotoSchedule(employeeName);
-            else if (isGengibre) employeeSchedule = getGengibreSchedule(employeeName);
-            else employeeSchedule = schedules.find(s => (s as any).employeeSchedules?.some((es: any) => es.workno === employeeId)) || schedules[0];
 
             if (isWeekend(day)) {
                 return {
@@ -235,50 +252,47 @@ export default function TimesheetPage() {
             const firstCheckDate = parseISO(firstCheck.checktime)
 
             // Calculate worked time
-            const { totalWorkMs, overtimeHours, observation } = calculateSmartWorkHours(
-                sorted.map(r => ({ time: r.checktime, type: r.checktype })),
-                { isGengibre }
-            )
-
-            let workedMinutes = totalWorkMs / (1000 * 60)
-            let overtimeMinutes = overtimeHours * 60
-            let observations = observation || ""
-            let autoCheckout = false
+            let workedMinutes = 0
             let lastInTime: number | null = null
+
+            sorted.forEach(record => {
+                const time = parseISO(record.checktime).getTime()
+                // Entry types: Check-In (0), Overtime In (128), Break End (3)
+                const isEntry = record.checktype === 0 || record.checktype === 128 || record.checktype === 3
+                // Exit types: Check-Out (1), Overtime Out (129), Break Start (2)
+                const isExit = record.checktype === 1 || record.checktype === 129 || record.checktype === 2
+
+                if (isEntry) {
+                    lastInTime = time
+                } else if (isExit && lastInTime !== null) {
+                    workedMinutes += (time - lastInTime) / (1000 * 60)
+                    lastInTime = null
+                }
+            })
 
             const isPastDay = day < startOfDay(new Date())
 
-            // Estimate checkouts for open entry on past days (only for non-Gengibre)
-            if (!isGengibre) {
-                const isEntry = lastCheck.checktype === 0 || lastCheck.checktype === 128 || lastCheck.checktype === 3
-                if (isEntry && isPastDay) {
-                    lastInTime = parseISO(lastCheck.checktime).getTime()
-                    observations = "Falta picagem"
-                    if (employeeSchedule) {
-                        const endTime = typeof employeeSchedule.endTime === 'string'
-                            ? (() => { const [h, m] = (employeeSchedule.endTime as string).split(':').map(Number); return { hour: h, minute: m } })()
-                            : employeeSchedule.endTime as { hour: number; minute: number }
-                        const estimatedOut = new Date(day)
-                        estimatedOut.setHours(endTime.hour, endTime.minute, 0, 0)
-                        const estimatedMs = estimatedOut.getTime()
-                        if (estimatedMs > lastInTime) {
-                            workedMinutes += (estimatedMs - lastInTime) / (1000 * 60)
-                            lastInTime = null
-                            autoCheckout = true
-                        }
-                    }
-                } else if (sorted.length > 1 && workedMinutes < 5 && workedMinutes > 0) {
-                    observations = "Dupla picagem"
-                    workedMinutes = 0
-                } else if (workedMinutes === 0 && sorted.length >= 1 && !isEntry) {
-                     if (sorted.length > 1) {
-                         observations = "Dupla picagem"
-                     }
+            // If a past day has an open check-in (no check-out), estimate the checkout
+            // using the employee's scheduled end time
+            let autoCheckout = false
+            if (lastInTime !== null && isPastDay && employeeSchedule) {
+                const endTime = typeof employeeSchedule.endTime === 'string'
+                    ? (() => { const [h, m] = (employeeSchedule.endTime as string).split(':').map(Number); return { hour: h, minute: m } })()
+                    : employeeSchedule.endTime as { hour: number; minute: number }
+                const estimatedOut = new Date(day)
+                estimatedOut.setHours(endTime.hour, endTime.minute, 0, 0)
+                const estimatedMs = estimatedOut.getTime()
+                if (estimatedMs > lastInTime) {
+                    workedMinutes += (estimatedMs - lastInTime) / (1000 * 60)
+                    lastInTime = null
+                    autoCheckout = true
                 }
             }
 
             workedMinutes = Math.round(workedMinutes)
-            overtimeMinutes = Math.round(overtimeMinutes)
+
+            const lastCheckDate = sorted.length > 1 && lastInTime === null ? parseISO(lastCheck.checktime) : null
+            const overtimeMinutes = calculateOvertime(firstCheckDate, lastCheckDate, employeeSchedule)
 
             const isLate = checkIsLate(firstCheckDate, employeeSchedule)
 
@@ -291,11 +305,10 @@ export default function TimesheetPage() {
                     : autoCheckout ? 'auto' : null,
                 workedMinutes,
                 overtimeMinutes,
-                status: (isLate && !employeeSchedule.warningsDisabled) ? 'late' as const : 'normal' as const,
-                observations
+                status: (isLate && !employeeSchedule.warningsDisabled) ? 'late' as const : 'normal' as const
             }
         })
-    }, [currentMonth, filteredRecords, schedules, isVilaPeixoto, isGengibre])
+    }, [currentMonth, filteredRecords, schedules, isVilaPeixoto])
 
     // Calculate monthly summary
     const calculateFullSummary = (recordsForEmployee: AttendanceRecord[]) => {
@@ -437,15 +450,12 @@ export default function TimesheetPage() {
                 saida: d.lastOut ? format(parseISO(d.lastOut), 'HH:mm') : '-',
                 duracao: formatMinutes(d.workedMinutes),
                 horasExtra: d.overtimeMinutes > 0 ? formatMinutes(d.overtimeMinutes) : '-',
-                estado: d.status === 'absent' ? 'Falta' : (d.status === 'late' ? 'Atraso' : 'OK'),
-                observacoes: d.observations || '-'
+                estado: d.status === 'absent' ? 'Falta' : (d.status === 'late' ? 'Atraso' : 'OK')
             }))
 
         exportToPDF(
             dataToExport,
-            format(currentMonth, 'MMMM yyyy', { locale: pt }),
-            `Folha de Ponto - ${selectedEmployeeName}`,
-            "timesheet"
+            `Folha de Ponto - ${selectedEmployeeName} - ${format(currentMonth, 'MMMM yyyy', { locale: pt })}`
         )
     }
 
@@ -657,7 +667,6 @@ export default function TimesheetPage() {
                                             <th className="px-3 py-2 text-center font-medium">Duração</th>
                                             <th className="px-3 py-2 text-center font-medium">H. Extra</th>
                                             <th className="px-3 py-2 text-center font-medium print:hidden">Estado</th>
-                                            <th className="px-3 py-2 text-left font-medium">Observações</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -723,9 +732,6 @@ export default function TimesheetPage() {
                                                     <td className="px-3 py-2 text-center print:hidden">
                                                         {getStatusBadge(day.status)}
                                                     </td>
-                                                    <td className="px-3 py-2 text-xs text-neutral-500">
-                                                        {day.observations || "-"}
-                                                    </td>
                                                 </tr>
                                             ))
                                         )}
@@ -742,7 +748,6 @@ export default function TimesheetPage() {
                                                 {summary.totalOvertime}
                                             </td>
                                             <td className="print:hidden"></td>
-                                            <td></td>
                                         </tr>
                                     </tfoot>
                                 </table>

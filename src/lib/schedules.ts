@@ -132,7 +132,18 @@ export function getGengibreSchedule(employeeName: string, employeeId?: string | 
     const tC = { id: 'gg-c', name: 'Turno C 07:30h', startTime: '07:30', endTime: '16:30', lateToleranceMinutes: 20 } as Schedule;
     const tD = { id: 'gg-d', name: 'Turno D 10:00h', startTime: '10:00', endTime: '19:00', lateToleranceMinutes: 20 } as Schedule;
     const tAB = { id: 'gg-ab', name: 'Turno A Benfica 09:00h', startTime: '09:00', endTime: '18:00', lateToleranceMinutes: 20 } as Schedule;
+    const tAdemir = { ...tAB, id: 'gg-ademir', name: 'Benfica (Isenção)', warningsDisabled: true };
     const tBB = { id: 'gg-bb', name: 'Turno B Benfica 06:30h', startTime: '06:30', endTime: '15:30', lateToleranceMinutes: 20 } as Schedule;
+    const tE = { id: 'gg-e', name: 'Turno E (09:00h)', startTime: '09:00', endTime: '18:00', lateToleranceMinutes: 20 } as Schedule;
+    const tF = { id: 'gg-f', name: 'Turno F (13:30h)', startTime: '13:30', endTime: '22:30', lateToleranceMinutes: 20 } as Schedule;
+    const tEvelyn = { id: 'gg-evelyn', name: 'Chefe Cozinha (12h-21h)', startTime: '12:00', endTime: '21:00', lateToleranceMinutes: 60, warningsDisabled: true } as Schedule;
+
+    // Isenção / Chefe Cozinha — Evelyn Novaes (ID 18)
+    if (name.includes('evelyn') || String(employeeId) === '18') return tEvelyn;
+
+    // Novos Colaboradores Amadora (IDs 16 e 17)
+    if (name.includes('ana carolina') || String(employeeId) === '16') return tF;
+    if (name.includes('widler') || String(employeeId) === '17') return tE;
 
     // Turno A (07:30) — Wellington Silva, Ana Freitas
     if (name.includes('wellington silva')) return tA;
@@ -152,7 +163,7 @@ export function getGengibreSchedule(employeeName: string, employeeId?: string | 
 
     // Turno A Benfica (09:00) — Vasco Silva, Ademir Domingues, Caio Santos, Sandra Mendes, Carolina Petra
     if (name.includes('vasco')) return tAB;
-    if (name.includes('ademir')) return tAB;
+    if (name.includes('ademir') || String(employeeId) === '11') return tAdemir;
     if (name.includes('caio')) return tAB;
     if (name.includes('sandra') && name.includes('mendes')) return tAB;
     if (name.includes('carolina')) return tAB;
@@ -163,6 +174,47 @@ export function getGengibreSchedule(employeeName: string, employeeId?: string | 
 
     // Default fallback — Turno A Benfica (09:00) is the most common
     return tAB;
+}
+
+/**
+ * REGRAS DE CÁLCULO POR CLIENTE
+ */
+export const CLIENT_RULES = {
+    GENGIBRE: {
+        overtimeTolerance: 15,
+        subtractTolerance: false,
+        mealBreakMinutes: 60,
+        mealBreakThresholdHours: 6,
+        exemptIds: ['11', '18'],
+        overtimeCapHours: 8
+    },
+    VE: {
+        overtimeTolerance: 5,
+        subtractTolerance: true, // Se trabalhar 8h06m, ganha 1 min (6-5=1)
+        mealBreakMinutes: 60,
+        mealBreakThresholdHours: 6,
+        exemptIds: [],
+        overtimeCapHours: 8
+    },
+    VP: {
+        overtimeTolerance: 0,
+        subtractTolerance: false,
+        mealBreakMinutes: 60,
+        mealBreakThresholdHours: 6,
+        exemptIds: [],
+        overtimeCapHours: 8
+    }
+};
+
+/**
+ * Detecta qual o cliente baseado no nome da empresa
+ */
+export function getClientRules(companyName: string = "") {
+    const name = companyName.toLowerCase();
+    if (name.includes("gengibre") || name.includes("cozinha criativa")) return CLIENT_RULES.GENGIBRE;
+    if (name.includes("ve") || name.includes("vontade e empenho")) return CLIENT_RULES.VE;
+    if (name.includes("vila peixoto") || name.includes("vp")) return CLIENT_RULES.VP;
+    return CLIENT_RULES.GENGIBRE; // Fallback
 }
 
 /**
@@ -332,15 +384,10 @@ export function getFormattedScheduleInfo(schedule?: Schedule): {
  *    - Regular Hours cap at 8h.
  *    - Overtime = Net Work Hours - 8h.
  */
-export function calculateSmartWorkHours(
-    checks: { time: string | Date | number, type: number }[],
-    options?: { isGengibre?: boolean }
-) {
-    const isGengibre = options?.isGengibre || false;
-
-    if (checks.length === 0) {
-        return { regularHours: 0, overtimeHours: 0, totalWorkMs: 0, deductionMs: 0 };
-    }
+export function calculateSmartWorkHours(checks: { time: string | Date | number, type: number }[], companyName: string = "") {
+    const rules = getClientRules(companyName);
+    
+    if (checks.length < 2) return { regularHours: 0, overtimeHours: 0, totalWorkMs: 0 };
 
     // Normalize times to number (ms)
     const sorted = [...checks].map(c => ({
@@ -351,116 +398,73 @@ export function calculateSmartWorkHours(
     const first = sorted[0];
     const last = sorted[sorted.length - 1];
 
-    if (sorted.length < 2) {
-        if (sorted.length === 1 && isGengibre) {
-            // Rule 3: Single Punch
-            const checkDate = new Date(first.time);
-            const hour = checkDate.getHours();
-            const minute = checkDate.getMinutes();
-            const pMin = hour * 60 + minute;
-            
-            const observation = pMin < 780 ? "Falta picagem Saída" : "Falta picagem Entrada";
-            
-            return {
-                regularHours: 0,
-                overtimeHours: 0,
-                totalWorkMs: 0,
-                deductionMs: 0,
-                observation
-            };
+    let totalWorkMs = 0;
+    let lastInTime: number | null = null;
+    let breakDurationMs = 0;
+    let lastOutTime: number | null = null;
+
+    sorted.forEach(record => {
+        const time = record.time;
+        // Entry types: Check-In (0), Overtime In (128), Break End (3)
+        const isEntry = record.type === 0 || record.type === 128 || record.type === 3;
+        // Exit types: Check-Out (1), Overtime Out (129), Break Start (2)
+        const isExit = record.type === 1 || record.type === 129 || record.type === 2;
+
+        if (isEntry) {
+            lastInTime = time;
+            if (lastOutTime !== null) {
+                breakDurationMs += (time - lastOutTime);
+                lastOutTime = null;
+            }
+        } else if (isExit && lastInTime !== null) {
+            totalWorkMs += (time - lastInTime);
+            lastOutTime = time;
+            lastInTime = null;
         }
-        return { regularHours: 0, overtimeHours: 0, totalWorkMs: 0, deductionMs: 0 };
+    });
+
+    // Smart Deduction Logic
+    const totalElapsedMs = last.time - first.time;
+
+    // Use rules for deduction
+    const MEAL_BREAK_MS = rules.mealBreakMinutes * 60 * 1000;
+    const THRESHOLD_MS = rules.mealBreakThresholdHours * 60 * 60 * 1000;
+    let deductionMs = 0;
+
+    if (totalElapsedMs > THRESHOLD_MS) {
+        if (breakDurationMs < MEAL_BREAK_MS) {
+            // Deduct the remaining part of the hour not taken as break
+            deductionMs = Math.min(totalWorkMs, MEAL_BREAK_MS - breakDurationMs);
+        }
     }
 
-    const rawDurMs = last.time - first.time;
-    const rawDurMin = rawDurMs / 60000;
+    const netWorkMs = Math.max(0, totalWorkMs - deductionMs);
+    const netWorkHours = netWorkMs / (1000 * 60 * 60);
 
-    if (isGengibre) {
-        // Gengibre Rules
-        if (rawDurMin <= 15) {
-            // Rule 3: Double Punch Error
-            return {
-                regularHours: 0,
-                overtimeHours: 0,
-                totalWorkMs: 0,
-                deductionMs: 0,
-                observation: "Erro: Dupla picagem"
-            };
+    // Overtime rule: Anything above cap hours is overtime
+    const capHours = rules.overtimeCapHours;
+    let overtimeHoursNum = Math.max(0, netWorkHours - capHours);
+    const regularHoursNum = Math.min(netWorkHours, capHours);
+
+    // Tolerance check
+    const toleranceHours = rules.overtimeTolerance / 60;
+    if (overtimeHoursNum < (rules.overtimeTolerance + (rules.subtractTolerance ? 1 : 0)) / 60) {
+        // If below tolerance, no OT
+        if (overtimeHoursNum <= toleranceHours) {
+            overtimeHoursNum = 0;
+        } else if (rules.subtractTolerance) {
+            // If VE style: 8h06m -> 1m OT. (0.1h - 0.083h = 0.016h)
+            overtimeHoursNum = overtimeHoursNum - toleranceHours;
         }
-
-        let durMin = rawDurMin;
-        let deductionMin = 0;
-        if (durMin > 360) {
-            durMin -= 60; // Lunch deduction (1h = 60m)
-            deductionMin = 60;
-        }
-
-        // Daily Overtime: triggered if worked > 495 mins (8h15m)
-        let overtimeMin = 0;
-        if (durMin > 495) {
-            overtimeMin = durMin - 480; // Overtime is durMin - 8h (480m)
-        }
-
-        const netWorkMin = durMin;
-        const totalWorkMs = netWorkMin * 60000;
-        const deductionMs = deductionMin * 60000;
-
-        const overtimeHours = overtimeMin / 60;
-        const regularHours = Math.min(durMin, 480) / 60;
-
-        return {
-            regularHours,
-            overtimeHours,
-            totalWorkMs,
-            deductionMs
-        };
-    } else {
-        // Default standard rules for other companies (unchanged)
-        let totalWorkMs = 0;
-        let lastInTime: number | null = null;
-        let breakDurationMs = 0;
-        let lastOutTime: number | null = null;
-
-        sorted.forEach(record => {
-            const time = record.time;
-            const isEntry = record.type === 0 || record.type === 128 || record.type === 3;
-            const isExit = record.type === 1 || record.type === 129 || record.type === 2;
-
-            if (isEntry) {
-                lastInTime = time;
-                if (lastOutTime !== null) {
-                    breakDurationMs += (time - lastOutTime);
-                    lastOutTime = null;
-                }
-            } else if (isExit && lastInTime !== null) {
-                totalWorkMs += (time - lastInTime);
-                lastOutTime = time;
-                lastInTime = null;
-            }
-        });
-
-        const totalElapsedMs = last.time - first.time;
-        const ONE_HOUR_MS = 60 * 60 * 1000;
-        const SIX_HOURS_MS = 6 * 60 * 60 * 1000;
-        let deductionMs = 0;
-
-        if (totalElapsedMs > SIX_HOURS_MS) {
-            if (breakDurationMs < ONE_HOUR_MS) {
-                deductionMs = Math.min(totalWorkMs, ONE_HOUR_MS - breakDurationMs);
-            }
-        }
-
-        const netWorkMs = Math.max(0, totalWorkMs - deductionMs);
-        const netWorkHours = netWorkMs / (1000 * 60 * 60);
-
-        const overtimeHoursNum = Math.max(0, netWorkHours - 8);
-        const regularHoursNum = Math.min(netWorkHours, 8);
-
-        return {
-            regularHours: regularHoursNum,
-            overtimeHours: overtimeHoursNum,
-            totalWorkMs: netWorkMs,
-            deductionMs
-        };
+    } else if (rules.subtractTolerance) {
+        // Always subtract tolerance if configured
+        overtimeHoursNum = overtimeHoursNum - toleranceHours;
     }
+
+    return {
+        regularHours: regularHoursNum,
+        overtimeHours: overtimeHoursNum,
+        totalWorkMs: netWorkMs,
+        deductionMs
+    };
 }

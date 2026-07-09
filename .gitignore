@@ -48,6 +48,6 @@ next-env.d.ts
 *.swo
 *~
 
-# Prisma Local
-/prisma/schema.local.prisma
-
+# Database
+*.db
+*.db-journal
