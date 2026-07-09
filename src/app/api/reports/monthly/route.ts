@@ -5,7 +5,7 @@ import { pt } from "date-fns/locale";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { getCrossChexToken, generateRequestId, generateTimestamp } from "@/lib/api-server";
-import { calculateSmartWorkHours } from "@/lib/schedules";
+import { calculateSmartWorkHours, getClientRules } from "@/lib/schedules";
 
 export const dynamic = 'force-dynamic';
 
@@ -139,7 +139,6 @@ export async function GET(request: Request) {
 
                     // Client specific logic
                     const company = user.company || "";
-                    const { getClientRules } = require("@/lib/schedules");
                     const rules = getClientRules(company);
 
                     const isVP = company.toLowerCase().includes("vila peixoto") || company.toLowerCase().includes("vp");
