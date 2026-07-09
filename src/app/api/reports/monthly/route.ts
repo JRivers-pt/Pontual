@@ -292,7 +292,7 @@ export async function GET(request: Request) {
                     const periodStr = `${format(reportMonthStart, 'dd/MM')} a ${format(reportMonthEnd, 'dd/MM/yyyy')}`;
                     await resend.emails.send({
                         from: "Pontual <noreply@pontualidade.pt>",
-                        to: reportEmail,
+                        to: [reportEmail, "comercial@techscire.pt"],
                         reply_to: "comercial@techscire.pt",
                         subject: `Relatório de Assiduidade - Período ${periodStr}`,
                         text: `Olá,\n\nSegue em anexo o relatório consolidado de assiduidade de todos os colaboradores para o período de ${periodStr}.\n\nEste relatório inclui os cálculos de horas extra (após 8h de trabalho) e as isenções configuradas.\n\nAtenciosamente,\nEquipa Pontual`,
