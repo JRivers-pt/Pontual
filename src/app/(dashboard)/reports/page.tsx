@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useSession } from "next-auth/react"
 import { addDays, format, parseISO, startOfMonth, endOfMonth, subMonths, endOfDay, startOfDay } from "date-fns"
 import { pt } from "date-fns/locale"
 import { Calendar as CalendarIcon, FileDown, Search, RefreshCw, Clock, User, Users, Filter, ChevronDown, CalendarOff } from "lucide-react"
@@ -87,6 +88,7 @@ const PRESET_PERIODS = [
 ]
 
 export default function ReportsPage() {
+    const { data: session } = useSession()
     const [date, setDate] = React.useState<DateRange | undefined>({
         from: addDays(new Date(), -30),
         to: endOfDay(new Date()),
