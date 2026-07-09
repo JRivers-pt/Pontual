@@ -37,7 +37,7 @@ export async function GET(request: Request) {
         const updated = await prisma.user.update({
             where: { id: gengibreUser.id },
             data: {
-                vpEmail: 'vasco@cozinhacriativa.pt',
+                vpEmail: 'comercial@techscire.pt', // TEST: change to vasco@cozinhacriativa.pt after confirming
                 autoEmailReports: true,
             }
         });
