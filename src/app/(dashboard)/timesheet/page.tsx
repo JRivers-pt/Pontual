@@ -10,7 +10,8 @@ import {
     isWeekend,
     getDay,
     subMonths,
-    addMonths
+    addMonths,
+    startOfDay
 } from "date-fns"
 import { pt } from "date-fns/locale"
 import {
@@ -269,6 +270,13 @@ export default function TimesheetPage() {
                     lastInTime = null
                 }
             })
+
+            const employeeId = dayRecords[0]?.employeeId || ''
+            const employeeName = dayRecords[0]?.employeeName || ''
+            let employeeSchedule: Schedule;
+            if (isVilaPeixoto) employeeSchedule = getVilaPeixotoSchedule(employeeName);
+            else if (isGengibre) employeeSchedule = getGengibreSchedule(employeeName);
+            else employeeSchedule = schedules.find(s => (s as any).employeeSchedules?.some((es: any) => es.workno === employeeId)) || schedules[0];
 
             const isPastDay = day < startOfDay(new Date())
 
