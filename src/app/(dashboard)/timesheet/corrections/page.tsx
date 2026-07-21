@@ -31,15 +31,6 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { getEmployees } from "@/lib/api"
-
-type Employee = {
-    workno: string
-    firstName: string
-    lastName: string
-    fullName: string
-    isOfficial?: boolean
-}
 
 type Correction = {
     id: string
@@ -52,13 +43,6 @@ type Correction = {
     createdAt: string
 }
 
-// Colaboradores Pré-aprovados / Padrão (Exemplo VE e Geral)
-const PRE_APPROVED_EMPLOYEES: Employee[] = [
-    { workno: "1", firstName: "José", lastName: "Vaz", fullName: "José Vaz", isOfficial: true },
-    { workno: "2", firstName: "Cláudia", lastName: "Fernandes", fullName: "Cláudia Fernandes", isOfficial: true },
-    { workno: "3", firstName: "Isabel", lastName: "Vaz", fullName: "Isabel Vaz", isOfficial: true },
-]
-
 const CHECK_TYPES = [
     { value: 0, label: "Check-In (Entrada)", color: "bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300" },
     { value: 1, label: "Check-Out (Saída)", color: "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300" },
@@ -69,17 +53,15 @@ const CHECK_TYPES = [
 ]
 
 export default function CorrectionsPage() {
-    const [fetchedEmployees, setFetchedEmployees] = React.useState<Employee[]>([])
     const [corrections, setCorrections] = React.useState<Correction[]>([])
     const [loading, setLoading] = React.useState(true)
     const [submitting, setSubmitting] = React.useState(false)
     const [error, setError] = React.useState<string | null>(null)
     const [successMessage, setSuccessMessage] = React.useState<string | null>(null)
 
-    // Form state
-    const [selectedWorkno, setSelectedWorkno] = React.useState<string>("")
-    const [customWorkno, setCustomWorkno] = React.useState<string>("")
-    const [customName, setCustomName] = React.useState<string>("")
+    // Direct Form Inputs
+    const [workno, setWorkno] = React.useState<string>("")
+    const [employeeName, setEmployeeName] = React.useState<string>("")
     const [dateStr, setDateStr] = React.useState<string>(format(new Date(), "yyyy-MM-dd"))
     const [timeStr, setTimeStr] = React.useState<string>("09:00")
     const [checktype, setChecktype] = React.useState<string>("0")
@@ -88,115 +70,47 @@ export default function CorrectionsPage() {
     // Filter
     const [searchTerm, setSearchTerm] = React.useState("")
 
-    const fetchData = React.useCallback(async () => {
+    const fetchCorrections = React.useCallback(async () => {
         setLoading(true)
         setError(null)
-
-        // Fetch corrections history
         try {
-            const corrRes = await fetch('/api/attendance/corrections').then(r => r.json())
-            if (Array.isArray(corrRes)) {
-                setCorrections(corrRes)
+            const res = await fetch('/api/attendance/corrections')
+            const data = await res.json()
+            if (Array.isArray(data)) {
+                setCorrections(data)
+            } else if (data.error) {
+                setError(data.error)
             }
-        } catch (e) {
-            console.error("Error fetching corrections:", e)
-        }
-
-        // Fetch employee list from API
-        try {
-            const empList = await getEmployees()
-            setFetchedEmployees(empList || [])
         } catch (err: any) {
-            console.warn("Could not fetch API employees list:", err)
+            setError(err.message || "Erro ao carregar registos")
         } finally {
             setLoading(false)
         }
     }, [])
 
     React.useEffect(() => {
-        fetchData()
-    }, [fetchData])
-
-    // Combine pre-approved employees + API employees + employees from corrections history
-    const allEmployees = React.useMemo<Employee[]>(() => {
-        const map = new Map<string, Employee>()
-
-        // 1. Add pre-approved
-        PRE_APPROVED_EMPLOYEES.forEach(e => map.set(e.workno, e))
-
-        // 2. Add API fetched
-        fetchedEmployees.forEach(e => {
-            if (e.workno) {
-                map.set(e.workno, { ...e, isOfficial: true })
-            }
-        })
-
-        // 3. Add corrections history
-        corrections.forEach(c => {
-            if (c.workno && !map.has(c.workno)) {
-                map.set(c.workno, {
-                    workno: c.workno,
-                    firstName: c.firstName,
-                    lastName: c.lastName,
-                    fullName: `${c.firstName} ${c.lastName}`.trim(),
-                    isOfficial: false
-                })
-            }
-        })
-
-        return Array.from(map.values()).sort((a, b) => a.fullName.localeCompare(b.fullName))
-    }, [fetchedEmployees, corrections])
-
-    const isCustomMode = selectedWorkno === "custom"
-
-    // Auto-match name when custom ID matches a known employee
-    const handleCustomWorknoChange = (val: string) => {
-        setCustomWorkno(val)
-        const match = allEmployees.find(e => e.workno === val.trim())
-        if (match) {
-            setCustomName(match.fullName)
-        }
-    }
-
-    const selectedEmployeeObj = allEmployees.find(e => e.workno === selectedWorkno)
+        fetchCorrections()
+    }, [fetchCorrections])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setError(null)
         setSuccessMessage(null)
 
-        let targetWorkno = ""
-        let firstName = ""
-        let lastName = ""
-
-        if (isCustomMode) {
-            if (!customWorkno.trim()) {
-                setError("Por favor, introduza o ID/Número do colaborador.")
-                return
-            }
-            if (!customName.trim()) {
-                setError("Por favor, introduza o nome do colaborador.")
-                return
-            }
-            targetWorkno = customWorkno.trim()
-            const parts = customName.trim().split(" ")
-            firstName = parts[0]
-            lastName = parts.slice(1).join(" ") || parts[0]
-        } else {
-            if (!selectedWorkno) {
-                setError("Por favor, selecione um colaborador aprovado da lista.")
-                return
-            }
-            if (!selectedEmployeeObj) {
-                setError("Colaborador não encontrado na lista do sistema.")
-                return
-            }
-            targetWorkno = selectedEmployeeObj.workno
-            firstName = selectedEmployeeObj.firstName
-            lastName = selectedEmployeeObj.lastName
+        if (!workno.trim()) {
+            setError("Por favor, introduza o ID / Número do colaborador (ex: 1, 2, 3).")
+            return
+        }
+        if (!employeeName.trim()) {
+            setError("Por favor, introduza o nome do colaborador.")
+            return
         }
 
         setSubmitting(true)
+
+        const parts = employeeName.trim().split(" ")
+        const firstName = parts[0]
+        const lastName = parts.slice(1).join(" ") || parts[0]
 
         try {
             const combinedDateTime = new Date(`${dateStr}T${timeStr}:00`)
@@ -205,7 +119,7 @@ export default function CorrectionsPage() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    workno: targetWorkno,
+                    workno: workno.trim(),
                     firstName,
                     lastName,
                     checktime: combinedDateTime.toISOString(),
@@ -221,14 +135,10 @@ export default function CorrectionsPage() {
             }
 
             setSuccessMessage(`Picagem aprovada e registada com sucesso para ${firstName} ${lastName}!`)
-            fetchData()
+            fetchCorrections()
 
-            // Reset form
+            // Reset form for next entry
             setDevice("Manual (Esquecimento)")
-            if (isCustomMode) {
-                setCustomWorkno("")
-                setCustomName("")
-            }
         } catch (err: any) {
             setError(err.message || "Erro ao submeter")
         } finally {
@@ -276,11 +186,11 @@ export default function CorrectionsPage() {
                     </h1>
                     <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300">
                         <ShieldCheck className="w-3.5 h-3.5 mr-1 text-blue-600" />
-                        Aprovação de Registos
+                        Registo Direto Manual
                     </Badge>
                 </div>
                 <p className="text-neutral-500 dark:text-neutral-400 mt-1">
-                    Adicione picagens manuais em falta. Os registos aprovados entram diretamente na folha de ponto e relatórios oficiais.
+                    Adicione picagens manuais em falta. Os registos entram diretamente na folha de ponto e relatórios mensais.
                 </p>
             </div>
 
@@ -305,76 +215,37 @@ export default function CorrectionsPage() {
                         <CardHeader className="bg-neutral-50/50 dark:bg-neutral-900/50 border-b">
                             <CardTitle className="text-base flex items-center gap-2">
                                 <UserCheck className="h-4 w-4 text-blue-600" />
-                                Registar Picagem Oficial
+                                Registar Picagem Manual
                             </CardTitle>
-                            <CardDescription>Selecione um colaborador aprovado do sistema.</CardDescription>
+                            <CardDescription>Introduza o ID, nome e hora da picagem em falta.</CardDescription>
                         </CardHeader>
                         <CardContent className="pt-6">
                             <form onSubmit={handleSubmit} className="space-y-4">
-                                {/* Employee Selector */}
                                 <div className="space-y-2">
-                                    <Label htmlFor="employee">Colaborador Aprovado</Label>
-                                    <Select value={selectedWorkno} onValueChange={setSelectedWorkno}>
-                                        <SelectTrigger id="employee" className="bg-white dark:bg-neutral-900">
-                                            <SelectValue placeholder={loading ? "A carregar colaboradores..." : "Selecione o colaborador..."} />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {allEmployees.map(emp => (
-                                                <SelectItem key={emp.workno} value={emp.workno}>
-                                                    <span className="font-medium">{emp.fullName}</span> (ID: {emp.workno})
-                                                </SelectItem>
-                                            ))}
-                                            <SelectItem value="custom" className="font-medium text-blue-600 dark:text-blue-400 border-t mt-1 pt-1">
-                                                ➕ Outro Colaborador (Validação por ID)
-                                            </SelectItem>
-                                        </SelectContent>
-                                    </Select>
+                                    <Label htmlFor="workno" className="font-semibold">
+                                        ID / Nº no Relógio
+                                    </Label>
+                                    <Input
+                                        id="workno"
+                                        placeholder="Ex: 1, 2, 3..."
+                                        value={workno}
+                                        onChange={e => setWorkno(e.target.value)}
+                                        required
+                                    />
                                 </div>
 
-                                {/* Employee Validation Badge */}
-                                {selectedEmployeeObj && !isCustomMode && (
-                                    <div className="p-2.5 bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-900 rounded-md flex items-center justify-between text-xs text-green-800 dark:text-green-300">
-                                        <span className="flex items-center gap-1 font-medium">
-                                            <CheckCircle2 className="w-3.5 h-3.5 text-green-600" />
-                                            Colaborador Cadastrado
-                                        </span>
-                                        <span className="font-mono bg-green-100 dark:bg-green-900 px-1.5 py-0.5 rounded">
-                                            ID #{selectedEmployeeObj.workno}
-                                        </span>
-                                    </div>
-                                )}
-
-                                {/* Custom Employee Inputs */}
-                                {isCustomMode && (
-                                    <div className="p-3 bg-blue-50/50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 rounded-lg space-y-3">
-                                        <div className="space-y-1">
-                                            <Label htmlFor="customWorkno" className="text-xs font-semibold text-blue-900 dark:text-blue-300">
-                                                ID / Número no Relógio
-                                            </Label>
-                                            <Input
-                                                id="customWorkno"
-                                                placeholder="Ex: 1, 2, 3..."
-                                                value={customWorkno}
-                                                onChange={e => handleCustomWorknoChange(e.target.value)}
-                                                className="bg-white dark:bg-neutral-900"
-                                                required
-                                            />
-                                        </div>
-                                        <div className="space-y-1">
-                                            <Label htmlFor="customName" className="text-xs font-semibold text-blue-900 dark:text-blue-300">
-                                                Nome do Colaborador
-                                            </Label>
-                                            <Input
-                                                id="customName"
-                                                placeholder="Ex: Isabel Vaz"
-                                                value={customName}
-                                                onChange={e => setCustomName(e.target.value)}
-                                                className="bg-white dark:bg-neutral-900"
-                                                required
-                                            />
-                                        </div>
-                                    </div>
-                                )}
+                                <div className="space-y-2">
+                                    <Label htmlFor="employeeName" className="font-semibold">
+                                        Nome do Colaborador
+                                    </Label>
+                                    <Input
+                                        id="employeeName"
+                                        placeholder="Ex: Isabel Vaz"
+                                        value={employeeName}
+                                        onChange={e => setEmployeeName(e.target.value)}
+                                        required
+                                    />
+                                </div>
 
                                 <div className="grid grid-cols-2 gap-2">
                                     <div className="space-y-2">
@@ -433,12 +304,12 @@ export default function CorrectionsPage() {
                                     {submitting ? (
                                         <>
                                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                            A Validar e Guardar...
+                                            A Guardar...
                                         </>
                                     ) : (
                                         <>
                                             <Plus className="mr-2 h-4 w-4" />
-                                            Aprovar e Registar Picagem
+                                            Registar e Aprovar Picagem
                                         </>
                                     )}
                                 </Button>
@@ -453,7 +324,7 @@ export default function CorrectionsPage() {
                         <CardHeader className="pb-3 border-b bg-neutral-50/50 dark:bg-neutral-900/50">
                             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                                 <div>
-                                    <CardTitle className="text-base">Picagens Manuais Aprovadas</CardTitle>
+                                    <CardTitle className="text-base">Picagens Manuais Registadas</CardTitle>
                                     <CardDescription>Histórico de correções que entram nos relatórios mensais.</CardDescription>
                                 </div>
                                 <div className="relative w-full md:w-64">
@@ -462,7 +333,7 @@ export default function CorrectionsPage() {
                                         placeholder="Pesquisar por nome ou ID..."
                                         value={searchTerm}
                                         onChange={e => setSearchTerm(e.target.value)}
-                                        className="pl-8 bg-white dark:bg-neutral-900"
+                                        className="pl-8"
                                     />
                                 </div>
                             </div>
@@ -471,13 +342,13 @@ export default function CorrectionsPage() {
                             {loading ? (
                                 <div className="flex flex-col items-center justify-center py-16 gap-2">
                                     <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-                                    <span className="text-sm text-neutral-500">A carregar registos aprovados...</span>
+                                    <span className="text-sm text-neutral-500">A carregar registos...</span>
                                 </div>
                             ) : filteredCorrections.length === 0 ? (
                                 <div className="text-center py-16 border border-dashed rounded-lg">
                                     <Clock className="mx-auto h-8 w-8 text-neutral-400 mb-2" />
                                     <h3 className="font-semibold text-neutral-600 dark:text-neutral-300">Nenhuma picagem manual registada</h3>
-                                    <p className="text-sm text-neutral-500 mt-1">Selecione um colaborador ao lado para submeter uma correção.</p>
+                                    <p className="text-sm text-neutral-500 mt-1">Preencha o formulário ao lado para introduzir uma correção.</p>
                                 </div>
                             ) : (
                                 <div className="border rounded-lg overflow-hidden">
