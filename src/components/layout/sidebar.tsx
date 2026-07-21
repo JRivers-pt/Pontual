@@ -54,6 +54,12 @@ export function Sidebar({ className }: SidebarProps) {
             href: "/timesheet",
             active: pathname === "/timesheet",
         },
+        {
+            label: "Correções de Ponto",
+            icon: Clock,
+            href: "/timesheet/corrections",
+            active: pathname === "/timesheet/corrections",
+        },
     ]
 
     // Add Admin routes

@@ -70,6 +70,52 @@ export async function POST(request: NextRequest) {
         }
 
         const data = await response.json();
+
+        // Query manual missed punches from database and merge them into records list
+        try {
+            const missedPunches = await prisma.missedPunch.findMany({
+                where: {
+                    userId: user.id,
+                    checktime: {
+                        gte: new Date(beginTime),
+                        lte: new Date(endTime)
+                    }
+                }
+            });
+
+            if (missedPunches.length > 0 && data.payload) {
+                const mappedMissed = missedPunches.map(punch => ({
+                    uuid: `manual-${punch.id}`,
+                    checktype: punch.checktype,
+                    checktime: punch.checktime.toISOString().replace('Z', '+00:00'),
+                    device: {
+                        serial_number: 'MANUAL',
+                        name: punch.device
+                    },
+                    employee: {
+                        first_name: punch.firstName,
+                        last_name: punch.lastName,
+                        workno: punch.workno
+                    }
+                }));
+
+                const apiRecords = data.payload.list || [];
+                const combinedRecords = [...apiRecords, ...mappedMissed];
+
+                const sortOrder = body.order || 'asc';
+                combinedRecords.sort((a: any, b: any) => {
+                    const timeA = new Date(a.checktime).getTime();
+                    const timeB = new Date(b.checktime).getTime();
+                    return sortOrder === 'desc' ? timeB - timeA : timeA - timeB;
+                });
+
+                data.payload.list = combinedRecords;
+                data.payload.count = combinedRecords.length;
+            }
+        } catch (dbError) {
+            console.error('Error merging missed punches:', dbError);
+        }
+
         return NextResponse.json(data);
     } catch (error: any) {
         console.error('Error fetching attendance records:', error);
