@@ -165,15 +165,20 @@ export async function getEmployees() {
 
     const endDate = new Date();
     const startDate = new Date();
-    startDate.setMonth(startDate.getMonth() - 1);
+    startDate.setMonth(startDate.getMonth() - 3); // 3 months lookback
 
-    const records = await getAttendanceRecords(
-      startDate.toISOString().replace('Z', '+00:00'),
-      endDate.toISOString().replace('Z', '+00:00')
-    );
+    let records: any = { payload: { list: [] } };
+    try {
+      records = await getAttendanceRecords(
+        startDate.toISOString().replace('Z', '+00:00'),
+        endDate.toISOString().replace('Z', '+00:00')
+      );
+    } catch (apiErr) {
+      console.warn('Could not fetch recent records for employee list:', apiErr);
+    }
 
     const employeesMap = new Map();
-    records.payload.list.forEach(record => {
+    (records.payload?.list || []).forEach((record: any) => {
       const key = record.employee.workno;
       
       // 2. Only include if in the managed list
@@ -194,7 +199,7 @@ export async function getEmployees() {
     return Array.from(employeesMap.values());
   } catch (error) {
     console.error('Error fetching employees:', error);
-    throw error;
+    return [];
   }
 }
 

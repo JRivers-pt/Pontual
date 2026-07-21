@@ -3,7 +3,7 @@
 import * as React from "react"
 import { format, parseISO } from "date-fns"
 import { pt } from "date-fns/locale"
-import { Plus, Trash2, Clock, Search, Loader2, AlertCircle, CheckCircle2 } from "lucide-react"
+import { Plus, Trash2, Clock, Search, Loader2, AlertCircle, CheckCircle2, UserPlus } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -61,7 +61,7 @@ const CHECK_TYPES = [
 ]
 
 export default function CorrectionsPage() {
-    const [employees, setEmployees] = React.useState<Employee[]>([])
+    const [fetchedEmployees, setFetchedEmployees] = React.useState<Employee[]>([])
     const [corrections, setCorrections] = React.useState<Correction[]>([])
     const [loading, setLoading] = React.useState(true)
     const [submitting, setSubmitting] = React.useState(false)
@@ -70,6 +70,8 @@ export default function CorrectionsPage() {
 
     // Form state
     const [selectedWorkno, setSelectedWorkno] = React.useState<string>("")
+    const [customWorkno, setCustomWorkno] = React.useState<string>("")
+    const [customName, setCustomName] = React.useState<string>("")
     const [dateStr, setDateStr] = React.useState<string>(format(new Date(), "yyyy-MM-dd"))
     const [timeStr, setTimeStr] = React.useState<string>("09:00")
     const [checktype, setChecktype] = React.useState<string>("0")
@@ -81,20 +83,25 @@ export default function CorrectionsPage() {
     const fetchData = React.useCallback(async () => {
         setLoading(true)
         setError(null)
-        try {
-            const [empList, corrRes] = await Promise.all([
-                getEmployees(),
-                fetch('/api/attendance/corrections').then(r => r.json())
-            ])
-            setEmployees(empList)
 
+        // 1. Fetch corrections history first
+        let loadedCorrections: Correction[] = []
+        try {
+            const corrRes = await fetch('/api/attendance/corrections').then(r => r.json())
             if (Array.isArray(corrRes)) {
+                loadedCorrections = corrRes
                 setCorrections(corrRes)
-            } else if (corrRes.error) {
-                setError(corrRes.error)
             }
+        } catch (e) {
+            console.error("Error fetching corrections:", e)
+        }
+
+        // 2. Fetch employee list from API (with fallback)
+        try {
+            const empList = await getEmployees()
+            setFetchedEmployees(empList || [])
         } catch (err: any) {
-            setError(err.message || "Erro ao carregar dados")
+            console.warn("Could not fetch API employees list:", err)
         } finally {
             setLoading(false)
         }
@@ -104,22 +111,68 @@ export default function CorrectionsPage() {
         fetchData()
     }, [fetchData])
 
+    // Combine employees from API and from past corrections
+    const allEmployees = React.useMemo<Employee[]>(() => {
+        const map = new Map<string, Employee>()
+
+        fetchedEmployees.forEach(e => {
+            if (e.workno) map.set(e.workno, e)
+        })
+
+        corrections.forEach(c => {
+            if (c.workno && !map.has(c.workno)) {
+                map.set(c.workno, {
+                    workno: c.workno,
+                    firstName: c.firstName,
+                    lastName: c.lastName,
+                    fullName: `${c.firstName} ${c.lastName}`.trim()
+                })
+            }
+        })
+
+        return Array.from(map.values()).sort((a, b) => a.fullName.localeCompare(b.fullName))
+    }, [fetchedEmployees, corrections])
+
+    const isCustomMode = selectedWorkno === "custom"
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        if (!selectedWorkno) {
-            setError("Por favor, selecione um colaborador.")
-            return
-        }
+        setError(null)
+        setSuccessMessage(null)
 
-        const emp = employees.find(e => e.workno === selectedWorkno)
-        if (!emp) {
-            setError("Colaborador não encontrado.")
-            return
+        let targetWorkno = ""
+        let firstName = ""
+        let lastName = ""
+
+        if (isCustomMode || allEmployees.length === 0) {
+            if (!customWorkno.trim()) {
+                setError("Por favor, introduza o ID/Número do colaborador.")
+                return
+            }
+            if (!customName.trim()) {
+                setError("Por favor, introduza o nome do colaborador.")
+                return
+            }
+            targetWorkno = customWorkno.trim()
+            const parts = customName.trim().split(" ")
+            firstName = parts[0]
+            lastName = parts.slice(1).join(" ") || parts[0]
+        } else {
+            if (!selectedWorkno) {
+                setError("Por favor, selecione um colaborador da lista.")
+                return
+            }
+            const emp = allEmployees.find(e => e.workno === selectedWorkno)
+            if (!emp) {
+                setError("Colaborador não encontrado.")
+                return
+            }
+            targetWorkno = emp.workno
+            firstName = emp.firstName
+            lastName = emp.lastName
         }
 
         setSubmitting(true)
-        setError(null)
-        setSuccessMessage(null)
 
         try {
             const combinedDateTime = new Date(`${dateStr}T${timeStr}:00`)
@@ -128,9 +181,9 @@ export default function CorrectionsPage() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    workno: emp.workno,
-                    firstName: emp.firstName,
-                    lastName: emp.lastName,
+                    workno: targetWorkno,
+                    firstName,
+                    lastName,
                     checktime: combinedDateTime.toISOString(),
                     checktype: Number(checktype),
                     device: device || "Manual"
@@ -146,8 +199,12 @@ export default function CorrectionsPage() {
             setSuccessMessage("Picagem manual registada com sucesso!")
             fetchData()
 
-            // Reset optional inputs
+            // Reset form
             setDevice("Manual (Esquecimento)")
+            if (isCustomMode) {
+                setCustomWorkno("")
+                setCustomName("")
+            }
         } catch (err: any) {
             setError(err.message || "Erro ao submeter")
         } finally {
@@ -221,21 +278,51 @@ export default function CorrectionsPage() {
                         </CardHeader>
                         <CardContent>
                             <form onSubmit={handleSubmit} className="space-y-4">
+                                {/* Employee Selector */}
                                 <div className="space-y-2">
                                     <Label htmlFor="employee">Colaborador</Label>
                                     <Select value={selectedWorkno} onValueChange={setSelectedWorkno}>
                                         <SelectTrigger id="employee">
-                                            <SelectValue placeholder="Selecione o colaborador..." />
+                                            <SelectValue placeholder={loading ? "A carregar colaboradores..." : "Selecione o colaborador..."} />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {employees.map(emp => (
+                                            {allEmployees.map(emp => (
                                                 <SelectItem key={emp.workno} value={emp.workno}>
                                                     {emp.fullName} ({emp.workno})
                                                 </SelectItem>
                                             ))}
+                                            <SelectItem value="custom" className="font-medium text-blue-600 dark:text-blue-400">
+                                                ➕ Introduzir Manualmente / Novo Colaborador
+                                            </SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
+
+                                {/* Custom Employee Inputs */}
+                                {(isCustomMode || allEmployees.length === 0) && (
+                                    <div className="p-3 bg-neutral-50 dark:bg-neutral-900 border rounded-lg space-y-3">
+                                        <div className="space-y-1">
+                                            <Label htmlFor="customWorkno" className="text-xs">ID / Nº de Funcionário</Label>
+                                            <Input
+                                                id="customWorkno"
+                                                placeholder="Ex: 1, 2, 3..."
+                                                value={customWorkno}
+                                                onChange={e => setCustomWorkno(e.target.value)}
+                                                required
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <Label htmlFor="customName" className="text-xs">Nome Completo</Label>
+                                            <Input
+                                                id="customName"
+                                                placeholder="Ex: Isabel Vaz"
+                                                value={customName}
+                                                onChange={e => setCustomName(e.target.value)}
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+                                )}
 
                                 <div className="grid grid-cols-2 gap-2">
                                     <div className="space-y-2">
