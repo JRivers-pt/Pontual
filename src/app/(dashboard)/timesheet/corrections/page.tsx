@@ -3,7 +3,7 @@
 import * as React from "react"
 import { format, parseISO } from "date-fns"
 import { pt } from "date-fns/locale"
-import { Plus, Trash2, Clock, Search, Loader2, AlertCircle, CheckCircle2, ShieldCheck, UserCheck } from "lucide-react"
+import { Plus, Trash2, Clock, Loader2, AlertCircle, CheckCircle2, ShieldCheck, UserCheck } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -166,16 +166,6 @@ export default function CorrectionsPage() {
         }
     }
 
-    const filteredCorrections = React.useMemo(() => {
-        if (!searchTerm) return corrections
-        const term = searchTerm.toLowerCase()
-        return corrections.filter(c =>
-            c.workno.toLowerCase().includes(term) ||
-            `${c.firstName} ${c.lastName}`.toLowerCase().includes(term) ||
-            c.device.toLowerCase().includes(term)
-        )
-    }, [corrections, searchTerm])
-
     return (
         <div className="p-8 space-y-6">
             {/* Header */}
@@ -322,20 +312,9 @@ export default function CorrectionsPage() {
                 <div className="lg:col-span-2">
                     <Card className="shadow-sm min-h-[450px]">
                         <CardHeader className="pb-3 border-b bg-neutral-50/50 dark:bg-neutral-900/50">
-                            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                                <div>
-                                    <CardTitle className="text-base">Picagens Manuais Registadas</CardTitle>
-                                    <CardDescription>Histórico de correções que entram nos relatórios mensais.</CardDescription>
-                                </div>
-                                <div className="relative w-full md:w-64">
-                                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-neutral-500" />
-                                    <Input
-                                        placeholder="Pesquisar por nome ou ID..."
-                                        value={searchTerm}
-                                        onChange={e => setSearchTerm(e.target.value)}
-                                        className="pl-8"
-                                    />
-                                </div>
+                            <div>
+                                <CardTitle className="text-base">Picagens Manuais Registadas</CardTitle>
+                                <CardDescription>Histórico de correções que entram nos relatórios mensais.</CardDescription>
                             </div>
                         </CardHeader>
                         <CardContent className="pt-4">
@@ -344,7 +323,7 @@ export default function CorrectionsPage() {
                                     <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
                                     <span className="text-sm text-neutral-500">A carregar registos...</span>
                                 </div>
-                            ) : filteredCorrections.length === 0 ? (
+                            ) : corrections.length === 0 ? (
                                 <div className="text-center py-16 border border-dashed rounded-lg">
                                     <Clock className="mx-auto h-8 w-8 text-neutral-400 mb-2" />
                                     <h3 className="font-semibold text-neutral-600 dark:text-neutral-300">Nenhuma picagem manual registada</h3>
@@ -365,7 +344,7 @@ export default function CorrectionsPage() {
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
-                                            {filteredCorrections.map((corr) => {
+                                            {corrections.map((corr) => {
                                                 const typeInfo = CHECK_TYPES.find(t => t.value === corr.checktype)
                                                 const dateObj = parseISO(corr.checktime)
                                                 return (
