@@ -106,7 +106,42 @@ export async function GET(request: Request) {
                 if (!recordsResponse.ok) throw new Error(`Cloud API error: ${recordsResponse.status}`);
 
                 const recordsData = await recordsResponse.json();
-                const rawRecords = recordsData.payload?.list || [];
+                let rawRecords = recordsData.payload?.list || [];
+
+                // Query manual missed punches from DB and merge into records list
+                try {
+                    const missedPunches = await prisma.missedPunch.findMany({
+                        where: {
+                            userId: user.id,
+                            checktime: {
+                                gte: reportMonthStart,
+                                lte: reportMonthEnd
+                            }
+                        }
+                    });
+
+                    if (missedPunches.length > 0) {
+                        const mappedMissed = missedPunches.map(punch => ({
+                            uuid: `manual-${punch.id}`,
+                            checktype: punch.checktype,
+                            checktime: punch.checktime.toISOString().replace('Z', '+00:00'),
+                            device: {
+                                serial_number: 'MANUAL',
+                                name: punch.device
+                            },
+                            employee: {
+                                first_name: punch.firstName,
+                                last_name: punch.lastName,
+                                workno: punch.workno
+                            }
+                        }));
+
+                        rawRecords = [...rawRecords, ...mappedMissed];
+                        rawRecords.sort((a: any, b: any) => new Date(a.checktime).getTime() - new Date(b.checktime).getTime());
+                    }
+                } catch (dbErr) {
+                    console.error("Error fetching missed punches for monthly report:", dbErr);
+                }
 
                 if (rawRecords.length === 0) {
                     results.push({ user: user.username, status: "No records found" });
