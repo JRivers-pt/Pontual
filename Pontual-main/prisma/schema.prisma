@@ -1,0 +1,71 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRES_PRISMA_URL")
+}
+
+enum Role {
+  ADMIN
+  CLIENT
+}
+
+model User {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  email     String?  @unique
+  name      String?
+  password  String
+  role      Role     @default(CLIENT)
+  company   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // CrossChex Credentials per client (optional for Master Admin)
+  apiKey    String?
+  apiSecret String?
+  apiUrl    String?  @default("https://api.eu.crosschexcloud.com/")
+
+  // Report Settings
+  reportHeader      String?
+  logoUrl           String?
+  vpEmail          String?
+  autoEmailReports Boolean @default(false)
+
+  // Schedules associated with this client
+  schedules Schedule[]
+}
+
+model Schedule {
+  id        String   @id @default(cuid())
+  name      String
+  startTime String   @default("08:30") // Format "HH:mm"
+  endTime   String   @default("17:30") // Format "HH:mm"
+  lateTolerance Int  @default(20)      // Minutes
+  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  employeeSchedules EmployeeSchedule[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model EmployeeSchedule {
+  id         String   @id @default(cuid())
+  workno     String   // ID from CrossChex
+  
+  scheduleId String
+  schedule   Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([workno, scheduleId])
+}

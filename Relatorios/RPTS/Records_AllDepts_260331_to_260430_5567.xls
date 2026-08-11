@@ -1,0 +1,1624 @@
+
+
+<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+ <head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="ProgId" content="Excel.Sheet">
+  <meta name="Generator" content="WPS Office ET">
+  <!--[if gte mso 9]>
+   <xml>
+    <o:DocumentProperties>
+     <o:Created>2025-12-24T11:11:30</o:Created>
+     <o:LastAuthor>珂</o:LastAuthor>
+     <o:LastSaved>2025-12-24T17:03:29</o:LastSaved>
+    </o:DocumentProperties>
+    <o:CustomDocumentProperties>
+     <o:ICV dt:dt="string">FB2ACF996EF3ABA73F5A4B690FAF48BC_42</o:ICV>
+     <o:KSOProductBuildVer dt:dt="string">2052-6.7.1.8828</o:KSOProductBuildVer>
+    </o:CustomDocumentProperties>
+   </xml>
+  <![endif]-->
+  <style>
+<!-- @page
+	{margin:1.00in 0.75in 1.00in 0.75in;
+	mso-header-margin:0.50in;
+	mso-footer-margin:0.50in;}
+
+	body {
+font-family:"Arial";
+}
+tr
+	{mso-height-source:auto;
+	mso-ruby-visibility:none;}
+col
+	{mso-width-source:auto;
+	mso-ruby-visibility:none;}
+br
+	{mso-data-placement:same-cell;}
+.font0
+	{color:#000000;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"宋体";
+	mso-generic-font-family:auto;
+	mso-font-charset:134;}
+.font1
+	{color:#000000;
+	font-size:10.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"宋体";
+	mso-generic-font-family:auto;
+	mso-font-charset:134;}
+.font2
+	{color:#000000;
+	font-size:11.0pt;
+	font-weight:700;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"Arial Unicode MS";
+	mso-generic-font-family:auto;
+	mso-font-charset:134;}
+.font3
+	{color:#000000;
+	font-size:10.0pt;
+	font-weight:700;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"Arial Unicode MS";
+	mso-generic-font-family:auto;
+	mso-font-charset:134;}
+.font4
+	{color:#000000;
+	font-size:10.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"Arial Unicode MS";
+	mso-generic-font-family:auto;
+	mso-font-charset:134;}
+.font5
+	{color:#0000FF;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:underline;
+	text-underline-style:single;
+	font-family:"宋体";
+	mso-generic-font-family:auto;
+	mso-font-charset:134;}
+.font6
+	{color:#800080;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:underline;
+	text-underline-style:single;
+	font-family:"宋体";
+	mso-generic-font-family:auto;
+	mso-font-charset:134;}
+.font7
+	{color:#FF0000;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"宋体";
+	mso-generic-font-family:auto;
+	mso-font-charset:0;}
+.font8
+	{color:#44546A;
+	font-size:18.0pt;
+	font-weight:700;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"宋体";
+	mso-generic-font-family:auto;
+	mso-font-charset:134;}
+.font9
+	{color:#7F7F7F;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:italic;
+	text-decoration:none;
+	font-family:"宋体";
+	mso-generic-font-family:auto;
+	mso-font-charset:0;}
+.font10
+	{color:#44546A;
+	font-size:15.0pt;
+	font-weight:700;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"宋体";
+	mso-generic-font-family:auto;
+	mso-font-charset:134;}
+.font11
+	{color:#44546A;
+	font-size:13.0pt;
+	font-weight:700;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"宋体";
+	mso-generic-font-family:auto;
+	mso-font-charset:134;}
+.font12
+	{color:#44546A;
+	font-size:11.0pt;
+	font-weight:700;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"宋体";
+	mso-generic-font-family:auto;
+	mso-font-charset:134;}
+.font13
+	{color:#3F3F76;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"宋体";
+	mso-generic-font-family:auto;
+	mso-font-charset:0;}
+.font14
+	{color:#3F3F3F;
+	font-size:11.0pt;
+	font-weight:700;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"宋体";
+	mso-generic-font-family:auto;
+	mso-font-charset:0;}
+.font15
+	{color:#FA7D00;
+	font-size:11.0pt;
+	font-weight:700;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"宋体";
+	mso-generic-font-family:auto;
+	mso-font-charset:0;}
+.font16
+	{color:#FFFFFF;
+	font-size:11.0pt;
+	font-weight:700;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"宋体";
+	mso-generic-font-family:auto;
+	mso-font-charset:0;}
+.font17
+	{color:#FA7D00;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"宋体";
+	mso-generic-font-family:auto;
+	mso-font-charset:0;}
+.font18
+	{color:#000000;
+	font-size:11.0pt;
+	font-weight:700;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"宋体";
+	mso-generic-font-family:auto;
+	mso-font-charset:0;}
+.font19
+	{color:#006100;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"宋体";
+	mso-generic-font-family:auto;
+	mso-font-charset:0;}
+.font20
+	{color:#9C0006;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"宋体";
+	mso-generic-font-family:auto;
+	mso-font-charset:0;}
+.font21
+	{color:#9C6500;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"宋体";
+	mso-generic-font-family:auto;
+	mso-font-charset:0;}
+.font22
+	{color:#FFFFFF;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"宋体";
+	mso-generic-font-family:auto;
+	mso-font-charset:0;}
+.font23
+	{color:#000000;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"宋体";
+	mso-generic-font-family:auto;
+	mso-font-charset:0;}
+.style0
+	{mso-number-format:"General";
+	text-align:general;
+	vertical-align:middle;
+	white-space:nowrap;
+	mso-rotate:0;
+	color:#000000;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:宋体;
+	mso-font-charset:134;
+	border:none;
+	mso-protection:locked visible;
+	mso-style-name:"常规";
+	mso-style-id:0;}
+.style16
+	{mso-number-format:"_ * \#\,\#\#0\.00_ \;_ * \-\#\,\#\#0\.00_ \;_ * \\2\-\\2??_ \;_ \@_ ";
+	mso-style-name:"千位分隔";
+	mso-style-id:3;}
+.style17
+	{mso-number-format:"_ \\2\A\5\\2* \#\,\#\#0\.00_ \;_ \\2\A\5\\2* \-\#\,\#\#0\.00_ \;_ \\2\A\5\\2* \\2\-\\2??_ \;_ \@_ ";
+	mso-style-name:"货币";
+	mso-style-id:4;}
+.style18
+	{mso-number-format:"0%";
+	mso-style-name:"百分比";
+	mso-style-id:5;}
+.style19
+	{mso-number-format:"_ * \#\,\#\#0_ \;_ * \-\#\,\#\#0_ \;_ * \\2\-\\2_ \;_ \@_ ";
+	mso-style-name:"千位分隔[0]";
+	mso-style-id:6;}
+.style20
+	{mso-number-format:"_ \\2\A\5\\2* \#\,\#\#0_ \;_ \\2\A\5\\2* \-\#\,\#\#0_ \;_ \\2\A\5\\2* \\2\-\\2_ \;_ \@_ ";
+	mso-style-name:"货币[0]";
+	mso-style-id:7;}
+.style21
+	{color:#0000FF;
+	font-size:11.0pt;
+	text-decoration:underline;
+	text-underline-style:single;
+	font-family:宋体;
+	mso-style-name:"超链接";
+	mso-style-id:8;}
+.style22
+	{color:#800080;
+	font-size:11.0pt;
+	text-decoration:underline;
+	text-underline-style:single;
+	font-family:宋体;
+	mso-style-name:"已访问的超链接";
+	mso-style-id:9;}
+.style23
+	{mso-pattern:auto none;
+	background:#FFFFCC;
+	border:.5pt solid #B2B2B2;
+	mso-style-name:"注释";}
+.style24
+	{color:#FF0000;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:宋体;
+	mso-font-charset:0;
+	mso-style-name:"警告文本";}
+.style25
+	{color:#44546A;
+	font-size:18.0pt;
+	font-weight:700;
+	font-style:normal;
+	text-decoration:none;
+	font-family:宋体;
+	mso-font-charset:134;
+	mso-style-name:"标题";}
+.style26
+	{color:#7F7F7F;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:italic;
+	text-decoration:none;
+	font-family:宋体;
+	mso-font-charset:0;
+	mso-style-name:"解释性文本";}
+.style27
+	{color:#44546A;
+	font-size:15.0pt;
+	font-weight:700;
+	font-style:normal;
+	text-decoration:none;
+	font-family:宋体;
+	mso-font-charset:134;
+	border-bottom:1.0pt solid #5B9BD5;
+	mso-style-name:"标题 1";}
+.style28
+	{color:#44546A;
+	font-size:13.0pt;
+	font-weight:700;
+	font-style:normal;
+	text-decoration:none;
+	font-family:宋体;
+	mso-font-charset:134;
+	border-bottom:1.0pt solid #5B9BD5;
+	mso-style-name:"标题 2";}
+.style29
+	{color:#44546A;
+	font-size:11.0pt;
+	font-weight:700;
+	font-style:normal;
+	text-decoration:none;
+	font-family:宋体;
+	mso-font-charset:134;
+	border-bottom:1.0pt solid #ACCCEA;
+	mso-style-name:"标题 3";}
+.style30
+	{color:#44546A;
+	font-size:11.0pt;
+	font-weight:700;
+	font-style:normal;
+	text-decoration:none;
+	font-family:宋体;
+	mso-font-charset:134;
+	mso-style-name:"标题 4";}
+.style31
+	{mso-pattern:auto none;
+	background:#FFCC99;
+	color:#3F3F76;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:宋体;
+	mso-font-charset:0;
+	border:.5pt solid #7F7F7F;
+	mso-style-name:"输入";}
+.style32
+	{mso-pattern:auto none;
+	background:#F2F2F2;
+	color:#3F3F3F;
+	font-size:11.0pt;
+	font-weight:700;
+	font-style:normal;
+	text-decoration:none;
+	font-family:宋体;
+	mso-font-charset:0;
+	border:.5pt solid #3F3F3F;
+	mso-style-name:"输出";}
+.style33
+	{mso-pattern:auto none;
+	background:#F2F2F2;
+	color:#FA7D00;
+	font-size:11.0pt;
+	font-weight:700;
+	font-style:normal;
+	text-decoration:none;
+	font-family:宋体;
+	mso-font-charset:0;
+	border:.5pt solid #7F7F7F;
+	mso-style-name:"计算";}
+.style34
+	{mso-pattern:auto none;
+	background:#A5A5A5;
+	color:#FFFFFF;
+	font-size:11.0pt;
+	font-weight:700;
+	font-style:normal;
+	text-decoration:none;
+	font-family:宋体;
+	mso-font-charset:0;
+	border:2.0pt double #3F3F3F;
+	mso-style-name:"检查单元格";}
+.style35
+	{color:#FA7D00;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:宋体;
+	mso-font-charset:0;
+	border-bottom:2.0pt double #FF8001;
+	mso-style-name:"链接单元格";}
+.style36
+	{color:#000000;
+	font-size:11.0pt;
+	font-weight:700;
+	font-style:normal;
+	text-decoration:none;
+	font-family:宋体;
+	mso-font-charset:0;
+	border-top:.5pt solid #5B9BD5;
+	border-bottom:2.0pt double #5B9BD5;
+	mso-style-name:"汇总";}
+.style37
+	{mso-pattern:auto none;
+	background:#C6EFCE;
+	color:#006100;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:宋体;
+	mso-font-charset:0;
+	mso-style-name:"好";}
+.style38
+	{mso-pattern:auto none;
+	background:#FFC7CE;
+	color:#9C0006;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:宋体;
+	mso-font-charset:0;
+	mso-style-name:"差";}
+.style39
+	{mso-pattern:auto none;
+	background:#FFEB9C;
+	color:#9C6500;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:宋体;
+	mso-font-charset:0;
+	mso-style-name:"适中";}
+.style40
+	{mso-pattern:auto none;
+	background:#5B9BD5;
+	color:#FFFFFF;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:宋体;
+	mso-font-charset:0;
+	mso-style-name:"强调文字颜色 1";}
+.style41
+	{mso-pattern:auto none;
+	background:#DDEBF7;
+	color:#000000;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:宋体;
+	mso-font-charset:0;
+	mso-style-name:"20% - 强调文字颜色 1";}
+.style42
+	{mso-pattern:auto none;
+	background:#BDD7EE;
+	color:#000000;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:宋体;
+	mso-font-charset:0;
+	mso-style-name:"40% - 强调文字颜色 1";}
+.style43
+	{mso-pattern:auto none;
+	background:#9BC2E6;
+	color:#FFFFFF;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:宋体;
+	mso-font-charset:0;
+	mso-style-name:"60% - 强调文字颜色 1";}
+.style44
+	{mso-pattern:auto none;
+	background:#ED7D31;
+	color:#FFFFFF;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:宋体;
+	mso-font-charset:0;
+	mso-style-name:"强调文字颜色 2";}
+.style45
+	{mso-pattern:auto none;
+	background:#FCE4D6;
+	color:#000000;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:宋体;
+	mso-font-charset:0;
+	mso-style-name:"20% - 强调文字颜色 2";}
+.style46
+	{mso-pattern:auto none;
+	background:#F8CBAD;
+	color:#000000;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:宋体;
+	mso-font-charset:0;
+	mso-style-name:"40% - 强调文字颜色 2";}
+.style47
+	{mso-pattern:auto none;
+	background:#F4B084;
+	color:#FFFFFF;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:宋体;
+	mso-font-charset:0;
+	mso-style-name:"60% - 强调文字颜色 2";}
+.style48
+	{mso-pattern:auto none;
+	background:#A5A5A5;
+	color:#FFFFFF;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:宋体;
+	mso-font-charset:0;
+	mso-style-name:"强调文字颜色 3";}
+.style49
+	{mso-pattern:auto none;
+	background:#EDEDED;
+	color:#000000;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:宋体;
+	mso-font-charset:0;
+	mso-style-name:"20% - 强调文字颜色 3";}
+.style50
+	{mso-pattern:auto none;
+	background:#DBDBDB;
+	color:#000000;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:宋体;
+	mso-font-charset:0;
+	mso-style-name:"40% - 强调文字颜色 3";}
+.style51
+	{mso-pattern:auto none;
+	background:#C9C9C9;
+	color:#FFFFFF;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:宋体;
+	mso-font-charset:0;
+	mso-style-name:"60% - 强调文字颜色 3";}
+.style52
+	{mso-pattern:auto none;
+	background:#FFC000;
+	color:#FFFFFF;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:宋体;
+	mso-font-charset:0;
+	mso-style-name:"强调文字颜色 4";}
+.style53
+	{mso-pattern:auto none;
+	background:#FFF2CC;
+	color:#000000;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:宋体;
+	mso-font-charset:0;
+	mso-style-name:"20% - 强调文字颜色 4";}
+.style54
+	{mso-pattern:auto none;
+	background:#FFE699;
+	color:#000000;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:宋体;
+	mso-font-charset:0;
+	mso-style-name:"40% - 强调文字颜色 4";}
+.style55
+	{mso-pattern:auto none;
+	background:#FFD966;
+	color:#FFFFFF;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:宋体;
+	mso-font-charset:0;
+	mso-style-name:"60% - 强调文字颜色 4";}
+.style56
+	{mso-pattern:auto none;
+	background:#4472C4;
+	color:#FFFFFF;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:宋体;
+	mso-font-charset:0;
+	mso-style-name:"强调文字颜色 5";}
+.style57
+	{mso-pattern:auto none;
+	background:#D9E1F2;
+	color:#000000;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:宋体;
+	mso-font-charset:0;
+	mso-style-name:"20% - 强调文字颜色 5";}
+.style58
+	{mso-pattern:auto none;
+	background:#B4C6E7;
+	color:#000000;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:宋体;
+	mso-font-charset:0;
+	mso-style-name:"40% - 强调文字颜色 5";}
+.style59
+	{mso-pattern:auto none;
+	background:#8EA9DB;
+	color:#FFFFFF;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:宋体;
+	mso-font-charset:0;
+	mso-style-name:"60% - 强调文字颜色 5";}
+.style60
+	{mso-pattern:auto none;
+	background:#70AD47;
+	color:#FFFFFF;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:宋体;
+	mso-font-charset:0;
+	mso-style-name:"强调文字颜色 6";}
+.style61
+	{mso-pattern:auto none;
+	background:#E2EFDA;
+	color:#000000;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:宋体;
+	mso-font-charset:0;
+	mso-style-name:"20% - 强调文字颜色 6";}
+.style62
+	{mso-pattern:auto none;
+	background:#C6E0B4;
+	color:#000000;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:宋体;
+	mso-font-charset:0;
+	mso-style-name:"40% - 强调文字颜色 6";}
+.style63
+	{mso-pattern:auto none;
+	background:#A9D08E;
+	color:#FFFFFF;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:宋体;
+	mso-font-charset:0;
+	mso-style-name:"60% - 强调文字颜色 6";}
+td
+	{mso-style-parent:style0;
+	padding-top:1px;
+	padding-right:1px;
+	padding-left:1px;
+	mso-ignore:padding;
+	mso-number-format:"General";
+	text-align:general;
+	vertical-align:middle;
+	white-space:nowrap;
+	mso-rotate:0;
+	color:#000000;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:宋体;
+	mso-font-charset:134;
+	border:none;
+	mso-protection:locked visible;}
+.xl65
+	{mso-style-parent:style0;
+	font-size:10.0pt;
+	mso-font-charset:134;}
+.xl66
+	{mso-style-parent:style0;
+	text-align:center;
+	font-weight:700;
+	font-family:Arial Unicode MS;
+	mso-font-charset:134;}
+.xl67
+	{mso-style-parent:style0;
+	text-align:left;
+	mso-pattern:#000000 none;
+	background:#BFBFBF;
+	font-size:10.0pt;
+	font-weight:700;
+	font-family:Arial Unicode MS;
+	mso-font-charset:134;
+	}
+.xl68
+	{mso-style-parent:style0;
+	mso-number-format:"yyyy/m/d";
+	text-align:center;
+	font-size:10.0pt;
+	font-family:Arial Unicode MS;
+	mso-font-charset:134;
+
+
+	}
+.xl69
+	{mso-style-parent:style0;
+	text-align:center;
+	font-size:10.0pt;
+	font-family:Arial Unicode MS;
+	mso-font-charset:134;
+
+	}
+.xl70
+	{mso-style-parent:style0;
+	mso-number-format:"h:mm";
+	text-align:center;
+	font-size:10.0pt;
+	font-family:Arial Unicode MS;
+	mso-font-charset:134;
+
+	}
+ -->  </style>
+  <!--[if gte mso 9]>
+   <xml>
+    <x:ExcelWorkbook>
+     <x:ExcelWorksheets>
+      <x:ExcelWorksheet>
+       <x:Name>Records_AllDepts_250801_to_2510</x:Name>
+       <x:WorksheetOptions>
+        <x:DefaultRowHeight>336</x:DefaultRowHeight>
+        <x:StandardWidth>2360</x:StandardWidth>
+        <x:Selected/>
+        <x:Panes>
+         <x:Pane>
+          <x:Number>3</x:Number>
+          <x:ActiveCol>1</x:ActiveCol>
+          <x:ActiveRow>3</x:ActiveRow>
+          <x:RangeSelection>B:B</x:RangeSelection>
+         </x:Pane>
+        </x:Panes>
+        <x:DoNotDisplayGridlines/>
+        <x:ProtectContents>False</x:ProtectContents>
+        <x:ProtectObjects>False</x:ProtectObjects>
+        <x:ProtectScenarios>False</x:ProtectScenarios>
+        <x:PageBreakZoom>100</x:PageBreakZoom>
+        <x:Print>
+         <x:PaperSizeIndex>9</x:PaperSizeIndex>
+        </x:Print>
+       </x:WorksheetOptions>
+      </x:ExcelWorksheet>
+     </x:ExcelWorksheets>
+     <x:ProtectStructure>False</x:ProtectStructure>
+     <x:ProtectWindows>False</x:ProtectWindows>
+     <x:SelectedSheets>0</x:SelectedSheets>
+     <x:WindowHeight>16760</x:WindowHeight>
+     <x:WindowWidth>-27136</x:WindowWidth>
+    </x:ExcelWorkbook>
+   </xml>
+  <![endif]-->
+ </head>
+ <body link="blue" vlink="purple">
+  <table width="1822.40" border="0" cellpadding="0" cellspacing="0" style='width:1522.40pt;border-collapse:collapse;table-layout:fixed;'>
+   <col width="100.80" style='mso-width-source:userset;mso-width-alt:4915;'/>
+   <col width="192.45" style='mso-width-source:userset;mso-width-alt:9383;'/>
+   <col width="191.65" style='mso-width-source:userset;mso-width-alt:4468;'/>
+   <col width="175.85" style='mso-width-source:userset;mso-width-alt:8574;'/>
+   <col width="176.60" style='mso-width-source:userset;mso-width-alt:8611;'/>
+   <col width="170.80" style='mso-width-source:userset;mso-width-alt:8328;'/>
+   <col width="153.50" span="7" style='mso-width-source:userset;mso-width-alt:2608;'/>
+   <col width="147.95" span="5" style='mso-width-source:userset;mso-width-alt:2338;'/>
+   <tr height="25.50" class="xl65" style='height:25.50pt;mso-height-source:userset;mso-height-alt:510;'>
+    <td class="xl66" height="25.50" width="1522.40" colspan="18" style='height:25.50pt;width:1522.40pt;border-right:none;border-bottom:none;' x:str>
+Records Report</td>
+        </tr><tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                    <td class="xl67" height="17.25" colspan="18" style="height:17.25pt;" x:str>1-José Vaz</td>
+                </tr><tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                    <td class="xl67" height="17.25" colspan="18" style="height:17.25pt;" x:str>3-Isabel  Vaz</td>
+                </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>06/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:28</td><td class="xl70" x:num="">17:19</td><td class="xl70" x:num="">17:19</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>07/04/2026</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">17:20</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>08/04/2026</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">17:18</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>10/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:32</td><td class="xl70" x:num="">17:08</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>13/04/2026</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">09:34</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>14/04/2026</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">17:38</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>16/04/2026</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">09:08</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>20/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:55</td><td class="xl70" x:num="">18:09</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>21/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">09:04</td><td class="xl70" x:num="">17:32</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>23/04/2026</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:53</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>30/04/2026</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">09:01</td>
+                    </tr><tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                    <td class="xl67" height="17.25" colspan="18" style="height:17.25pt;" x:str>4-Cláudia  Fernandes</td>
+                </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>31/03/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">07:37</td><td class="xl70" x:num="">17:07</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>01/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">07:25</td><td class="xl70" x:num="">17:40</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>02/04/2026</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:33</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>08/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:32</td><td class="xl70" x:num="">18:19</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>09/04/2026</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:36</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>13/04/2026</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:33</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>14/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:33</td><td class="xl70" x:num="">17:39</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>15/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:33</td><td class="xl70" x:num="">18:08</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>16/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:28</td><td class="xl70" x:num="">18:02</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>17/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:30</td><td class="xl70" x:num="">17:33</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>20/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:31</td><td class="xl70" x:num="">18:08</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>21/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:32</td><td class="xl70" x:num="">13:59</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>22/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:41</td><td class="xl70" x:num="">18:05</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>23/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:37</td><td class="xl70" x:num="">17:38</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>24/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:36</td><td class="xl70" x:num="">17:31</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>27/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:25</td><td class="xl70" x:num="">17:50</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>28/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:33</td><td class="xl70" x:num="">17:32</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>29/04/2026</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:29</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>30/04/2026</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:32</td>
+                    </tr><tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                    <td class="xl67" height="17.25" colspan="18" style="height:17.25pt;" x:str>5-Humberto  Silva</td>
+                </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>31/03/2026</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">07:31</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>01/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">07:39</td><td class="xl70" x:num="">17:30</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>02/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:32</td><td class="xl70" x:num="">17:30</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>06/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:30</td><td class="xl70" x:num="">17:30</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>07/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:28</td><td class="xl70" x:num="">17:31</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>08/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:29</td><td class="xl70" x:num="">17:30</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>09/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:27</td><td class="xl70" x:num="">17:29</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>10/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:28</td><td class="xl70" x:num="">17:17</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>13/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:36</td><td class="xl70" x:num="">17:31</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>14/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:46</td><td class="xl70" x:num="">17:31</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>15/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:25</td><td class="xl70" x:num="">16:52</td><td class="xl70" x:num="">17:01</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>16/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:30</td><td class="xl70" x:num="">17:30</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>17/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:30</td><td class="xl70" x:num="">17:30</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>20/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:28</td><td class="xl70" x:num="">17:30</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>21/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:36</td><td class="xl70" x:num="">17:30</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>22/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:50</td><td class="xl70" x:num="">17:45</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>23/04/2026</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:31</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>24/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:24</td><td class="xl70" x:num="">17:31</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>27/04/2026</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">17:30</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>28/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:35</td><td class="xl70" x:num="">17:30</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>29/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:28</td><td class="xl70" x:num="">17:32</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>30/04/2026</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:29</td>
+                    </tr><tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                    <td class="xl67" height="17.25" colspan="18" style="height:17.25pt;" x:str>6-Duarte  Pestana</td>
+                </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>31/03/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">07:29</td><td class="xl70" x:num="">16:30</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>01/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">07:34</td><td class="xl70" x:num="">17:30</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>02/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:27</td><td class="xl70" x:num="">08:29</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>06/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:26</td><td class="xl70" x:num="">08:30</td><td class="xl70" x:num="">17:30</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>07/04/2026</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">17:32</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>08/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:29</td><td class="xl70" x:num="">17:30</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>09/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:29</td><td class="xl70" x:num="">17:40</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>10/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:25</td><td class="xl70" x:num="">17:29</td><td class="xl70" x:num="">17:30</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>13/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:30</td><td class="xl70" x:num="">17:35</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>14/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:28</td><td class="xl70" x:num="">17:29</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>15/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:32</td><td class="xl70" x:num="">17:32</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>16/04/2026</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">17:32</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>17/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:27</td><td class="xl70" x:num="">17:47</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>20/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:28</td><td class="xl70" x:num="">17:39</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>21/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:32</td><td class="xl70" x:num="">17:30</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>22/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:30</td><td class="xl70" x:num="">17:30</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>23/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:27</td><td class="xl70" x:num="">17:30</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>24/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:23</td><td class="xl70" x:num="">17:30</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>27/04/2026</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">17:32</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>28/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:23</td><td class="xl70" x:num="">17:31</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>29/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:24</td><td class="xl70" x:num="">17:42</td>
+                    </tr><tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                    <td class="xl67" height="17.25" colspan="18" style="height:17.25pt;" x:str>7-Cristiana  Machado</td>
+                </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>31/03/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">07:29</td><td class="xl70" x:num="">16:31</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>01/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">07:26</td><td class="xl70" x:num="">17:30</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>02/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:29</td><td class="xl70" x:num="">17:30</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>07/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:28</td><td class="xl70" x:num="">16:58</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>08/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:25</td><td class="xl70" x:num="">17:30</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>09/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:30</td><td class="xl70" x:num="">17:30</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>10/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:31</td><td class="xl70" x:num="">17:30</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>13/04/2026</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:30</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>14/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:27</td><td class="xl70" x:num="">17:30</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>15/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:28</td><td class="xl70" x:num="">17:32</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>17/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:27</td><td class="xl70" x:num="">17:30</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>20/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:28</td><td class="xl70" x:num="">17:30</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>21/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:30</td><td class="xl70" x:num="">17:30</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>22/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:30</td><td class="xl70" x:num="">17:30</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>23/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:27</td><td class="xl70" x:num="">08:28</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>24/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:23</td><td class="xl70" x:num="">17:31</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>27/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:15</td><td class="xl70" x:num="">17:32</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>28/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:23</td><td class="xl70" x:num="">17:30</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>29/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:24</td><td class="xl70" x:num="">17:34</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>30/04/2026</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:28</td>
+                    </tr><tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                    <td class="xl67" height="17.25" colspan="18" style="height:17.25pt;" x:str>8-Mauro  Baião</td>
+                </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>31/03/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">07:29</td><td class="xl70" x:num="">16:30</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>01/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">07:30</td><td class="xl70" x:num="">17:31</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>02/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:29</td><td class="xl70" x:num="">17:32</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>06/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:30</td><td class="xl70" x:num="">17:30</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>07/04/2026</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">17:32</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>08/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:29</td><td class="xl70" x:num="">17:30</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>09/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:29</td><td class="xl70" x:num="">17:40</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>10/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:25</td><td class="xl70" x:num="">17:30</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>13/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:21</td><td class="xl70" x:num="">17:33</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>14/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:22</td><td class="xl70" x:num="">08:22</td><td class="xl70" x:num="">08:28</td><td class="xl70" x:num="">17:34</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>15/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:32</td><td class="xl70" x:num="">17:32</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>16/04/2026</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">17:35</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>17/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:27</td><td class="xl70" x:num="">17:33</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>20/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:25</td><td class="xl70" x:num="">08:28</td><td class="xl70" x:num="">17:39</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>21/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:32</td><td class="xl70" x:num="">17:31</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>22/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:42</td><td class="xl70" x:num="">15:57</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>23/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:27</td><td class="xl70" x:num="">17:30</td><td class="xl70" x:num="">17:31</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>24/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:23</td><td class="xl70" x:num="">17:30</td><td class="xl70" x:num="">17:30</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>27/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:15</td><td class="xl70" x:num="">17:35</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>28/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:23</td><td class="xl70" x:num="">17:30</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>29/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:24</td><td class="xl70" x:num="">17:38</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>30/04/2026</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:28</td>
+                    </tr><tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                    <td class="xl67" height="17.25" colspan="18" style="height:17.25pt;" x:str>9-Michael  Sales</td>
+                </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>31/03/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">07:31</td><td class="xl70" x:num="">16:39</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>01/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">07:31</td><td class="xl70" x:num="">17:31</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>02/04/2026</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:32</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>06/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:31</td><td class="xl70" x:num="">17:34</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>07/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:31</td><td class="xl70" x:num="">17:33</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>08/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:39</td><td class="xl70" x:num="">17:35</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>09/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:33</td><td class="xl70" x:num="">17:41</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>10/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:43</td><td class="xl70" x:num="">17:30</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>13/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:41</td><td class="xl70" x:num="">17:34</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>14/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:32</td><td class="xl70" x:num="">17:36</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>15/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:32</td><td class="xl70" x:num="">17:33</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>16/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:31</td><td class="xl70" x:num="">18:02</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>20/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:31</td><td class="xl70" x:num="">17:38</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>21/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:32</td><td class="xl70" x:num="">17:31</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>22/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:32</td><td class="xl70" x:num="">17:49</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>23/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:31</td><td class="xl70" x:num="">17:35</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>24/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:32</td><td class="xl70" x:num="">17:30</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>27/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:32</td><td class="xl70" x:num="">17:34</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>28/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:33</td><td class="xl70" x:num="">17:31</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>29/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:32</td><td class="xl70" x:num="">17:35</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>30/04/2026</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:32</td>
+                    </tr><tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                    <td class="xl67" height="17.25" colspan="18" style="height:17.25pt;" x:str>10-Bruno Lourenco</td>
+                </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>31/03/2026</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">06:43</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>01/04/2026</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">06:43</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>02/04/2026</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">07:43</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>06/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:00</td><td class="xl70" x:num="">18:05</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>07/04/2026</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:02</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>27/04/2026</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">08:13</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>28/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">07:47</td><td class="xl70" x:num="">17:30</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>29/04/2026</td>  <td class="xl69" x:str>W1PRO</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">07:53</td><td class="xl70" x:num="">17:34</td>
+                    </tr>
+                      <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;">
+                        <td class="xl68" height="34.50" rowspan="2" style="height:34.50pt;" x:str>30/04/2026</td>  <td class="xl69" x:str>W1PRO</td>
+                    </tr>
+                       <tr height="17.25" class="xl65" style="height:17.25pt;mso-height-source:userset;mso-height-alt:345;"><td class="xl70" x:num="">07:45</td>
+                    </tr>
+   <![if supportMisalignedColumns]>
+    <tr width="0" style="display:none;">
+     <td width="101" style="width:101;"></td>
+     <td width="192" style="width:192;"></td>
+     <td width="92" style="width:92;"></td>
+     <td width="176" style="width:176;"></td>
+     <td width="177" style="width:177;"></td>
+     <td width="171" style="width:171;"></td>
+     <td width="54" style="width:54;"></td>
+     <td width="48" style="width:48;"></td>
+    </tr>
+   <![endif]>
+    </table>
+</div>
+</body>
+</html>
