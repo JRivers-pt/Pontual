@@ -1,10 +1,10 @@
-$recordsFile = "C:\Users\JD\Downloads\Records_AllDepts_260726_to_260809_7502.xls"
+$recordsFile = "C:\Users\JD\Downloads\Records_AllDepts_260726_to_260820_7502.xls"
 $outputDir = "C:\Users\JD\Documents\Pontual\Relatorios"
 
 Write-Host "A processar o ficheiro Records para Gengibre..."
 
 if (-not (Test-Path $recordsFile)) {
-    Write-Warning "Ficheiro não encontrado: $recordsFile"
+    Write-Warning "Ficheiro nAo encontrado: $recordsFile"
     exit
 }
 
@@ -39,7 +39,6 @@ foreach ($m in $cellMatches) {
     if ($val -match '^(\d{1,2})/(\d{1,2})/(\d{4})$') {
         if ($currentEmp) {
             $dm = [regex]::Match($val, '^(\d{1,2})/(\d{1,2})/(\d{4})$')
-            # The Records file uses MM/DD/YYYY
             $currentDate = "$($dm.Groups[3].Value)-$($dm.Groups[1].Value.PadLeft(2, '0'))-$($dm.Groups[2].Value.PadLeft(2, '0'))"
             if (-not $currentEmp.days.ContainsKey($currentDate)) {
                 $currentEmp.days[$currentDate] = New-Object System.Collections.Generic.List[string]
@@ -91,11 +90,12 @@ $html = "<html><head><style>$css</style><meta charset='UTF-8'></head><body>"
 $html += "<div class='no-print' style='text-align:center;padding:20px;'><button onclick='window.print()' style='padding:12px 24px;background:#1e3a8a;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:700;'>Gerar PDF / Imprimir</button></div>"
 
 $startDate = Get-Date "2026-07-26"
-$endDate = Get-Date "2026-08-09"
+$endDate = Get-Date "2026-08-20"
 
 $sortedIds = $employees.Keys | Sort-Object { [int]$_ }
 
 foreach ($id in $sortedIds) {
+    if ($id -eq "15") { continue }
     $emp = $employees[$id]
     $totalWorkMin = 0; $totalOtMin = 0; $tableRows = ""
     $curr = $startDate
@@ -135,7 +135,8 @@ foreach ($id in $sortedIds) {
                 $s1 = $validPunches[1]
                 $e2 = $validPunches[2]
                 $dur = ((Get-Total-Minutes $s1) - (Get-Total-Minutes $e1))
-                $obs = "Falta picagem"
+                if ($obs) { $obs += " / " }
+                $obs += "Falta picagem (Almo&ccedil;o)"
             } elseif ($pc -eq 2) {
                 $e1 = $validPunches[0]
                 $s2 = $validPunches[1]
@@ -143,11 +144,18 @@ foreach ($id in $sortedIds) {
                 if ($dur -gt 360) {
                     $dur -= 60
                     if ($obs) { $obs += " / " }
-                    $obs += "Dedu&ccedil;&atilde;o Auto 1h"
+                    $obs += "Falta break de almo&ccedil;o / Dedu&ccedil;&atilde;o 1h"
                 }
             } elseif ($pc -eq 1) {
-                $e1 = $validPunches[0]
-                $obs = "Falta picagem"
+                $pMin = Get-Total-Minutes $validPunches[0]
+                if ($obs) { $obs += " / " }
+                if ($pMin -lt 780) {
+                    $e1 = $validPunches[0]
+                    $obs += "Falta sa&iacute;da"
+                } else {
+                    $s2 = $validPunches[0]
+                    $obs += "Falta entrada"
+                }
             }
             
             if ($dur -gt 0) {
@@ -170,9 +178,22 @@ foreach ($id in $sortedIds) {
 
     $safeName = $emp.name -replace [char]225, "&aacute;" -replace [char]233, "&eacute;" -replace [char]237, "&iacute;" -replace [char]243, "&oacute;" -replace [char]250, "&uacute;" -replace [char]231, "&ccedil;" -replace [char]227, "&atilde;"
     $html += "<div class='page'><div class='header'><div class='header-info'><h1>Pontual | Gengibre</h1><p>Relat&oacute;rio de Assiduidade Mensal</p></div></div>"
-    $html += "<div class='emp-box'><div><strong>Colaborador</strong><span>$safeName</span></div><div><strong>ID</strong><span>$id</span></div><div><strong>Per&iacute;odo</strong><span>26/07/2026 a 09/08/2026</span></div></div>"
+    $html += "<div class='emp-box'><div><strong>Colaborador</strong><span>$safeName</span></div><div><strong>ID</strong><span>$id</span></div><div><strong>Per&iacute;odo</strong><span>26/07/2026 a 20/08/2026</span></div></div>"
     $html += "<table><thead><tr><th>Data</th><th>Entrada</th><th>Almo&ccedil;o</th><th>Sa&iacute;da</th><th>Total</th><th>Extra</th><th>Obs</th></tr></thead><tbody>$tableRows</tbody>"
     $html += "<tfoot><tr class='total-row'><td colspan='4' style='text-align:right'>TOTAL DO PER&Iacute;ODO:</td><td>$(Fmt-Hms $totalWorkMin)</td><td>$(Fmt-Hms $totalOtMin)</td><td></td></tr></tfoot></table>"
+    
+    if ($id -eq "11" -or $id -eq "18") {
+        $payableOtMin = [Math]::Max(0, $totalOtMin - 1200)
+        $html += "<div style='margin-top:10px; padding:10px; background:#fef3c7; border-left:4px solid #f59e0b; font-size:10px; color:#92400e;'>"
+        $html += "<strong>Isen&ccedil;&atilde;o de Hor&aacute;rio:</strong> as primeiras 20h de trabalho extra est&atilde;o inclu&iacute;das no vencimento base.<br/>"
+        if ($totalOtMin -le 1200) {
+            $html += "Dentro da isen&ccedil;&atilde;o. Horas extra a pagar: 0h00m."
+        } else {
+            $html += "Excedeu a isen&ccedil;&atilde;o. <strong>Horas extra a pagar: $(Fmt-Hms $payableOtMin)</strong>"
+        }
+        $html += "</div>"
+    }
+    
     $html += "</div>"
 }
 
@@ -180,5 +201,5 @@ $html += "</body></html>"
 $htmlPath = Join-Path $outputDir "Relatorio_Gengibre_Julho_Agosto_Records.html"
 [System.IO.File]::WriteAllText($htmlPath, $html, [System.Text.Encoding]::UTF8)
 
-Write-Host "✅ Relatório Gengibre gerado com sucesso!"
+Write-Host "Relatorio Gengibre gerado com sucesso!"
 Write-Host "   -> $htmlPath"
