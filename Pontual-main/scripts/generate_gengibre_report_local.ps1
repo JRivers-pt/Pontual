@@ -4,7 +4,7 @@ $outputDir = "C:\Users\JD\Documents\Pontual\Relatorios"
 Write-Host "A processar o ficheiro Records para Gengibre..."
 
 if (-not (Test-Path $recordsFile)) {
-    Write-Warning "Ficheiro nAo encontrado: $recordsFile"
+    Write-Warning "Ficheiro nÃ£o encontrado: $recordsFile"
     exit
 }
 
@@ -21,7 +21,7 @@ foreach ($m in $cellMatches) {
     $val = $val.Trim()
     if (-not $val) { continue }
     
-    # ID-Name detection (e.g. "1-Wellington Silva")
+    # ID-Name detection
     if ($val -match '^(\d+)\s*-\s*(.*)$') {
         $empM = [regex]::Match($val, '^(\d+)\s*-\s*(.*)$')
         $id = $empM.Groups[1].Value.Trim()
@@ -92,6 +92,7 @@ $html += "<div class='no-print' style='text-align:center;padding:20px;'><button 
 $startDate = Get-Date "2026-07-26"
 $endDate = Get-Date "2026-08-20"
 
+$csv = "sep=;`nRelatÃ³rio de Assiduidade - Gengibre`nPerÃ­odo: 26/07/2026 a 20/08/2026`n`n"
 $sortedIds = $employees.Keys | Sort-Object { [int]$_ }
 
 foreach ($id in $sortedIds) {
@@ -99,6 +100,10 @@ foreach ($id in $sortedIds) {
     $emp = $employees[$id]
     $totalWorkMin = 0; $totalOtMin = 0; $tableRows = ""
     $curr = $startDate
+    
+    $csv += "Colaborador: $($emp.name) ($id)`n"
+    $csv += "Data;Entrada;AlmoÃ§o;SaÃ­da;Total;Extra;Obs`n"
+    
     while ($curr -le $endDate) {
         $key = $curr.ToString("yyyy-MM-dd")
         $isWk = ($curr.DayOfWeek -eq 'Saturday' -or $curr.DayOfWeek -eq 'Sunday')
@@ -172,6 +177,9 @@ foreach ($id in $sortedIds) {
         $rowStyle = if ($isWk -and $e1 -eq "-") { "style='background:#f1f5f9;color:#94a3b8;'" } else { "" }
         $obsSpan = if ($obs) { "<span class='obs'>$obs</span>" } else { "" }
         $almoco = if ($s1 -ne "-" -or $e2 -ne "-") { "$s1 - $e2" } else { "-" }
+        
+        $csvObs = $obs -replace '&ccedil;', 'Ã§' -replace '&atilde;', 'Ã£' -replace '&iacute;', 'Ã­'
+        $csv += "$($curr.ToString('dd/MM/yyyy'));$e1;$almoco;$s2;$duration;$ot;$csvObs`n"
         $tableRows += "<tr $rowStyle><td>$($curr.ToString('dd/MM/yyyy'))</td><td>$e1</td><td>$almoco</td><td>$s2</td><td>$duration</td><td>$ot</td><td>$obsSpan</td></tr>"
         $curr = $curr.AddDays(1)
     }
@@ -182,24 +190,38 @@ foreach ($id in $sortedIds) {
     $html += "<table><thead><tr><th>Data</th><th>Entrada</th><th>Almo&ccedil;o</th><th>Sa&iacute;da</th><th>Total</th><th>Extra</th><th>Obs</th></tr></thead><tbody>$tableRows</tbody>"
     $html += "<tfoot><tr class='total-row'><td colspan='4' style='text-align:right'>TOTAL DO PER&Iacute;ODO:</td><td>$(Fmt-Hms $totalWorkMin)</td><td>$(Fmt-Hms $totalOtMin)</td><td></td></tr></tfoot></table>"
     
+    $csv += "TOTAL DO PERÃODO;;;;$(Fmt-Hms $totalWorkMin);$(Fmt-Hms $totalOtMin);`n"
+
     if ($id -eq "11" -or $id -eq "18") {
         $payableOtMin = [Math]::Max(0, $totalOtMin - 1200)
         $html += "<div style='margin-top:10px; padding:10px; background:#fef3c7; border-left:4px solid #f59e0b; font-size:10px; color:#92400e;'>"
         $html += "<strong>Isen&ccedil;&atilde;o de Hor&aacute;rio:</strong> as primeiras 20h de trabalho extra est&atilde;o inclu&iacute;das no vencimento base.<br/>"
+        
+        $csv += "IsenÃ§Ã£o de HorÃ¡rio: as primeiras 20h estÃ£o incluÃ­das no vencimento base.`n"
+        
         if ($totalOtMin -le 1200) {
             $html += "Dentro da isen&ccedil;&atilde;o. Horas extra a pagar: 0h00m."
+            $csv += "Dentro da isenÃ§Ã£o. Horas extra a pagar: 0h00m.`n"
         } else {
             $html += "Excedeu a isen&ccedil;&atilde;o. <strong>Horas extra a pagar: $(Fmt-Hms $payableOtMin)</strong>"
+            $csv += "Excedeu a isenÃ§Ã£o. Horas extra a pagar: $(Fmt-Hms $payableOtMin)`n"
         }
         $html += "</div>"
     }
     
     $html += "</div>"
+    $csv += "`n"
 }
 
 $html += "</body></html>"
 $htmlPath = Join-Path $outputDir "Relatorio_Gengibre_Julho_Agosto_Records.html"
 [System.IO.File]::WriteAllText($htmlPath, $html, [System.Text.Encoding]::UTF8)
 
+$csvPath = Join-Path $outputDir "Relatorio_Gengibre_Julho_Agosto_Records.csv"
+# Windows-1252 (ANSI) encoding so Excel opens Portuguese characters correctly without garbling
+$ansi = [System.Text.Encoding]::GetEncoding(1252)
+[System.IO.File]::WriteAllText($csvPath, $csv, $ansi)
+
 Write-Host "Relatorio Gengibre gerado com sucesso!"
 Write-Host "   -> $htmlPath"
+Write-Host "   -> $csvPath"
