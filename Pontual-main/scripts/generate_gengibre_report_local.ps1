@@ -4,9 +4,21 @@ $outputDir = "C:\Users\JD\Documents\Pontual\Relatorios"
 Write-Host "A processar o ficheiro Records para Gengibre..."
 
 if (-not (Test-Path $recordsFile)) {
-    Write-Warning "Ficheiro nÃ£o encontrado: $recordsFile"
+    Write-Warning "Ficheiro nao encontrado: $recordsFile"
     exit
 }
+
+# Special chars via hex codes (always correct regardless of script file encoding)
+$ch_a_ac = [char]0xE1  # á
+$ch_e_ac = [char]0xE9  # é
+$ch_i_ac = [char]0xED  # í
+$ch_o_ac = [char]0xF3  # ó
+$ch_u_ac = [char]0xFA  # ú
+$ch_a_ti = [char]0xE3  # ã
+$ch_o_ti = [char]0xF5  # õ
+$ch_cced = [char]0xE7  # ç
+$ch_I_ac = [char]0xCD  # Í (uppercase)
+$ch_A_ti = [char]0xC3  # Ã (uppercase)
 
 $contentRecords = [System.IO.File]::ReadAllText($recordsFile, [System.Text.Encoding]::UTF8)
 $cellRegex = '(?i)<td[^>]*>(.*?)<\/td>'
@@ -21,12 +33,10 @@ foreach ($m in $cellMatches) {
     $val = $val.Trim()
     if (-not $val) { continue }
     
-    # ID-Name detection
     if ($val -match '^(\d+)\s*-\s*(.*)$') {
         $empM = [regex]::Match($val, '^(\d+)\s*-\s*(.*)$')
         $id = $empM.Groups[1].Value.Trim()
         $name = $empM.Groups[2].Value.Trim()
-        
         if (-not $employees.ContainsKey($id)) {
             $employees[$id] = @{ id = $id; name = $name; days = @{} }
         }
@@ -35,11 +45,10 @@ foreach ($m in $cellMatches) {
         continue
     }
     
-    # Date detection
     if ($val -match '^(\d{1,2})/(\d{1,2})/(\d{4})$') {
         if ($currentEmp) {
             $dm = [regex]::Match($val, '^(\d{1,2})/(\d{1,2})/(\d{4})$')
-            $currentDate = "$($dm.Groups[3].Value)-$($dm.Groups[1].Value.PadLeft(2, '0'))-$($dm.Groups[2].Value.PadLeft(2, '0'))"
+            $currentDate = "$($dm.Groups[3].Value)-$($dm.Groups[1].Value.PadLeft(2,'0'))-$($dm.Groups[2].Value.PadLeft(2,'0'))"
             if (-not $currentEmp.days.ContainsKey($currentDate)) {
                 $currentEmp.days[$currentDate] = New-Object System.Collections.Generic.List[string]
             }
@@ -47,7 +56,6 @@ foreach ($m in $cellMatches) {
         continue
     }
     
-    # Punch time detection
     if ($val -match '^\d{1,2}:\d{2}$') {
         if ($currentEmp -and $currentDate) {
             if (-not $currentEmp.days[$currentDate].Contains($val)) {
@@ -92,7 +100,10 @@ $html += "<div class='no-print' style='text-align:center;padding:20px;'><button 
 $startDate = Get-Date "2026-07-26"
 $endDate = Get-Date "2026-08-20"
 
-$csv = "sep=;`nRelatÃ³rio de Assiduidade - Gengibre`nPerÃ­odo: 26/07/2026 a 20/08/2026`n`n"
+$csv  = "sep=;`n"
+$csv += "Relat${ch_o_ac}rio de Assiduidade - Gengibre`n"
+$csv += "Per${ch_i_ac}odo: 26/07/2026 a 20/08/2026`n`n"
+
 $sortedIds = $employees.Keys | Sort-Object { [int]$_ }
 
 foreach ($id in $sortedIds) {
@@ -102,12 +113,12 @@ foreach ($id in $sortedIds) {
     $curr = $startDate
     
     $csv += "Colaborador: $($emp.name) ($id)`n"
-    $csv += "Data;Entrada;AlmoÃ§o;SaÃ­da;Total;Extra;Obs`n"
+    $csv += "Data;Entrada;Almo${ch_cced}o;Sa${ch_i_ac}da;Total;Extra;Obs`n"
     
     while ($curr -le $endDate) {
         $key = $curr.ToString("yyyy-MM-dd")
         $isWk = ($curr.DayOfWeek -eq 'Saturday' -or $curr.DayOfWeek -eq 'Sunday')
-        $e1 = "-"; $s1 = "-"; $e2 = "-"; $s2 = "-"; $duration = "-"; $ot = "-"; $obs = ""
+        $e1 = "-"; $s1 = "-"; $e2 = "-"; $s2 = "-"; $duration = "-"; $ot = "-"; $obs = ""; $obsCSV = ""
         $dur = 0
         
         if ($emp.days.ContainsKey($key)) {
@@ -123,49 +134,47 @@ foreach ($id in $sortedIds) {
                     if (($current - $prev) -ge 15) {
                         $validPunches += $p
                     } else {
-                        $obs = "Dupla Picagem"
+                        $obs = "Dupla Picagem"; $obsCSV = "Dupla Picagem"
                     }
                 }
             }
             
             $pc = $validPunches.Count
             if ($pc -ge 4) {
-                $e1 = $validPunches[0]
-                $s1 = $validPunches[1]
-                $e2 = $validPunches[2]
-                $s2 = $validPunches[-1]
+                $e1 = $validPunches[0]; $s1 = $validPunches[1]
+                $e2 = $validPunches[2]; $s2 = $validPunches[-1]
                 $dur = ((Get-Total-Minutes $s1) - (Get-Total-Minutes $e1)) + ((Get-Total-Minutes $s2) - (Get-Total-Minutes $e2))
             } elseif ($pc -eq 3) {
-                $e1 = $validPunches[0]
-                $s1 = $validPunches[1]
-                $e2 = $validPunches[2]
+                $e1 = $validPunches[0]; $s1 = $validPunches[1]; $e2 = $validPunches[2]
                 $dur = ((Get-Total-Minutes $s1) - (Get-Total-Minutes $e1))
-                if ($obs) { $obs += " / " }
-                $obs += "Falta picagem (Almo&ccedil;o)"
+                if ($obs) { $obs += " / "; $obsCSV += " / " }
+                $obs    += "Falta picagem (Almo&ccedil;o)"
+                $obsCSV += "Falta picagem (Almo${ch_cced}o)"
             } elseif ($pc -eq 2) {
-                $e1 = $validPunches[0]
-                $s2 = $validPunches[1]
+                $e1 = $validPunches[0]; $s2 = $validPunches[1]
                 $dur = (Get-Total-Minutes $s2) - (Get-Total-Minutes $e1)
                 if ($dur -gt 360) {
                     $dur -= 60
-                    if ($obs) { $obs += " / " }
-                    $obs += "Falta break de almo&ccedil;o / Dedu&ccedil;&atilde;o 1h"
+                    if ($obs) { $obs += " / "; $obsCSV += " / " }
+                    $obs    += "Falta break de almo&ccedil;o / Dedu&ccedil;&atilde;o 1h"
+                    $obsCSV += "Falta break de almo${ch_cced}o / Dedu${ch_cced}${ch_a_ti}o 1h"
                 }
             } elseif ($pc -eq 1) {
                 $pMin = Get-Total-Minutes $validPunches[0]
-                if ($obs) { $obs += " / " }
+                if ($obs) { $obs += " / "; $obsCSV += " / " }
                 if ($pMin -lt 780) {
                     $e1 = $validPunches[0]
-                    $obs += "Falta sa&iacute;da"
+                    $obs    += "Falta sa&iacute;da"
+                    $obsCSV += "Falta sa${ch_i_ac}da"
                 } else {
                     $s2 = $validPunches[0]
-                    $obs += "Falta entrada"
+                    $obs    += "Falta entrada"
+                    $obsCSV += "Falta entrada"
                 }
             }
             
             if ($dur -gt 0) {
                 $totalWorkMin += $dur; $duration = Fmt-Hms $dur
-                # Overtime: Cap at 8h (480m), tolerance 5m (trigger >= 486m).
                 if ($dur -ge 486) {
                     $extra = $dur - 485
                     $totalOtMin += $extra
@@ -178,39 +187,41 @@ foreach ($id in $sortedIds) {
         $obsSpan = if ($obs) { "<span class='obs'>$obs</span>" } else { "" }
         $almoco = if ($s1 -ne "-" -or $e2 -ne "-") { "$s1 - $e2" } else { "-" }
         
-        $csvObs = $obs -replace '&ccedil;', 'Ã§' -replace '&atilde;', 'Ã£' -replace '&iacute;', 'Ã­'
-        $csv += "$($curr.ToString('dd/MM/yyyy'));$e1;$almoco;$s2;$duration;$ot;$csvObs`n"
+        $csv      += "$($curr.ToString('dd/MM/yyyy'));$e1;$almoco;$s2;$duration;$ot;$obsCSV`n"
         $tableRows += "<tr $rowStyle><td>$($curr.ToString('dd/MM/yyyy'))</td><td>$e1</td><td>$almoco</td><td>$s2</td><td>$duration</td><td>$ot</td><td>$obsSpan</td></tr>"
         $curr = $curr.AddDays(1)
     }
 
-    $safeName = $emp.name -replace [char]225, "&aacute;" -replace [char]233, "&eacute;" -replace [char]237, "&iacute;" -replace [char]243, "&oacute;" -replace [char]250, "&uacute;" -replace [char]231, "&ccedil;" -replace [char]227, "&atilde;"
+    $safeName = $emp.name `
+        -replace [char]225, "&aacute;" -replace [char]233, "&eacute;" `
+        -replace [char]237, "&iacute;" -replace [char]243, "&oacute;" `
+        -replace [char]250, "&uacute;" -replace [char]231, "&ccedil;" `
+        -replace [char]227, "&atilde;"
+
     $html += "<div class='page'><div class='header'><div class='header-info'><h1>Pontual | Gengibre</h1><p>Relat&oacute;rio de Assiduidade Mensal</p></div></div>"
     $html += "<div class='emp-box'><div><strong>Colaborador</strong><span>$safeName</span></div><div><strong>ID</strong><span>$id</span></div><div><strong>Per&iacute;odo</strong><span>26/07/2026 a 20/08/2026</span></div></div>"
     $html += "<table><thead><tr><th>Data</th><th>Entrada</th><th>Almo&ccedil;o</th><th>Sa&iacute;da</th><th>Total</th><th>Extra</th><th>Obs</th></tr></thead><tbody>$tableRows</tbody>"
     $html += "<tfoot><tr class='total-row'><td colspan='4' style='text-align:right'>TOTAL DO PER&Iacute;ODO:</td><td>$(Fmt-Hms $totalWorkMin)</td><td>$(Fmt-Hms $totalOtMin)</td><td></td></tr></tfoot></table>"
-    
-    $csv += "TOTAL DO PERÃODO;;;;$(Fmt-Hms $totalWorkMin);$(Fmt-Hms $totalOtMin);`n"
+
+    $csv += "TOTAL DO PER${ch_I_ac}ODO;;;;$(Fmt-Hms $totalWorkMin);$(Fmt-Hms $totalOtMin);`n"
 
     if ($id -eq "11" -or $id -eq "18") {
         $payableOtMin = [Math]::Max(0, $totalOtMin - 1200)
         $html += "<div style='margin-top:10px; padding:10px; background:#fef3c7; border-left:4px solid #f59e0b; font-size:10px; color:#92400e;'>"
         $html += "<strong>Isen&ccedil;&atilde;o de Hor&aacute;rio:</strong> as primeiras 20h de trabalho extra est&atilde;o inclu&iacute;das no vencimento base.<br/>"
-        
-        $csv += "IsenÃ§Ã£o de HorÃ¡rio: as primeiras 20h estÃ£o incluÃ­das no vencimento base.`n"
-        
+        $csv += "Isen${ch_cced}${ch_a_ti}o de Hor${ch_a_ac}rio: as primeiras 20h est${ch_a_ti}o inclu${ch_i_ac}das no vencimento base.`n"
         if ($totalOtMin -le 1200) {
             $html += "Dentro da isen&ccedil;&atilde;o. Horas extra a pagar: 0h00m."
-            $csv += "Dentro da isenÃ§Ã£o. Horas extra a pagar: 0h00m.`n"
+            $csv  += "Dentro da isen${ch_cced}${ch_a_ti}o. Horas extra a pagar: 0h00m.`n"
         } else {
             $html += "Excedeu a isen&ccedil;&atilde;o. <strong>Horas extra a pagar: $(Fmt-Hms $payableOtMin)</strong>"
-            $csv += "Excedeu a isenÃ§Ã£o. Horas extra a pagar: $(Fmt-Hms $payableOtMin)`n"
+            $csv  += "Excedeu a isen${ch_cced}${ch_a_ti}o. Horas extra a pagar: $(Fmt-Hms $payableOtMin)`n"
         }
         $html += "</div>"
     }
     
     $html += "</div>"
-    $csv += "`n"
+    $csv  += "`n"
 }
 
 $html += "</body></html>"
@@ -218,9 +229,8 @@ $htmlPath = Join-Path $outputDir "Relatorio_Gengibre_Julho_Agosto_Records.html"
 [System.IO.File]::WriteAllText($htmlPath, $html, [System.Text.Encoding]::UTF8)
 
 $csvPath = Join-Path $outputDir "Relatorio_Gengibre_Julho_Agosto_Records.csv"
-# Windows-1252 (ANSI) encoding so Excel opens Portuguese characters correctly without garbling
-$ansi = [System.Text.Encoding]::GetEncoding(1252)
-[System.IO.File]::WriteAllText($csvPath, $csv, $ansi)
+$utf8bom = New-Object System.Text.UTF8Encoding($true)
+[System.IO.File]::WriteAllText($csvPath, $csv, $utf8bom)
 
 Write-Host "Relatorio Gengibre gerado com sucesso!"
 Write-Host "   -> $htmlPath"
