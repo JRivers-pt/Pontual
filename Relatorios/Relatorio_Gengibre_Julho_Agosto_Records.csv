@@ -1,6 +1,6 @@
 ﻿sep=;
 Relatório de Assiduidade - Gengibre
-PerÍodo: 26/07/2026 a 20/08/2026
+PerÍodo: 26/07/2026 a 25/08/2026
 
 Colaborador: Wellington  Silva (1)
 Data;Entrada;Almoço;SaÍda;Total;Extra;Obs
@@ -30,7 +30,12 @@ Data;Entrada;Almoço;SaÍda;Total;Extra;Obs
 18/08/2026;06:45;12:19 - 13:20;16:00;8h14m;+0h09m;
 19/08/2026;06:49;-;16:08;8h19m;+0h14m;Falta break de almoço / DeduçÃo 1h
 20/08/2026;06:48;12:24 - 13:24;15:51;8h03m;-;
-TOTAL DO PERÍODO;;;;145h01m;1h16m;
+21/08/2026;06:49;12:26 - 13:21;16:01;8h17m;+0h12m;
+22/08/2026;-;-;-;-;-;
+23/08/2026;-;-;-;-;-;
+24/08/2026;06:44;13:58 - 15:49;-;7h14m;-;Falta picagem (Almoço)
+25/08/2026;06:47;12:03 - 13:07;15:59;8h08m;+0h03m;
+TOTAL DO PERÍODO;;;;168h40m;1h31m;
 
 Colaborador: Ana Freitas (2)
 Data;Entrada;Almoço;SaÍda;Total;Extra;Obs
@@ -60,6 +65,11 @@ Data;Entrada;Almoço;SaÍda;Total;Extra;Obs
 18/08/2026;-;-;-;-;-;
 19/08/2026;-;-;-;-;-;
 20/08/2026;-;-;-;-;-;
+21/08/2026;-;-;-;-;-;
+22/08/2026;-;-;-;-;-;
+23/08/2026;-;-;-;-;-;
+24/08/2026;-;-;-;-;-;
+25/08/2026;-;-;-;-;-;
 TOTAL DO PERÍODO;;;;-;-;
 
 Colaborador: Rheinner Oliveira (3)
@@ -90,7 +100,12 @@ Data;Entrada;Almoço;SaÍda;Total;Extra;Obs
 18/08/2026;09:03;12:23 - 13:15;-;3h20m;-;Falta picagem (Almoço)
 19/08/2026;12:24;-;18:20;5h56m;-;
 20/08/2026;08:53;12:29 - 18:11;-;3h36m;-;Falta picagem (Almoço)
-TOTAL DO PERÍODO;;;;102h20m;11h47m;
+21/08/2026;12:49;-;18:04;5h15m;-;
+22/08/2026;-;-;-;-;-;
+23/08/2026;-;-;-;-;-;
+24/08/2026;08:51;-;-;-;-;Falta saÍda
+25/08/2026;08:41;-;17:42;8h01m;-;Falta break de almoço / DeduçÃo 1h
+TOTAL DO PERÍODO;;;;115h36m;11h47m;
 
 Colaborador: Mohammad  Ripon (4)
 Data;Entrada;Almoço;SaÍda;Total;Extra;Obs
@@ -120,7 +135,12 @@ Data;Entrada;Almoço;SaÍda;Total;Extra;Obs
 18/08/2026;07:21;12:49 - 13:47;16:46;8h27m;+0h22m;Dupla Picagem
 19/08/2026;07:23;12:44 - 13:43;16:29;8h07m;+0h02m;
 20/08/2026;07:23;12:46 - 13:46;16:28;8h05m;-;
-TOTAL DO PERÍODO;;;;158h33m;5h25m;
+21/08/2026;07:20;12:10 - 13:10;16:28;8h08m;+0h03m;
+22/08/2026;-;-;-;-;-;
+23/08/2026;-;-;-;-;-;
+24/08/2026;07:28;12:57 - 13:58;16:17;7h48m;-;
+25/08/2026;07:20;12:10 - 13:09;16:27;8h08m;+0h03m;
+TOTAL DO PERÍODO;;;;182h37m;5h31m;
 
 Colaborador: Raul  Fonseca (5)
 Data;Entrada;Almoço;SaÍda;Total;Extra;Obs
@@ -150,7 +170,12 @@ Data;Entrada;Almoço;SaÍda;Total;Extra;Obs
 18/08/2026;07:41;13:19 - 13:56;16:46;8h28m;+0h23m;
 19/08/2026;07:10;13:10 - 13:53;16:35;8h42m;+0h37m;
 20/08/2026;07:12;12:26 - 13:23;16:39;8h30m;+0h25m;
-TOTAL DO PERÍODO;;;;86h58m;6h08m;
+21/08/2026;-;-;-;-;-;
+22/08/2026;-;-;-;-;-;
+23/08/2026;07:46;12:58 - 13:54;16:25;7h43m;-;
+24/08/2026;07:15;12:38 - 13:36;16:17;8h04m;-;
+25/08/2026;07:53;12:13 - 13:11;16:52;8h01m;-;
+TOTAL DO PERÍODO;;;;110h46m;6h08m;
 
 Colaborador: Deila  Moreno (6)
 Data;Entrada;Almoço;SaÍda;Total;Extra;Obs
@@ -180,7 +205,12 @@ Data;Entrada;Almoço;SaÍda;Total;Extra;Obs
 18/08/2026;-;-;-;-;-;
 19/08/2026;-;-;-;-;-;
 20/08/2026;-;-;-;-;-;
-TOTAL DO PERÍODO;;;;110h37m;6h10m;
+21/08/2026;-;-;-;-;-;
+22/08/2026;-;-;-;-;-;
+23/08/2026;-;-;-;-;-;
+24/08/2026;08:09;-;17:26;8h17m;+0h12m;Falta break de almoço / DeduçÃo 1h
+25/08/2026;07:58;12:12 - 13:15;16:53;7h52m;-;
+TOTAL DO PERÍODO;;;;126h46m;6h22m;
 
 Colaborador: Rosangela  Ferreira (7)
 Data;Entrada;Almoço;SaÍda;Total;Extra;Obs
@@ -210,7 +240,12 @@ Data;Entrada;Almoço;SaÍda;Total;Extra;Obs
 18/08/2026;-;-;-;-;-;
 19/08/2026;-;-;-;-;-;
 20/08/2026;-;-;-;-;-;
-TOTAL DO PERÍODO;;;;99h58m;5h45m;
+21/08/2026;-;-;-;-;-;
+22/08/2026;-;-;-;-;-;
+23/08/2026;-;-;-;-;-;
+24/08/2026;-;-;-;-;-;
+25/08/2026;08:27;12:26 - 13:28;18:15;8h46m;+0h41m;
+TOTAL DO PERÍODO;;;;108h44m;6h26m;
 
 Colaborador: Bruno Carmo (8)
 Data;Entrada;Almoço;SaÍda;Total;Extra;Obs
@@ -240,7 +275,12 @@ Data;Entrada;Almoço;SaÍda;Total;Extra;Obs
 18/08/2026;09:57;13:47 - 14:43;20:00;9h07m;+1h02m;
 19/08/2026;09:19;12:28 - 13:23;19:07;8h53m;+0h48m;
 20/08/2026;10:33;12:55 - 13:32;21:36;10h26m;+2h21m;
-TOTAL DO PERÍODO;;;;140h35m;12h51m;
+21/08/2026;13:28;14:08 - 22:20;-;0h40m;-;Falta picagem (Almoço)
+22/08/2026;07:07;12:53 - 13:37;23:16;15h25m;+7h20m;
+23/08/2026;09:02;-;19:36;9h34m;+1h29m;Falta break de almoço / DeduçÃo 1h
+24/08/2026;12:58;14:02 - 19:02;-;1h04m;-;Falta picagem (Almoço)
+25/08/2026;10:17;12:31 - 13:34;-;2h14m;-;Falta picagem (Almoço)
+TOTAL DO PERÍODO;;;;169h32m;21h40m;
 
 Colaborador: Carolina  Petra (9)
 Data;Entrada;Almoço;SaÍda;Total;Extra;Obs
@@ -270,7 +310,12 @@ Data;Entrada;Almoço;SaÍda;Total;Extra;Obs
 18/08/2026;08:47;-;17:58;8h11m;+0h06m;Falta break de almoço / DeduçÃo 1h
 19/08/2026;08:58;-;18:16;8h18m;+0h13m;Falta break de almoço / DeduçÃo 1h
 20/08/2026;08:53;-;17:54;8h01m;-;Falta break de almoço / DeduçÃo 1h
-TOTAL DO PERÍODO;;;;57h21m;0h57m;
+21/08/2026;11:19;-;-;-;-;Falta saÍda
+22/08/2026;-;-;21:29;-;-;Falta entrada
+23/08/2026;-;-;-;-;-;
+24/08/2026;08:52;-;18:00;8h08m;+0h03m;Falta break de almoço / DeduçÃo 1h
+25/08/2026;09:04;-;-;-;-;Falta saÍda
+TOTAL DO PERÍODO;;;;65h29m;1h00m;
 
 Colaborador: Vasco  Silva (10)
 Data;Entrada;Almoço;SaÍda;Total;Extra;Obs
@@ -300,7 +345,12 @@ Data;Entrada;Almoço;SaÍda;Total;Extra;Obs
 18/08/2026;09:00;-;18:09;8h09m;+0h04m;Falta break de almoço / DeduçÃo 1h
 19/08/2026;08:57;-;18:20;8h23m;+0h18m;Falta break de almoço / DeduçÃo 1h
 20/08/2026;08:51;-;18:03;8h12m;+0h07m;Falta break de almoço / DeduçÃo 1h
-TOTAL DO PERÍODO;;;;62h13m;1h40m;
+21/08/2026;08:59;-;-;-;-;Falta saÍda
+22/08/2026;-;-;-;-;-;
+23/08/2026;-;-;-;-;-;
+24/08/2026;08:51;-;18:01;8h10m;+0h05m;Falta break de almoço / DeduçÃo 1h
+25/08/2026;09:02;-;-;-;-;Falta saÍda
+TOTAL DO PERÍODO;;;;70h23m;1h45m;
 
 Colaborador: Ademir  Domingues (11)
 Data;Entrada;Almoço;SaÍda;Total;Extra;Obs
@@ -330,7 +380,12 @@ Data;Entrada;Almoço;SaÍda;Total;Extra;Obs
 18/08/2026;-;-;-;-;-;
 19/08/2026;08:54;-;18:04;8h10m;+0h05m;Falta break de almoço / DeduçÃo 1h
 20/08/2026;08:55;-;-;-;-;Falta saÍda
-TOTAL DO PERÍODO;;;;81h38m;12h08m;
+21/08/2026;08:39;-;19:35;9h56m;+1h51m;Falta break de almoço / DeduçÃo 1h
+22/08/2026;-;-;-;-;-;
+23/08/2026;00:01;08:51 - 16:02;-;8h50m;+0h45m;Falta picagem (Almoço)
+24/08/2026;-;-;-;-;-;
+25/08/2026;08:55;-;18:26;8h31m;+0h26m;Falta break de almoço / DeduçÃo 1h
+TOTAL DO PERÍODO;;;;108h55m;15h10m;
 IsençÃo de Horário: as primeiras 20h estÃo incluÍdas no vencimento base.
 Dentro da isençÃo. Horas extra a pagar: 0h00m.
 
@@ -362,6 +417,11 @@ Data;Entrada;Almoço;SaÍda;Total;Extra;Obs
 18/08/2026;-;-;-;-;-;
 19/08/2026;-;-;-;-;-;
 20/08/2026;-;-;-;-;-;
+21/08/2026;-;-;-;-;-;
+22/08/2026;-;-;-;-;-;
+23/08/2026;-;-;-;-;-;
+24/08/2026;-;-;-;-;-;
+25/08/2026;-;-;-;-;-;
 TOTAL DO PERÍODO;;;;127h37m;22h59m;
 
 Colaborador: Anaís  Lima (13)
@@ -392,7 +452,12 @@ Data;Entrada;Almoço;SaÍda;Total;Extra;Obs
 18/08/2026;09:59;11:10 - 11:43;18:26;7h54m;-;Dupla Picagem
 19/08/2026;10:04;-;18:50;7h46m;-;Dupla Picagem / Falta break de almoço / DeduçÃo 1h
 20/08/2026;10:01;11:22 - 18:44;-;1h21m;-;Dupla Picagem / Falta picagem (Almoço)
-TOTAL DO PERÍODO;;;;111h35m;1h13m;
+21/08/2026;10:10;11:36 - 11:55;18:49;8h20m;+0h15m;
+22/08/2026;-;-;-;-;-;
+23/08/2026;-;-;-;-;-;
+24/08/2026;10:11;11:17 - 18:42;-;1h06m;-;Dupla Picagem / Falta picagem (Almoço)
+25/08/2026;10:10;-;18:49;7h39m;-;Falta break de almoço / DeduçÃo 1h
+TOTAL DO PERÍODO;;;;128h40m;1h28m;
 
 Colaborador: Sandra  Mendes (14)
 Data;Entrada;Almoço;SaÍda;Total;Extra;Obs
@@ -422,6 +487,11 @@ Data;Entrada;Almoço;SaÍda;Total;Extra;Obs
 18/08/2026;-;-;-;-;-;
 19/08/2026;-;-;-;-;-;
 20/08/2026;-;-;-;-;-;
+21/08/2026;-;-;-;-;-;
+22/08/2026;-;-;-;-;-;
+23/08/2026;-;-;-;-;-;
+24/08/2026;-;-;-;-;-;
+25/08/2026;-;-;-;-;-;
 TOTAL DO PERÍODO;;;;79h33m;1h45m;
 
 Colaborador: Ana Carolina Oliveira (16)
@@ -452,7 +522,12 @@ Data;Entrada;Almoço;SaÍda;Total;Extra;Obs
 18/08/2026;-;-;-;-;-;
 19/08/2026;-;-;-;-;-;
 20/08/2026;-;-;-;-;-;
-TOTAL DO PERÍODO;;;;111h26m;7h14m;
+21/08/2026;-;-;-;-;-;
+22/08/2026;-;-;-;-;-;
+23/08/2026;-;-;-;-;-;
+24/08/2026;07:51;12:38 - 13:13;16:02;7h36m;-;
+25/08/2026;07:46;12:08 - 16:52;-;4h22m;-;Falta picagem (Almoço)
+TOTAL DO PERÍODO;;;;123h24m;7h14m;
 
 Colaborador: Widler  Santer (17)
 Data;Entrada;Almoço;SaÍda;Total;Extra;Obs
@@ -482,7 +557,12 @@ Data;Entrada;Almoço;SaÍda;Total;Extra;Obs
 18/08/2026;07:37;12:51 - 13:51;16:50;8h13m;+0h08m;
 19/08/2026;07:23;12:43 - 13:43;16:37;8h14m;+0h09m;
 20/08/2026;07:22;12:50 - 13:50;16:43;8h21m;+0h16m;
-TOTAL DO PERÍODO;;;;155h41m;5h55m;
+21/08/2026;07:26;12:46 - 13:44;16:55;8h31m;+0h26m;Dupla Picagem
+22/08/2026;-;-;-;-;-;
+23/08/2026;-;-;-;-;-;
+24/08/2026;07:27;12:53 - 13:54;16:18;7h50m;-;Dupla Picagem
+25/08/2026;07:52;12:10 - 13:10;16:55;8h03m;-;
+TOTAL DO PERÍODO;;;;180h05m;6h21m;
 
 Colaborador: Evelyn Novaes (18)
 Data;Entrada;Almoço;SaÍda;Total;Extra;Obs
@@ -512,7 +592,12 @@ Data;Entrada;Almoço;SaÍda;Total;Extra;Obs
 18/08/2026;11:08;16:07 - 17:07;-;4h59m;-;Falta picagem (Almoço)
 19/08/2026;09:20;15:43 - 16:16;18:25;8h32m;+0h27m;
 20/08/2026;12:57;-;21:03;7h06m;-;Falta break de almoço / DeduçÃo 1h
-TOTAL DO PERÍODO;;;;66h47m;5h30m;
+21/08/2026;09:42;15:09 - 19:05;-;5h27m;-;Falta picagem (Almoço)
+22/08/2026;07:02;-;08:05;1h03m;-;
+23/08/2026;-;-;-;-;-;
+24/08/2026;10:17;16:11 - 17:09;19:06;7h51m;-;
+25/08/2026;08:13;12:20 - 17:00;-;4h07m;-;Falta picagem (Almoço)
+TOTAL DO PERÍODO;;;;85h15m;5h30m;
 IsençÃo de Horário: as primeiras 20h estÃo incluÍdas no vencimento base.
 Dentro da isençÃo. Horas extra a pagar: 0h00m.
 
@@ -544,5 +629,10 @@ Data;Entrada;Almoço;SaÍda;Total;Extra;Obs
 18/08/2026;-;-;-;-;-;
 19/08/2026;-;-;-;-;-;
 20/08/2026;-;-;-;-;-;
+21/08/2026;-;-;-;-;-;
+22/08/2026;-;-;-;-;-;
+23/08/2026;-;-;-;-;-;
+24/08/2026;-;-;-;-;-;
+25/08/2026;-;-;-;-;-;
 TOTAL DO PERÍODO;;;;-;-;
 
