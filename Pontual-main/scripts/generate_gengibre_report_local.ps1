@@ -1,4 +1,4 @@
-﻿$recordsFile = "C:\Users\JD\Downloads\Records_AllDepts_260726_to_260825_7502.xls"
+$recordsFile = "C:\Users\JD\Downloads\Records_AllDepts_260726_to_260825_7502.xls"
 $outputDir = "C:\Users\JD\Documents\Pontual\Relatorios"
 
 Write-Host "A processar o ficheiro Records para Gengibre..."
@@ -229,8 +229,8 @@ $htmlPath = Join-Path $outputDir "Relatorio_Gengibre_Julho_Agosto_Records.html"
 [System.IO.File]::WriteAllText($htmlPath, $html, [System.Text.Encoding]::UTF8)
 
 $csvPath = Join-Path $outputDir "Relatorio_Gengibre_Julho_Agosto_Records.csv"
-$utf8bom = New-Object System.Text.UTF8Encoding($true)
-[System.IO.File]::WriteAllText($csvPath, $csv, $utf8bom)
+$utf16 = [System.Text.Encoding]::Unicode
+[System.IO.File]::WriteAllText($csvPath, $csv, $utf16)
 
 Write-Host "Relatorio Gengibre gerado com sucesso!"
 Write-Host "   -> $htmlPath"
