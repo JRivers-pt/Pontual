@@ -1,4 +1,4 @@
-$recordsFile = "C:\Users\JD\Downloads\Records_AllDepts_260726_to_260825_7502.xls"
+﻿$recordsFile = "C:\Users\JD\Downloads\Records_AllDepts_260826_to_260830_7502.xls"
 $outputDir = "C:\Users\JD\Documents\Pontual\Relatorios"
 
 Write-Host "A processar o ficheiro Records para Gengibre..."
@@ -9,16 +9,16 @@ if (-not (Test-Path $recordsFile)) {
 }
 
 # Special chars via hex codes (always correct regardless of script file encoding)
-$ch_a_ac = [char]0xE1  # Ã¡
-$ch_e_ac = [char]0xE9  # Ã©
-$ch_i_ac = [char]0xED  # Ã­
-$ch_o_ac = [char]0xF3  # Ã³
-$ch_u_ac = [char]0xFA  # Ãº
-$ch_a_ti = [char]0xE3  # Ã£
-$ch_o_ti = [char]0xF5  # Ãµ
-$ch_cced = [char]0xE7  # Ã§
-$ch_I_ac = [char]0xCD  # Ã (uppercase)
-$ch_A_ti = [char]0xC3  # Ãƒ (uppercase)
+$ch_a_ac = [char]0xE1  # ÃƒÂ¡
+$ch_e_ac = [char]0xE9  # ÃƒÂ©
+$ch_i_ac = [char]0xED  # ÃƒÂ­
+$ch_o_ac = [char]0xF3  # ÃƒÂ³
+$ch_u_ac = [char]0xFA  # ÃƒÂº
+$ch_a_ti = [char]0xE3  # ÃƒÂ£
+$ch_o_ti = [char]0xF5  # ÃƒÂµ
+$ch_cced = [char]0xE7  # ÃƒÂ§
+$ch_I_ac = [char]0xCD  # ÃƒÂ (uppercase)
+$ch_A_ti = [char]0xC3  # ÃƒÆ’ (uppercase)
 
 $contentRecords = [System.IO.File]::ReadAllText($recordsFile, [System.Text.Encoding]::UTF8)
 $cellRegex = '(?i)<td[^>]*>(.*?)<\/td>'
@@ -97,12 +97,12 @@ $css = "body { font-family: 'Segoe UI', sans-serif; font-size: 11px; margin: 0; 
 $html = "<html><head><style>$css</style><meta charset='UTF-8'></head><body>"
 $html += "<div class='no-print' style='text-align:center;padding:20px;'><button onclick='window.print()' style='padding:12px 24px;background:#1e3a8a;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:700;'>Gerar PDF / Imprimir</button></div>"
 
-$startDate = Get-Date "2026-07-26"
-$endDate = Get-Date "2026-08-25"
+$startDate = Get-Date "2026-08-26"
+$endDate = Get-Date "2026-08-30"
 
 $csv  = "sep=;`n"
 $csv += "Relat${ch_o_ac}rio de Assiduidade - Gengibre`n"
-$csv += "Per${ch_i_ac}odo: 26/07/2026 a 25/08/2026`n`n"
+$csv += "Per${ch_i_ac}odo: 26/08/2026 a 30/08/2026`n`n"
 
 $sortedIds = $employees.Keys | Sort-Object { [int]$_ }
 
@@ -199,7 +199,7 @@ foreach ($id in $sortedIds) {
         -replace [char]227, "&atilde;"
 
     $html += "<div class='page'><div class='header'><div class='header-info'><h1>Pontual | Gengibre</h1><p>Relat&oacute;rio de Assiduidade Mensal</p></div></div>"
-    $html += "<div class='emp-box'><div><strong>Colaborador</strong><span>$safeName</span></div><div><strong>ID</strong><span>$id</span></div><div><strong>Per&iacute;odo</strong><span>26/07/2026 a 25/08/2026</span></div></div>"
+    $html += "<div class='emp-box'><div><strong>Colaborador</strong><span>$safeName</span></div><div><strong>ID</strong><span>$id</span></div><div><strong>Per&iacute;odo</strong><span>26/08/2026 a 30/08/2026</span></div></div>"
     $html += "<table><thead><tr><th>Data</th><th>Entrada</th><th>Almo&ccedil;o</th><th>Sa&iacute;da</th><th>Total</th><th>Extra</th><th>Obs</th></tr></thead><tbody>$tableRows</tbody>"
     $html += "<tfoot><tr class='total-row'><td colspan='4' style='text-align:right'>TOTAL DO PER&Iacute;ODO:</td><td>$(Fmt-Hms $totalWorkMin)</td><td>$(Fmt-Hms $totalOtMin)</td><td></td></tr></tfoot></table>"
 
@@ -225,14 +225,15 @@ foreach ($id in $sortedIds) {
 }
 
 $html += "</body></html>"
-$htmlPath = Join-Path $outputDir "Relatorio_Gengibre_Julho_Agosto_Records.html"
+$htmlPath = Join-Path $outputDir "Relatorio_Gengibre_Agosto_26_a_30.html"
 [System.IO.File]::WriteAllText($htmlPath, $html, [System.Text.Encoding]::UTF8)
 
-$csvPath = Join-Path $outputDir "Relatorio_Gengibre_Julho_Agosto_Records.csv"
+$csvPath = Join-Path $outputDir "Relatorio_Gengibre_Agosto_26_a_30.csv"
 $utf16 = [System.Text.Encoding]::Unicode
 [System.IO.File]::WriteAllText($csvPath, $csv, $utf16)
 
 Write-Host "Relatorio Gengibre gerado com sucesso!"
 Write-Host "   -> $htmlPath"
 Write-Host "   -> $csvPath"
+
 
