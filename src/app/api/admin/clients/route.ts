@@ -16,6 +16,13 @@ export const GET = auth(async (req) => {
             orderBy: {
                 createdAt: "desc",
             },
+            include: {
+                _count: {
+                    select: {
+                        schedules: true,
+                    },
+                },
+            },
         });
         return NextResponse.json(clients);
     } catch (error) {
@@ -31,10 +38,15 @@ export const POST = auth(async (req) => {
 
     try {
         const body = await req.json();
-        const { username, password, email, name, company, apiKey, apiSecret, apiUrl, reportHeader, vpEmail, autoEmailReports } = body;
+        const {
+            username, password, email, name, company, apiKey, apiSecret, apiUrl,
+            reportHeader, vpEmail, autoEmailReports,
+            overtimeTolerance, subtractTolerance, mealBreakMinutes,
+            mealBreakThresholdHours, exemptIds, overtimeCapHours
+        } = body;
 
         if (!username || !password) {
-            return NextResponse.json({ error: "Username and password are required" }, { status: 400 });
+            return NextResponse.json({ error: "O username e a password são obrigatórios" }, { status: 400 });
         }
 
         const existingUser = await prisma.user.findUnique({
@@ -42,7 +54,7 @@ export const POST = auth(async (req) => {
         });
 
         if (existingUser) {
-            return NextResponse.json({ error: "Username already exists" }, { status: 400 });
+            return NextResponse.json({ error: "Já existe um cliente com este username" }, { status: 400 });
         }
 
         const hashedPassword = await bcrypt.hash(password, 8);
@@ -60,6 +72,12 @@ export const POST = auth(async (req) => {
                 reportHeader: reportHeader || null,
                 vpEmail: vpEmail || null,
                 autoEmailReports: autoEmailReports || false,
+                overtimeTolerance: overtimeTolerance ?? null,
+                subtractTolerance: subtractTolerance ?? null,
+                mealBreakMinutes: mealBreakMinutes ?? null,
+                mealBreakThresholdHours: mealBreakThresholdHours ?? null,
+                exemptIds: exemptIds || null,
+                overtimeCapHours: overtimeCapHours ?? null,
                 role: "CLIENT",
             },
         });
@@ -67,6 +85,6 @@ export const POST = auth(async (req) => {
         return NextResponse.json(client);
     } catch (error) {
         console.error("Error creating client:", error);
-        return NextResponse.json({ error: "Failed to create client" }, { status: 500 });
+        return NextResponse.json({ error: "Erro ao criar cliente. Tenta novamente." }, { status: 500 });
     }
 });

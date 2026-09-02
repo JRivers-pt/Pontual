@@ -37,6 +37,14 @@ model User {
   vpEmail          String?
   autoEmailReports Boolean @default(false)
 
+  // Per-client calculation rules (override company-name detection)
+  overtimeTolerance       Int?    // Min de tolerância para contar horas extra
+  subtractTolerance       Boolean? // Subtrai a tolerância ao total de HE
+  mealBreakMinutes        Int?    // Duração da pausa de refeição (min)
+  mealBreakThresholdHours Int?    // Limiar de horas para deduzir pausa (h)
+  exemptIds               String? // IDs isentos de HE, separados por vírgula
+  overtimeCapHours        Int?    // Limite de horas normais por dia (h)
+
   // Schedules associated with this client
   schedules Schedule[]
 

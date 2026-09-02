@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/db';
+import { crossChexErrorToPortuguese } from '@/lib/api-server';
 
 function generateTimestamp(): string {
     return new Date().toISOString().replace('Z', '+00:00');
@@ -31,7 +32,7 @@ export async function POST(request: NextRequest) {
 
         if (!token) {
             return NextResponse.json(
-                { error: 'Token is required' },
+                { error: 'Sessão inválida. Termina a sessão e inicia novamente.' },
                 { status: 400 }
             );
         }
@@ -65,11 +66,11 @@ export async function POST(request: NextRequest) {
             body: JSON.stringify(requestBody),
         });
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        const data = await response.json().catch(() => null);
 
-        const data = await response.json();
+        if (!response.ok || !data) {
+            throw new Error(crossChexErrorToPortuguese(response.status, data));
+        }
 
         // Query manual missed punches from database and merge them into records list
         try {

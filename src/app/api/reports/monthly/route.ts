@@ -5,7 +5,7 @@ import { pt } from "date-fns/locale";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { getCrossChexToken, generateRequestId, generateTimestamp } from "@/lib/api-server";
-import { calculateSmartWorkHours, getClientRules } from "@/lib/schedules";
+import { calculateSmartWorkHours, getClientRulesFromUser } from "@/lib/schedules";
 
 export const dynamic = 'force-dynamic';
 
@@ -174,7 +174,7 @@ export async function GET(request: Request) {
 
                     // Client specific logic
                     const company = user.company || "";
-                    const rules = getClientRules(company);
+                    const rules = getClientRulesFromUser(user);
 
                     const isVP = company.toLowerCase().includes("vila peixoto") || company.toLowerCase().includes("vp");
                     const isGengibre = company.toLowerCase().includes("gengibre") || company.toLowerCase().includes("cozinha criativa");
@@ -328,7 +328,7 @@ export async function GET(request: Request) {
                     await resend.emails.send({
                         from: "Pontual <noreply@pontualidade.pt>",
                         to: [reportEmail, "comercial@techscire.pt"],
-                        reply_to: "comercial@techscire.pt",
+                        replyTo: "comercial@techscire.pt",
                         subject: `Relatório de Assiduidade - Período ${periodStr}`,
                         text: `Olá,\n\nSegue em anexo o relatório consolidado de assiduidade de todos os colaboradores para o período de ${periodStr}.\n\nEste relatório inclui os cálculos de horas extra (após 8h de trabalho) e as isenções configuradas.\n\nAtenciosamente,\nEquipa Pontual`,
                         attachments: [{

@@ -35,7 +35,11 @@ export const PATCH = auth(async (req, { params }) => {
 
     try {
         const body = await req.json();
-        const { username, password, email, name, company, apiKey, apiSecret, apiUrl, reportHeader, logoUrl, vpEmail, autoEmailReports } = body;
+        const {
+            username, password, email, name, company, apiKey, apiSecret, apiUrl, reportHeader, logoUrl, vpEmail, autoEmailReports,
+            overtimeTolerance, subtractTolerance, mealBreakMinutes,
+            mealBreakThresholdHours, exemptIds, overtimeCapHours
+        } = body;
 
         const updateData: any = {
             username,
@@ -49,6 +53,12 @@ export const PATCH = auth(async (req, { params }) => {
             logoUrl: logoUrl !== undefined ? logoUrl : undefined,
             vpEmail: vpEmail !== undefined ? vpEmail : undefined,
             autoEmailReports: autoEmailReports !== undefined ? autoEmailReports : undefined,
+            overtimeTolerance: overtimeTolerance !== undefined ? overtimeTolerance : undefined,
+            subtractTolerance: subtractTolerance !== undefined ? subtractTolerance : undefined,
+            mealBreakMinutes: mealBreakMinutes !== undefined ? mealBreakMinutes : undefined,
+            mealBreakThresholdHours: mealBreakThresholdHours !== undefined ? mealBreakThresholdHours : undefined,
+            exemptIds: exemptIds !== undefined ? exemptIds : undefined,
+            overtimeCapHours: overtimeCapHours !== undefined ? overtimeCapHours : undefined,
         };
 
         if (password) {

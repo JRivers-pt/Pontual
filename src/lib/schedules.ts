@@ -179,7 +179,16 @@ export function getGengibreSchedule(employeeName: string, employeeId?: string | 
 /**
  * REGRAS DE CÁLCULO POR CLIENTE
  */
-export const CLIENT_RULES = {
+export interface ClientRules {
+    overtimeTolerance: number;
+    subtractTolerance: boolean;
+    mealBreakMinutes: number;
+    mealBreakThresholdHours: number;
+    exemptIds: string[];
+    overtimeCapHours: number;
+}
+
+export const CLIENT_RULES: Record<string, ClientRules> = {
     GENGIBRE: {
         overtimeTolerance: 15,
         subtractTolerance: false,
@@ -206,15 +215,55 @@ export const CLIENT_RULES = {
     }
 };
 
+export const NEUTRAL_RULES: ClientRules = {
+    overtimeTolerance: 10,
+    subtractTolerance: false,
+    mealBreakMinutes: 60,
+    mealBreakThresholdHours: 6,
+    exemptIds: [],
+    overtimeCapHours: 8
+};
+
 /**
  * Detecta qual o cliente baseado no nome da empresa
+ * Nota: clientes desconhecidos passam a usar regras NEUTRAS (padrão), não regras de outro cliente.
  */
-export function getClientRules(companyName: string = "") {
+export function getClientRules(companyName: string = ""): ClientRules {
     const name = companyName.toLowerCase();
     if (name.includes("gengibre") || name.includes("cozinha criativa")) return CLIENT_RULES.GENGIBRE;
     if (name.includes("ve") || name.includes("vontade e empenho")) return CLIENT_RULES.VE;
     if (name.includes("vila peixoto") || name.includes("vp")) return CLIENT_RULES.VP;
-    return CLIENT_RULES.GENGIBRE; // Fallback
+    return NEUTRAL_RULES;
+}
+
+/**
+ * Obtém as regras de cálculo para um utilizador, aplicando as
+ * definições guardadas na base de dados (per-cliente) quando existirem.
+ * Caso contrário, recorre à deteção por nome da empresa.
+ */
+export function getClientRulesFromUser(user: {
+    company?: string | null;
+    overtimeTolerance?: number | null;
+    subtractTolerance?: boolean | null;
+    mealBreakMinutes?: number | null;
+    mealBreakThresholdHours?: number | null;
+    exemptIds?: string | null;
+    overtimeCapHours?: number | null;
+}): ClientRules {
+    const base = getClientRules(user.company || "");
+
+    const parsedExempt = user.exemptIds
+        ? user.exemptIds.split(',').map(s => s.trim()).filter(Boolean)
+        : base.exemptIds;
+
+    return {
+        overtimeTolerance: user.overtimeTolerance ?? base.overtimeTolerance,
+        subtractTolerance: user.subtractTolerance ?? base.subtractTolerance,
+        mealBreakMinutes: user.mealBreakMinutes ?? base.mealBreakMinutes,
+        mealBreakThresholdHours: user.mealBreakThresholdHours ?? base.mealBreakThresholdHours,
+        exemptIds: parsedExempt,
+        overtimeCapHours: user.overtimeCapHours ?? base.overtimeCapHours,
+    };
 }
 
 /**

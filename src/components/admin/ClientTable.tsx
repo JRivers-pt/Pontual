@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit, Trash2, Plus, ExternalLink } from "lucide-react";
+import { Edit, Trash2, Plus, MonitorUp, CircleCheck, CircleX } from "lucide-react";
 import Link from "next/link";
 
 interface Client {
@@ -21,7 +21,12 @@ interface Client {
     name: string | null;
     company: string | null;
     role: string;
+    apiKey: string | null;
+    apiSecret: string | null;
     createdAt: string;
+    _count?: {
+        schedules?: number;
+    };
 }
 
 export function ClientTable() {
@@ -84,6 +89,7 @@ export function ClientTable() {
                             <TableHead>Utilizador</TableHead>
                             <TableHead>Empresa</TableHead>
                             <TableHead>Email</TableHead>
+                            <TableHead>Estado</TableHead>
                             <TableHead>Data de Criação</TableHead>
                             <TableHead className="text-right">Ações</TableHead>
                         </TableRow>
@@ -91,7 +97,7 @@ export function ClientTable() {
                     <TableBody>
                         {clients.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={5} className="text-center py-8 text-neutral-500">
+                                <TableCell colSpan={6} className="text-center py-8 text-neutral-500">
                                     Nenhum cliente encontrado.
                                 </TableCell>
                             </TableRow>
@@ -109,11 +115,35 @@ export function ClientTable() {
                                     <TableCell>{client.company || "-"}</TableCell>
                                     <TableCell>{client.email || "-"}</TableCell>
                                     <TableCell>
+                                        <div className="flex flex-wrap items-center gap-1.5">
+                                            {client.apiKey && client.apiSecret ? (
+                                                <Badge variant="outline" className="gap-1 border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-400">
+                                                    <CircleCheck className="h-3 w-3" />
+                                                    API Ligada
+                                                </Badge>
+                                            ) : (
+                                                <Badge variant="outline" className="gap-1 border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-400">
+                                                    <CircleX className="h-3 w-3" />
+                                                    Sem API
+                                                </Badge>
+                                            )}
+                                            <Badge variant="secondary" className="gap-1">
+                                                <MonitorUp className="h-3 w-3" />
+                                                {client._count?.schedules ?? 0} horários
+                                            </Badge>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>
                                         {new Date(client.createdAt).toLocaleDateString("pt-PT")}
                                     </TableCell>
                                     <TableCell className="text-right">
                                         <div className="flex justify-end gap-2">
-                                            <Button variant="ghost" size="icon" asChild>
+                                            <Button variant="ghost" size="icon" asChild title="Ver equipamentos">
+                                                <Link href={`/admin/clients/${client.id}/devices`}>
+                                                    <MonitorUp className="h-4 w-4" />
+                                                </Link>
+                                            </Button>
+                                            <Button variant="ghost" size="icon" asChild title="Editar cliente">
                                                 <Link href={`/admin/clients/${client.id}/edit`}>
                                                     <Edit className="h-4 w-4" />
                                                 </Link>

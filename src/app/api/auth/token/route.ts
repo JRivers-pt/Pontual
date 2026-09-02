@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/db';
+import { crossChexErrorToPortuguese } from '@/lib/api-server';
 
 function generateTimestamp(): string {
     return new Date().toISOString().replace('Z', '+00:00');
@@ -23,7 +24,10 @@ export async function POST(request: NextRequest) {
         });
 
         if (!user || !user.apiKey || !user.apiSecret) {
-            return NextResponse.json({ error: 'CrossChex credentials not configured' }, { status: 400 });
+            return NextResponse.json(
+                { error: 'Credenciais CrossChex não configuradas. Contacta o administrador ou adiciona a API Key e o API Secret.' },
+                { status: 400 }
+            );
         }
 
         const requestBody = {
@@ -52,20 +56,20 @@ export async function POST(request: NextRequest) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        const data = await response.json();
+        const data = await response.json().catch(() => null);
 
-        if (data.payload?.token) {
+        if (data?.payload?.token) {
             return NextResponse.json({
                 token: data.payload.token,
                 expires: data.payload.expires
             });
         }
 
-        throw new Error('No token in response');
+        throw new Error(crossChexErrorToPortuguese(response.status, data));
     } catch (error: any) {
         console.error('Error getting auth token:', error);
         return NextResponse.json(
-            { error: error.message || 'Failed to authenticate' },
+            { error: error.message || 'Erro ao autenticar com a CrossChex. Tenta novamente.' },
             { status: 500 }
         );
     }
