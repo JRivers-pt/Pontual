@@ -36,6 +36,7 @@ model User {
   logoUrl           String?
   vpEmail          String?
   autoEmailReports Boolean @default(false)
+  reportCycle      String? @default("CALENDAR_MONTH") // "CALENDAR_MONTH" (1st to end) or "CUTOFF_26_25" (26th to 25th)
 
   // Per-client calculation rules (override company-name detection)
   overtimeTolerance       Int?    // Min de tolerância para contar horas extra

@@ -1,6 +1,9 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
+import { format, parseISO } from 'date-fns';
+import { pt } from 'date-fns/locale';
+import { EmployeeReportResult, ProcessedDay } from './reports/report-calculator';
 
 // Tipos baseados nos dados da UI
 interface AttendanceData {
@@ -270,6 +273,178 @@ export function exportToExcel(data: AttendanceData[]) {
 
     // Gerar buffer e download
     XLSX.writeFile(workbook, `relatorio_assiduidade_${new Date().getTime()}.xlsx`);
+}
+
+/**
+ * Unificado: gera o relatório com o MESMO layout do serviço mensal automático
+ * (pdf-generator.ts) — cabeçalho, box de colaborador (Colaborador/ID/Período),
+ * tabela Data/Entrada/Almoço/Saída/Total/Extra/Obs, total e assinaturas.
+ * Este é o layout de referência (Gengibre/VE).
+ */
+export async function exportToStandardPDF(
+    data: AttendanceData[],
+    period: string,
+    headerTitle?: string,
+    logoUrl?: string,
+    companyName: string = ""
+) {
+    const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+    const PRIMARY_COLOR: [number, number, number] = [30, 58, 138]; // #1e3a8a
+    const clientHeader = headerTitle || "Pontual | Relatório de Assiduidade";
+    const periodStr = period;
+
+    // Group by employee
+    const employeesMap = new Map<string, AttendanceData[]>();
+    data.forEach(item => {
+        const empName = item.funcionario || 'Desconhecido';
+        if (!employeesMap.has(empName)) employeesMap.set(empName, []);
+        employeesMap.get(empName)!.push(item);
+    });
+    const sortedNames = Array.from(employeesMap.keys()).sort();
+
+    sortedNames.forEach((empName, index) => {
+        if (index > 0) doc.addPage();
+
+        const empItems = employeesMap.get(empName)!;
+        const empId = empItems[0]?.id || '-';
+
+        // Header
+        doc.setFontSize(18);
+        doc.setTextColor(PRIMARY_COLOR[0], PRIMARY_COLOR[1], PRIMARY_COLOR[2]);
+        doc.setFont("helvetica", "bold");
+        doc.text(clientHeader, 14, 18);
+
+        doc.setFontSize(10);
+        doc.setTextColor(100);
+        doc.setFont("helvetica", "normal");
+        doc.text("Relatório de Assiduidade Mensal", 14, 24);
+
+        doc.setDrawColor(PRIMARY_COLOR[0], PRIMARY_COLOR[1], PRIMARY_COLOR[2]);
+        doc.setLineWidth(0.5);
+        doc.line(14, 27, 196, 27);
+
+        // Employee Info Box
+        doc.setFillColor(241, 245, 249);
+        doc.setDrawColor(PRIMARY_COLOR[0], PRIMARY_COLOR[1], PRIMARY_COLOR[2]);
+        doc.roundedRect(14, 30, 182, 14, 1.5, 1.5, "F");
+
+        // Vertical accent bar
+        doc.setFillColor(PRIMARY_COLOR[0], PRIMARY_COLOR[1], PRIMARY_COLOR[2]);
+        doc.rect(14, 30, 2.5, 14, "F");
+
+        doc.setFontSize(8);
+        doc.setTextColor(PRIMARY_COLOR[0], PRIMARY_COLOR[1], PRIMARY_COLOR[2]);
+        doc.setFont("helvetica", "bold");
+        doc.text("COLABORADOR", 20, 35);
+        doc.text("ID", 105, 35);
+        doc.text("PERÍODO", 135, 35);
+
+        doc.setFontSize(10);
+        doc.setTextColor(30);
+        doc.text(empName, 20, 41);
+        doc.text(empId, 105, 41);
+        doc.text(periodStr, 135, 41);
+
+        // Build table rows from daily data
+        const bodyRows: (string | number)[][] = [];
+        let totalWorkMinutes = 0;
+        let totalOtMinutes = 0;
+
+        empItems.forEach(item => {
+            const entrada = item.entrada || '-';
+            const saida = item.saida || '-';
+            const almoco = item.almoco || ((item.entrada && item.entrada !== '-' && false) ? '' : '-');
+            const durationStr = item.duracao || '-';
+            const extraStr = item.horasExtra && item.horasExtra !== '-' ? item.horasExtra : '-';
+            const obs = item.estado || '';
+
+            // Sum durations
+            const durMatch = item.duracao?.match(/(\d+)h\s*(\d+)m/);
+            if (durMatch) totalWorkMinutes += parseInt(durMatch[1]) * 60 + parseInt(durMatch[2]);
+            const otMatch = item.horasExtra?.match(/\+?(\d+)h\s*(\d+)m/);
+            if (otMatch) totalOtMinutes += parseInt(otMatch[1]) * 60 + parseInt(otMatch[2]);
+
+            bodyRows.push([item.data || '-', entrada, almoco, saida, durationStr, extraStr, obs]);
+        });
+
+        // Totals row
+        const fmtHms = (min: number) => {
+            if (min <= 0) return "0h00m";
+            const h = Math.floor(min / 60);
+            const m = min % 60;
+            return `${h}h${m.toString().padStart(2, '0')}m`;
+        };
+        const totalsRow = [
+            "TOTAL DO PERÍODO:",
+            "",
+            "",
+            "",
+            fmtHms(totalWorkMinutes),
+            totalOtMinutes > 0 ? fmtHms(totalOtMinutes) : "-",
+            ""
+        ];
+
+        autoTable(doc, {
+            head: [["Data", "Entrada", "Almoço", "Saída", "Total", "Extra", "Obs"]],
+            body: [...bodyRows, totalsRow],
+            startY: 48,
+            theme: "grid",
+            styles: {
+                fontSize: 8,
+                cellPadding: 1.8,
+                textColor: [30, 41, 59],
+                lineColor: [226, 232, 240],
+                lineWidth: 0.1
+            },
+            headStyles: {
+                fillColor: PRIMARY_COLOR,
+                textColor: [255, 255, 255],
+                fontStyle: "bold",
+                halign: "center",
+                fontSize: 8
+            },
+            columnStyles: {
+                0: { halign: "center", cellWidth: 20 },
+                1: { halign: "center", cellWidth: 16 },
+                2: { halign: "center", cellWidth: 24 },
+                3: { halign: "center", cellWidth: 16 },
+                4: { halign: "center", cellWidth: 18 },
+                5: { halign: "center", cellWidth: 18 },
+                6: { halign: "left" }
+            },
+            didParseCell: (data: any) => {
+                if (data.row.index === bodyRows.length) {
+                    data.cell.styles.fontStyle = "bold";
+                    data.cell.styles.fillColor = [239, 246, 255];
+                    data.cell.styles.textColor = PRIMARY_COLOR;
+                    if (data.column.index === 0) {
+                        data.cell.colSpan = 4;
+                        data.cell.styles.halign = "right";
+                    }
+                } else if (data.column.index === 6 && data.cell.text[0]) {
+                    data.cell.styles.textColor = [217, 119, 6];
+                    data.cell.styles.fontStyle = "bold";
+                }
+            }
+        });
+
+        const finalY = (doc as any).lastAutoTable.finalY || 240;
+        const nextY = finalY + 6;
+
+        // Signatures Block
+        const sigY = Math.max(nextY + 8, 272);
+        doc.setFontSize(8);
+        doc.setTextColor(100);
+        doc.setFont("helvetica", "normal");
+
+        doc.line(30, sigY, 85, sigY);
+        doc.text("Assinatura do Colaborador", 38, sigY + 4);
+
+        doc.line(125, sigY, 180, sigY);
+        doc.text("Assinatura da Direção / Gestor", 133, sigY + 4);
+    });
+
+    doc.save(`Relatorio_Assiduidade_${new Date().getTime()}.pdf`);
 }
 
 export async function exportToMensalPDF(

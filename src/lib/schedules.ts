@@ -212,6 +212,14 @@ export const CLIENT_RULES: Record<string, ClientRules> = {
         mealBreakThresholdHours: 6,
         exemptIds: [],
         overtimeCapHours: 8
+    },
+    CMB: {
+        overtimeTolerance: 20,
+        subtractTolerance: false,
+        mealBreakMinutes: 60,
+        mealBreakThresholdHours: 6,
+        exemptIds: [],
+        overtimeCapHours: 8
     }
 };
 
@@ -233,6 +241,7 @@ export function getClientRules(companyName: string = ""): ClientRules {
     if (name.includes("gengibre") || name.includes("cozinha criativa")) return CLIENT_RULES.GENGIBRE;
     if (name.includes("ve") || name.includes("vontade e empenho")) return CLIENT_RULES.VE;
     if (name.includes("vila peixoto") || name.includes("vp")) return CLIENT_RULES.VP;
+    if (name.includes("cmb") || name.includes("colégio manuel bernardes") || name.includes("colegio manuel bernardes")) return CLIENT_RULES.CMB;
     return NEUTRAL_RULES;
 }
 

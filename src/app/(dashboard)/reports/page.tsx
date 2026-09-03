@@ -40,7 +40,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { exportToPDF, exportToExcel, exportToMensalPDF } from "@/lib/exports"
+import { exportToPDF, exportToExcel, exportToMensalPDF, exportToStandardPDF } from "@/lib/exports"
 import { getAttendanceRecords, getEmployees as fetchAllEmployeesApi } from "@/lib/api"
 import { calculateSmartWorkHours, getFormattedScheduleInfo } from "@/lib/schedules"
 import { ExportModal } from "@/components/reports/ExportModal"
@@ -469,6 +469,61 @@ export default function ReportsPage() {
                         `${employeeName} - ${periodName}`,
                         reportHeader,
                         logoUrl
+                    );
+                } else if (type === "detailed") {
+                    // Layout unificado (mesmo do serviço mensal automático - Gengibre/VE)
+                    const dataToExport = filteredRecords
+                        .reduce((acc, r) => {
+                            const name = r.employeeName;
+                            if (!acc.has(name)) acc.set(name, []);
+                            acc.get(name)!.push(r);
+                            return acc;
+                        }, new Map<string, AttendanceRecord[]>());
+                    
+                    // Build per-employee standard rows preserving the layout columns
+                    const standardRows: any[] = [];
+                    for (const [empName, empRecords] of dataToExport) {
+                        const empId = empRecords[0]?.employeeId || "-";
+                        // Group by day
+                        const dayMap = new Map<string, AttendanceRecord[]>();
+                        empRecords.forEach(r => {
+                            const k = format(parseISO(r.checktime), 'yyyy-MM-dd');
+                            if (!dayMap.has(k)) dayMap.set(k, []);
+                            dayMap.get(k)!.push(r);
+                        });
+                        const periodFrom = date?.from ? format(date.from, 'dd/MM/yyyy') : '-';
+                        const periodTo = date?.to ? format(date.to, 'dd/MM/yyyy') : '-';
+                        const periodStr = `${periodFrom} a ${periodTo}`;
+                        
+                        for (const [dayKey, dayRecords] of dayMap) {
+                            const sorted = [...dayRecords].sort((a, b) => parseISO(a.checktime).getTime() - parseISO(b.checktime).getTime());
+                            const first = sorted[0];
+                            const last = sorted[sorted.length - 1];
+                            const { totalWorkMs, overtimeHours } = calculateSmartWorkHours(
+                                sorted.map(r => ({ time: r.checktime, type: r.checktype })),
+                                session?.user?.company || ""
+                            );
+                            standardRows.push({
+                                data: format(parseISO(dayKey), 'dd/MM/yyyy'),
+                                funcionario: empName,
+                                id: empId,
+                                entrada: format(parseISO(first.checktime), 'HH:mm'),
+                                saida: sorted.length > 1 ? format(parseISO(last.checktime), 'HH:mm') : '-',
+                                duracao: totalWorkMs > 0
+                                    ? `${Math.floor(totalWorkMs / 3600000)}h ${Math.floor((totalWorkMs % 3600000) / 60000)}m`
+                                    : '-',
+                                horasExtra: overtimeHours > 0
+                                    ? `+${Math.floor(overtimeHours)}h ${Math.round((overtimeHours % 1) * 60)}m`
+                                    : '-',
+                            });
+                        }
+                    }
+                    await exportToStandardPDF(
+                        standardRows,
+                        `${periodName}`,
+                        reportHeader,
+                        logoUrl,
+                        session?.user?.company || ""
                     );
                 } else {
                     const dataToExport = dailySummaries.map(s => ({

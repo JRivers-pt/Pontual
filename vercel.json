@@ -1,8 +1,12 @@
 {
     "crons": [
         {
-            "path": "/api/reports/monthly",
-            "schedule": "0 8 * * 1"
+            "path": "/api/reports/monthly?cycle=first_of_month",
+            "schedule": "0 8 1 * *"
+        },
+        {
+            "path": "/api/reports/monthly?cycle=cutoff_26",
+            "schedule": "0 8 26 * *"
         }
     ]
 }
