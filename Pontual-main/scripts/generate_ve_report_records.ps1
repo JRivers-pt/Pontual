@@ -1,0 +1,283 @@
+$recordsFile = "C:\Users\JD\Downloads\Records_AllDepts_260801_to_260831_5567.xls"
+$outputDir = "C:\Users\JD\Documents\Pontual\Relatorios"
+
+Write-Host "A processar o ficheiro Records para VE (Agosto 2026)..."
+
+if (-not (Test-Path $recordsFile)) {
+    Write-Warning "Ficheiro nao encontrado: $recordsFile"
+    exit
+}
+
+# Special chars via hex codes
+$ch_a_ac = [char]0xE1  # á
+$ch_e_ac = [char]0xE9  # é
+$ch_i_ac = [char]0xED  # í
+$ch_o_ac = [char]0xF3  # ó
+$ch_u_ac = [char]0xFA  # ú
+$ch_a_ti = [char]0xE3  # ã
+$ch_o_ti = [char]0xF5  # õ
+$ch_cced = [char]0xE7  # ç
+$ch_I_ac = [char]0xCD  # Í
+$ch_A_ti = [char]0xC3  # Ã
+
+$contentRecords = [System.IO.File]::ReadAllText($recordsFile, [System.Text.Encoding]::UTF8)
+$cellRegex = '(?i)<td[^>]*>(.*?)<\/td>'
+$cellMatches = [regex]::Matches($contentRecords, $cellRegex)
+
+$employees = @{}
+$currentEmp = $null
+$currentDate = $null
+
+foreach ($m in $cellMatches) {
+    $val = $m.Groups[1].Value -replace '<[^>]+>', '' -replace '&nbsp;', ''
+    $val = $val.Trim()
+    if (-not $val) { continue }
+    
+    # ID-Name detection (e.g. "1-Jos Vaz")
+    if ($val -match '^(\d+)\s*-\s*(.*)$') {
+        $empM = [regex]::Match($val, '^(\d+)\s*-\s*(.*)$')
+        $id = $empM.Groups[1].Value.Trim()
+        $name = $empM.Groups[2].Value.Trim()
+        
+        # Clean up known corrupted characters in names from file
+        $name = $name -replace 'Jos. Vaz', "Jos$([char]0xE9) Vaz" `
+                      -replace 'Cl.udia', "Cl$([char]0xE1)udia" `
+                      -replace 'Baiao', "Bai$([char]0xE3)o" `
+                      -replace 'Louren.o', "Louren$([char]0xE7)o"
+        
+        if (-not $employees.ContainsKey($id)) {
+            $employees[$id] = @{ id = $id; name = $name; days = @{} }
+        }
+        $currentEmp = $employees[$id]
+        $currentDate = $null
+        continue
+    }
+    
+    # Date detection - VE uses DD/MM/YYYY!
+    if ($val -match '^(\d{1,2})/(\d{1,2})/(\d{4})$') {
+        if ($currentEmp) {
+            $dm = [regex]::Match($val, '^(\d{1,2})/(\d{1,2})/(\d{4})$')
+            # Group 1 = Day, Group 2 = Month, Group 3 = Year
+            $currentDate = "$($dm.Groups[3].Value)-$($dm.Groups[2].Value.PadLeft(2,'0'))-$($dm.Groups[1].Value.PadLeft(2,'0'))"
+            if (-not $currentEmp.days.ContainsKey($currentDate)) {
+                $currentEmp.days[$currentDate] = New-Object System.Collections.Generic.List[string]
+            }
+        }
+        continue
+    }
+    
+    # Punch time detection (HH:mm)
+    if ($val -match '^\d{1,2}:\d{2}$') {
+        if ($currentEmp -and $currentDate) {
+            if (-not $currentEmp.days[$currentDate].Contains($val)) {
+                $currentEmp.days[$currentDate].Add($val)
+            }
+        }
+    }
+}
+
+# --- INJECT MANUAL CORRECTIONS FROM PLATFORM (pontualidade.pt) ---
+Write-Host "A obter correcoes manuais da plataforma online..."
+try {
+    $resp = Invoke-RestMethod -Uri "https://www.pontualidade.pt/api/dump-corrections" -Method Get -TimeoutSec 10
+    $tz = [TimeZoneInfo]::FindSystemTimeZoneById("GMT Standard Time")
+    foreach ($c in $resp.corrections) {
+        $dtUtc = [DateTime]::Parse($c.checktime).ToUniversalTime()
+        $dtLocal = [TimeZoneInfo]::ConvertTimeFromUtc($dtUtc, $tz)
+        $cDate = $dtLocal.ToString("yyyy-MM-dd")
+        $cTime = $dtLocal.ToString("HH:mm")
+        $wNo = "$($c.workno)".Trim()
+        
+        # Only process August 2026
+        if ($cDate -ge "2026-08-01" -and $cDate -le "2026-08-31") {
+            if ($employees.ContainsKey($wNo)) {
+                if (-not $employees[$wNo].days.ContainsKey($cDate)) {
+                    $employees[$wNo].days[$cDate] = New-Object System.Collections.Generic.List[string]
+                }
+                if (-not $employees[$wNo].days[$cDate].Contains($cTime)) {
+                    $employees[$wNo].days[$cDate].Add($cTime)
+                    $employees[$wNo].days[$cDate].Sort()
+                    Write-Host "   + Correcao injectada: ID $wNo ($($c.firstName)) no dia $cDate as $cTime ($($c.device))"
+                }
+            }
+        }
+    }
+} catch {
+    Write-Warning "Falha ao contactar a API. A usar lista local de correcoes aprovadas..."
+    # Fallback list known from database
+    $fallbackCorrections = @(
+        @{ workno = "10"; date = "2026-08-11"; time = "08:00" },
+        @{ workno = "10"; date = "2026-08-11"; time = "17:30" },
+        @{ workno = "10"; date = "2026-08-12"; time = "17:30" },
+        @{ workno = "7";  date = "2026-08-26"; time = "08:30" },
+        @{ workno = "10"; date = "2026-08-31"; time = "08:30" },
+        @{ workno = "10"; date = "2026-08-31"; time = "17:30" }
+    )
+    foreach ($fc in $fallbackCorrections) {
+        if ($employees.ContainsKey($fc.workno)) {
+            if (-not $employees[$fc.workno].days.ContainsKey($fc.date)) {
+                $employees[$fc.workno].days[$fc.date] = New-Object System.Collections.Generic.List[string]
+            }
+            if (-not $employees[$fc.workno].days[$fc.date].Contains($fc.time)) {
+                $employees[$fc.workno].days[$fc.date].Add($fc.time)
+                $employees[$fc.workno].days[$fc.date].Sort()
+            }
+        }
+    }
+}
+# ----------------------------------------------------------------
+
+function Get-Total-Minutes ($str) {
+    if ($str -match '(\d{1,2}):(\d{2})') {
+        $m = [regex]::Match($str, '(\d{1,2}):(\d{2})')
+        return [int]$m.Groups[1].Value * 60 + [int]$m.Groups[2].Value
+    }
+    return 0
+}
+
+function Fmt-Hms ($totalMin) {
+    if ($totalMin -le 0) { return "-" }
+    $h = [Math]::Floor($totalMin / 60)
+    $m = $totalMin % 60
+    return "$($h)h$($m.ToString('00'))m"
+}
+
+$css = "body { font-family: 'Segoe UI', sans-serif; font-size: 11px; margin: 0; padding: 20px; color: #1e293b; background: #f8fafc; } " +
+       ".page { background: #fff; width: 210mm; min-height: 297mm; padding: 20px; margin: 0 auto 30px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); border-radius: 8px; position: relative; box-sizing: border-box; page-break-after: always; } " +
+       ".header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #1e3a8a; padding-bottom: 15px; margin-bottom: 20px; } " +
+       ".header-info h1 { color: #1e3a8a; font-size: 24px; margin: 0; font-weight: 800; text-transform: uppercase; } " +
+       ".emp-box { background: #f1f5f9; padding: 12px 16px; border-radius: 6px; margin-bottom: 20px; display: flex; gap: 40px; border-left: 4px solid #1e3a8a; } " +
+       ".emp-box strong { color: #1e3a8a; text-transform: uppercase; font-size: 10px; display: block; } " +
+       ".emp-box span { font-size: 14px; font-weight: 600; } " +
+       "table { width: 100%; border-collapse: collapse; margin-bottom: 20px; } " +
+       "th { background: #1e3a8a; color: #fff; padding: 10px; font-size: 9px; border: 1px solid #1e3a8a; } " +
+       "td { padding: 8px; border: 1px solid #e2e8f0; text-align: center; font-size: 10px; } " +
+       ".total-row { background: #eff6ff; font-weight: 700; color: #1e3a8a; } " +
+       ".obs { color: #d97706; font-weight: 600; font-size: 9px; } " +
+       "@media print { .no-print { display: none !important; } body { background: none; padding: 0; margin: 0; } .page { margin: 0; box-shadow: none; border-radius: 0; page-break-after: always; width: 210mm; height: 297mm; } } "
+
+$html = "<html><head><style>$css</style><meta charset='UTF-8'></head><body>"
+$html += "<div class='no-print' style='text-align:center;padding:20px;'><button onclick='window.print()' style='padding:12px 24px;background:#1e3a8a;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:700;'>Gerar PDF / Imprimir</button></div>"
+
+$startDate = Get-Date "2026-08-01"
+$endDate = Get-Date "2026-08-31"
+
+$csv  = "sep=;`n"
+$csv += "Relat${ch_o_ac}rio de Assiduidade - VE (Vontade e Empenho)`n"
+$csv += "Per${ch_i_ac}odo: 01/08/2026 a 31/08/2026`n`n"
+
+$sortedIds = $employees.Keys | Sort-Object { [int]$_ }
+
+foreach ($id in $sortedIds) {
+    $emp = $employees[$id]
+    $totalWorkMin = 0; $totalOtMin = 0; $tableRows = ""
+    $curr = $startDate
+    
+    $csv += "Colaborador: $($emp.name) ($id)`n"
+    $csv += "Data;Entrada;Almo${ch_cced}o;Sa${ch_i_ac}da;Total;Extra;Obs`n"
+    
+    while ($curr -le $endDate) {
+        $key = $curr.ToString("yyyy-MM-dd")
+        $isWk = ($curr.DayOfWeek -eq 'Saturday' -or $curr.DayOfWeek -eq 'Sunday')
+        $e1 = "-"; $s1 = "-"; $e2 = "-"; $s2 = "-"; $duration = "-"; $ot = "-"; $obs = ""; $obsCSV = ""
+        $dur = 0
+        
+        if ($emp.days.ContainsKey($key)) {
+            $rawPunches = $emp.days[$key] | Sort-Object { Get-Total-Minutes $_ }
+            $validPunches = @()
+            
+            foreach ($p in $rawPunches) {
+                if ($validPunches.Count -eq 0) {
+                    $validPunches += $p
+                } else {
+                    $prev = Get-Total-Minutes $validPunches[-1]
+                    $current = Get-Total-Minutes $p
+                    if (($current - $prev) -ge 15) {
+                        $validPunches += $p
+                    } else {
+                        $obs = "Dupla Picagem"; $obsCSV = "Dupla Picagem"
+                    }
+                }
+            }
+            
+            $pc = $validPunches.Count
+            if ($pc -ge 4) {
+                $e1 = $validPunches[0]; $s1 = $validPunches[1]
+                $e2 = $validPunches[2]; $s2 = $validPunches[-1]
+                $dur = ((Get-Total-Minutes $s1) - (Get-Total-Minutes $e1)) + ((Get-Total-Minutes $s2) - (Get-Total-Minutes $e2))
+            } elseif ($pc -eq 3) {
+                $e1 = $validPunches[0]; $s1 = $validPunches[1]; $e2 = $validPunches[2]
+                $dur = ((Get-Total-Minutes $s1) - (Get-Total-Minutes $e1))
+                if ($obs) { $obs += " / "; $obsCSV += " / " }
+                $obs    += "Falta picagem (Almo&ccedil;o)"
+                $obsCSV += "Falta picagem (Almo${ch_cced}o)"
+            } elseif ($pc -eq 2) {
+                $e1 = $validPunches[0]; $s2 = $validPunches[1]
+                $dur = (Get-Total-Minutes $s2) - (Get-Total-Minutes $e1)
+                if ($dur -gt 360) {
+                    $dur -= 60
+                    if ($obs) { $obs += " / "; $obsCSV += " / " }
+                    $obs    += "Falta break de almo&ccedil;o / Dedu&ccedil;&atilde;o 1h"
+                    $obsCSV += "Falta break de almo${ch_cced}o / Dedu${ch_cced}${ch_a_ti}o 1h"
+                }
+            } elseif ($pc -eq 1) {
+                $pMin = Get-Total-Minutes $validPunches[0]
+                if ($obs) { $obs += " / "; $obsCSV += " / " }
+                if ($pMin -lt 780) {
+                    $e1 = $validPunches[0]
+                    $obs    += "Falta sa&iacute;da"
+                    $obsCSV += "Falta sa${ch_i_ac}da"
+                } else {
+                    $s2 = $validPunches[0]
+                    $obs    += "Falta entrada"
+                    $obsCSV += "Falta entrada"
+                }
+            }
+            
+            if ($dur -gt 0) {
+                $totalWorkMin += $dur; $duration = Fmt-Hms $dur
+                # Overtime: Standard 8h (480m) cap, 5m tolerance (>= 486m)
+                if ($dur -ge 486) {
+                    $extra = $dur - 485
+                    $totalOtMin += $extra
+                    $ot = "+$(Fmt-Hms $extra)"
+                }
+            }
+        }
+        
+        $rowStyle = if ($isWk -and $e1 -eq "-") { "style='background:#f1f5f9;color:#94a3b8;'" } else { "" }
+        $obsSpan = if ($obs) { "<span class='obs'>$obs</span>" } else { "" }
+        $almoco = if ($s1 -ne "-" -or $e2 -ne "-") { "$s1 - $e2" } else { "-" }
+        
+        $csv      += "$($curr.ToString('dd/MM/yyyy'));$e1;$almoco;$s2;$duration;$ot;$obsCSV`n"
+        $tableRows += "<tr $rowStyle><td>$($curr.ToString('dd/MM/yyyy'))</td><td>$e1</td><td>$almoco</td><td>$s2</td><td>$duration</td><td>$ot</td><td>$obsSpan</td></tr>"
+        $curr = $curr.AddDays(1)
+    }
+
+    $safeName = $emp.name `
+        -replace [char]225, "&aacute;" -replace [char]233, "&eacute;" `
+        -replace [char]237, "&iacute;" -replace [char]243, "&oacute;" `
+        -replace [char]250, "&uacute;" -replace [char]231, "&ccedil;" `
+        -replace [char]227, "&atilde;"
+
+    $html += "<div class='page'><div class='header'><div class='header-info'><h1>Pontual | VE</h1><p>Relat&oacute;rio de Assiduidade Mensal</p></div></div>"
+    $html += "<div class='emp-box'><div><strong>Colaborador</strong><span>$safeName</span></div><div><strong>ID</strong><span>$id</span></div><div><strong>Per&iacute;odo</strong><span>01/08/2026 a 31/08/2026</span></div></div>"
+    $html += "<table><thead><tr><th>Data</th><th>Entrada</th><th>Almo&ccedil;o</th><th>Sa&iacute;da</th><th>Total</th><th>Extra</th><th>Obs</th></tr></thead><tbody>$tableRows</tbody>"
+    $html += "<tfoot><tr class='total-row'><td colspan='4' style='text-align:right'>TOTAL DO PER&Iacute;ODO:</td><td>$(Fmt-Hms $totalWorkMin)</td><td>$(Fmt-Hms $totalOtMin)</td><td></td></tr></tfoot></table>"
+    $html += "</div>"
+    
+    $csv += "TOTAL DO PER${ch_I_ac}ODO;;;;$(Fmt-Hms $totalWorkMin);$(Fmt-Hms $totalOtMin);`n"
+    $csv += "`n"
+}
+
+$html += "</body></html>"
+$htmlPath = Join-Path $outputDir "Relatorio_VE_Agosto_Records.html"
+[System.IO.File]::WriteAllText($htmlPath, $html, [System.Text.Encoding]::UTF8)
+
+$csvPath = Join-Path $outputDir "Relatorio_VE_Agosto_Records.csv"
+$utf16 = [System.Text.Encoding]::Unicode
+[System.IO.File]::WriteAllText($csvPath, $csv, $utf16)
+
+Write-Host "Relatorio VE gerado com sucesso!"
+Write-Host "   -> $htmlPath"
+Write-Host "   -> $csvPath"
