@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/db';
 
@@ -29,6 +29,56 @@ export async function POST(request: NextRequest) {
         const body = await request.json();
         const { token, beginTime, endTime, page = 1, perPage = 100 } = body;
 
+        // If client is using Suprema / Local Sync Agent
+        if (user.biometricProvider === 'SUPREMA') {
+            const whereClause: any = { userId: user.id };
+            
+            if (beginTime || endTime) {
+                whereClause.checktime = {};
+                if (beginTime) whereClause.checktime.gte = new Date(beginTime);
+                if (endTime) whereClause.checktime.lte = new Date(endTime);
+            }
+
+            const totalCount = await prisma.attendanceLog.count({ where: whereClause });
+            const logs = await prisma.attendanceLog.findMany({
+                where: whereClause,
+                orderBy: { checktime: 'asc' },
+                skip: (page - 1) * perPage,
+                take: perPage
+            });
+
+            return NextResponse.json({
+                header: {
+                    nameSpace: 'attendance.record',
+                    nameAction: 'getrecord',
+                    version: '1.0',
+                    requestId: generateRequestId(),
+                    timestamp: generateTimestamp()
+                },
+                payload: {
+                    count: totalCount,
+                    list: logs.map(l => ({
+                        uuid: l.id,
+                        checktype: l.checktype,
+                        checktime: l.checktime.toISOString(),
+                        device: {
+                            serial_number: l.deviceSn || 'BioEntry_W2',
+                            name: l.deviceName || 'BioEntry W2'
+                        },
+                        employee: {
+                            first_name: l.employeeName || 'Colaborador',
+                            last_name: '',
+                            workno: l.workno
+                        }
+                    })),
+                    page: page,
+                    perPage: perPage,
+                    pageCount: Math.ceil(totalCount / perPage) || 1
+                }
+            });
+        }
+
+        // Default: Anviz CrossChex Cloud API
         if (!token) {
             return NextResponse.json(
                 { error: 'Token is required' },

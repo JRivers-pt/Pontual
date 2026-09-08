@@ -1,0 +1,8 @@
+﻿{
+  "pontualUrl": "https://www.pontualidade.pt/api/sync/punches",
+  "schoolToken": "COLOQUE_AQUI_O_TOKEN_DA_ESCOLA",
+  "biostarUrl": "https://127.0.0.1",
+  "biostarUser": "admin",
+  "biostarPassword": "password_do_biostar",
+  "pollIntervalSeconds": 30
+}

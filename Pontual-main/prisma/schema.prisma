@@ -1,4 +1,4 @@
-// This is your Prisma schema file,
+﻿// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
@@ -26,7 +26,13 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
-  // CrossChex Credentials per client (optional for Master Admin)
+  // Biometric Provider ("ANVIZ" or "SUPREMA")
+  biometricProvider String? @default("ANVIZ")
+  
+  // Token for Local Sync Agent (for Suprema / On-Premise clients)
+  syncToken         String? @unique
+
+  // CrossChex Credentials per client (for Anviz clients)
   apiKey    String?
   apiSecret String?
   apiUrl    String?  @default("https://api.eu.crosschexcloud.com/")
@@ -39,14 +45,18 @@ model User {
 
   // Schedules associated with this client
   schedules Schedule[]
+  
+  // Local/Synced Attendance Logs (from Suprema BioStar or local agents)
+  attendanceLogs AttendanceLog[]
 }
 
 model Schedule {
-  id        String   @id @default(cuid())
-  name      String
-  startTime String   @default("08:30") // Format "HH:mm"
-  endTime   String   @default("17:30") // Format "HH:mm"
-  lateTolerance Int  @default(20)      // Minutes
+  id            String   @id @default(cuid())
+  name          String
+  startTime     String   @default("08:30") // Format "HH:mm"
+  endTime       String   @default("17:30") // Format "HH:mm"
+  lateTolerance Int      @default(20)      // Minutes
+  lunchDuration Int      @default(60)      // Minutes
   
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -59,7 +69,7 @@ model Schedule {
 
 model EmployeeSchedule {
   id         String   @id @default(cuid())
-  workno     String   // ID from CrossChex
+  workno     String   // Employee ID (CrossChex or Suprema)
   
   scheduleId String
   schedule   Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
@@ -68,4 +78,23 @@ model EmployeeSchedule {
   updatedAt  DateTime @updatedAt
 
   @@unique([workno, scheduleId])
+}
+
+model AttendanceLog {
+  id           String   @id @default(cuid())
+  userId       String   // Company / Client ID in Pontual
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  workno       String   // Employee ID in BioStar 2
+  employeeName String?
+  checktime    DateTime
+  checktype    Int      @default(1) // 1 = Entry / In, 2 = Exit / Out
+  deviceName   String?  // e.g. "BioEntry W2 Portão Principal"
+  deviceSn     String?
+  rawEventId   String?  // Unique event ID from BioStar to avoid duplicates
+  
+  createdAt    DateTime @default(now())
+
+  @@unique([userId, rawEventId])
+  @@index([userId, checktime])
 }
