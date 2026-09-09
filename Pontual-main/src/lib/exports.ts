@@ -263,9 +263,6 @@ export async function exportToPDF(data: AttendanceData[], period: string, header
     doc.save(`relatorio_${type}_${new Date().getTime()}.pdf`);
 }
 
-    doc.save(`relatorio_${type}_${new Date().getTime()}.pdf`);
-}
-
 export function exportToExcel(data: AttendanceData[]) {
     const worksheet = XLSX.utils.json_to_sheet(data);
     const workbook = XLSX.utils.book_new();
