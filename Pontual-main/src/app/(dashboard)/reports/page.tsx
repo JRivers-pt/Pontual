@@ -43,6 +43,7 @@ import { exportToPDF, exportToExcel, exportToMensalPDF } from "@/lib/exports"
 import { getAttendanceRecords, getEmployees as fetchAllEmployeesApi } from "@/lib/api"
 import { calculateSmartWorkHours, getFormattedScheduleInfo } from "@/lib/schedules"
 import { ExportModal } from "@/components/reports/ExportModal"
+import { useSession } from "next-auth/react"
 
 type AttendanceRecord = {
     uuid: string
@@ -87,6 +88,7 @@ const PRESET_PERIODS = [
 ]
 
 export default function ReportsPage() {
+    const { data: session } = useSession()
     const [date, setDate] = React.useState<DateRange | undefined>({
         from: addDays(new Date(), -30),
         to: endOfDay(new Date()),
