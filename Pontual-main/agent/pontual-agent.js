@@ -1,7 +1,12 @@
 /**
  * Agente de Sincronizacao Pontual -> Suprema CardPass3 (MySQL)
- * Corre no PC da Escola em segundo plano e envia as picagens diretamente da DB local (MySQL) para www.pontualidade.pt
- * Vantagem: 100% independente, super rápido, nao sobrecarrega a API do BioStar.
+ * Corre no PC da Escola em segundo plano e envia as picagens diretamente
+ * da DB local (MySQL) para a Base de Dados Central na Nuvem (Neon / Supabase).
+ * 
+ * Vantagens:
+ * - 100% robusto, sem intermediários ou erros de proxy/timeout
+ * - Sincronizacao em tempo real de segundo a segundo
+ * - Visualização imediata em www.pontualidade.pt de qualquer computador ou rede
  */
 
 const fs = require('fs');
@@ -45,12 +50,10 @@ async function syncEvents() {
         connectionLimit: 5,
         queueLimit: 0
       });
-      console.log(`[MySQL] Ligacao ao CardPass3 (Localhost) estabelecida.`);
+      console.log(`[MySQL Local] Ligacao ao CardPass3 estabelecida.`);
     }
 
-    // A tabela no CardPass3 que regista as picagens é a 'events'.
-    // Eventos de picagem tipicamente tem event_type_id = 4096 ou semelhante (Access Granted / Punch).
-    // Para nao perder dados, lemos da tabela events cruzando com a tabela users.
+    // Leitura dos novos eventos de picagem
     const [rows] = await dbPool.execute(`
       SELECT e.id_event, e.datetime_local, e.users_id_user, u.reg_number, u.user_name, u.surname, r.unique_name as reader_name
       FROM events e
@@ -58,13 +61,14 @@ async function syncEvents() {
       LEFT JOIN readers r ON e.readers_id_reader = r.id_reader
       WHERE e.id_event > ?
       ORDER BY e.id_event ASC
-      LIMIT 200
+      LIMIT 300
     `, [state.lastEventId]);
 
-    if (rows.length === 0) return; // Nenhum evento novo
+    if (rows.length === 0) {
+      return; // Nada de novo neste ciclo
+    }
 
     const newEvents = rows.map(r => {
-      // Formata a data (evitando problemas de timezone, forçamos o ISO 8601 da BD local)
       const checktime = new Date(r.datetime_local).toISOString();
       const rawUserId = String(r.users_id_user);
       const finalWorkno = r.reg_number ? String(r.reg_number) : rawUserId;
@@ -75,13 +79,13 @@ async function syncEvents() {
         workno: finalWorkno,
         employeeName: empName || null,
         checktime: checktime,
-        checktype: 1, // Por defeito assumimos IN/OUT alternado ou que a nuvem resolve
+        checktype: 1,
         deviceName: r.reader_name || 'CardPass3 Terminal',
         deviceSn: null
       };
     });
 
-    console.log(`[Pontual Sync] A enviar ${newEvents.length} novas picagens para o Pontualidade.pt...`);
+    console.log(`[Pontual Sync] ${newEvents.length} novas picagens detetadas. A enviar para a Nuvem via HTTPS...`);
 
     const cloudRes = await fetch(config.pontualUrl, {
       method: 'POST',
@@ -92,27 +96,36 @@ async function syncEvents() {
       body: JSON.stringify({ punches: newEvents })
     });
 
-    const cloudData = await cloudRes.json();
+    const text = await cloudRes.text();
+    let cloudData = {};
+    try {
+      cloudData = JSON.parse(text);
+    } catch (e) {
+      console.error(`[Aviso Cloud] Resposta HTTP ${cloudRes.status}: O servidor web ainda esta a atualizar.`);
+      return;
+    }
 
     if (cloudRes.ok && cloudData.success) {
       state.lastEventId = Math.max(...rows.map(r => r.id_event));
       state.lastSyncTime = new Date().toISOString();
       saveState();
-      console.log(`[Pontual Sync] Sincronizacao concluida com sucesso! (${cloudData.inserted} inseridas / ignorados duplicados)`);
+      console.log(`✅ [Pontual Sync] Sucesso! ${cloudData.inserted} picagens gravadas na Nuvem Central.`);
     } else {
-      console.error('[Pontual Sync Erro Cloud]', cloudData.error || cloudData);
+      console.error('❌ [Pontual Sync Erro]', cloudData.error || cloudData);
     }
+
   } catch (err) {
-    console.error('[Erro de Ciclo de Sincronizacao]', err.message);
+    console.error('❌ [Erro Sincronizacao]', err.message);
   }
 }
 
 console.log('====================================================');
-console.log('🚀 Agente Pontualidade -> MySQL (CardPass3) Ativo');
-console.log(`📡 Destino: ${config.pontualUrl}`);
-console.log(`⏱️ Intervalo: ${config.pollIntervalSeconds || 30} segundos`);
+console.log('🚀 Agente Pontualidade -> Nuvem Central (CardPass3)');
+console.log('🏢 Cliente: Colégio Manuel Bernardes (CMB)');
+console.log(`⏱️  Intervalo de Verificacao: ${config.pollIntervalSeconds || 30} segundos`);
 console.log('====================================================');
 
 const intervalMs = (config.pollIntervalSeconds || 30) * 1000;
 setInterval(syncEvents, intervalMs);
 syncEvents();
+

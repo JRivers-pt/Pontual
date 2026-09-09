@@ -1,5 +1,9 @@
-﻿import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+
+export async function GET() {
+  return NextResponse.json({ status: 'active', service: 'Pontual Sync Agent' });
+}
 
 export async function POST(request: NextRequest) {
   try {
