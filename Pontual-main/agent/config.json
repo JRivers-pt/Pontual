@@ -1,8 +1,10 @@
-﻿{
+{
   "pontualUrl": "https://www.pontualidade.pt/api/sync/punches",
-  "schoolToken": "COLOQUE_AQUI_O_TOKEN_DA_ESCOLA",
-  "biostarUrl": "https://127.0.0.1",
-  "biostarUser": "admin",
-  "biostarPassword": "password_do_biostar",
+  "schoolToken": "pontual_sync_cmb_9f8b4d2a_2026",
+  "mysqlHost": "127.0.0.1",
+  "mysqlPort": 3306,
+  "mysqlUser": "cardpass3",
+  "mysqlPassword": "cardpass3",
+  "mysqlDatabase": "cardpass3",
   "pollIntervalSeconds": 30
 }

@@ -1,18 +1,16 @@
-﻿/**
- * Agente de Sincronizacao Pontual -> Suprema BioStar 2
- * Corre no PC da Escola em segundo plano e envia as picagens dos BioEntry W2 para www.pontualidade.pt
+/**
+ * Agente de Sincronizacao Pontual -> Suprema CardPass3 (MySQL)
+ * Corre no PC da Escola em segundo plano e envia as picagens diretamente da DB local (MySQL) para www.pontualidade.pt
+ * Vantagem: 100% independente, super rápido, nao sobrecarrega a API do BioStar.
  */
 
 const fs = require('fs');
 const path = require('path');
-const https = require('https');
-
-// Ignorar certificado SSL local auto-assinado do BioStar 2
-const httpsAgent = new https.Agent({ rejectUnauthorized: false });
+const mysql = require('mysql2/promise');
+const fetch = require('node-fetch');
 
 const configPath = path.join(__dirname, 'config.json');
 const statePath = path.join(__dirname, 'state.json');
-const mappingPath = path.join(__dirname, 'mapping.json');
 
 if (!fs.existsSync(configPath)) {
   console.error('[ERRO] Ficheiro config.json nao encontrado!');
@@ -20,17 +18,6 @@ if (!fs.existsSync(configPath)) {
 }
 
 const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-
-// Carregar mapeamento de IDs se existir (ex: Suprema "1" -> Pontual "600")
-let idMapping = {};
-if (fs.existsSync(mappingPath)) {
-  try {
-    idMapping = JSON.parse(fs.readFileSync(mappingPath, 'utf8'));
-    console.log(`[Mapeamento] Carregadas ${Object.keys(idMapping).length} correspondencias de IDs.`);
-  } catch (e) {
-    console.error('[Aviso] Erro ao ler mapping.json:', e.message);
-  }
-}
 
 let state = { lastEventId: 0, lastSyncTime: null };
 if (fs.existsSync(statePath)) {
@@ -43,97 +30,77 @@ function saveState() {
   fs.writeFileSync(statePath, JSON.stringify(state, null, 2));
 }
 
-let sessionToken = null;
-
-async function loginBioStar() {
-  try {
-    const res = await fetch(`${config.biostarUrl}/api/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        user_id: config.biostarUser,
-        password: config.biostarPassword
-      }),
-      agent: httpsAgent
-    });
-
-    if (!res.ok) {
-      throw new Error(`Falha no login BioStar: ${res.statusText}`);
-    }
-
-    sessionToken = res.headers.get('bs-session-id');
-    console.log('[BioStar 2] Sessao iniciada com sucesso.');
-    return sessionToken;
-  } catch (err) {
-    console.error('[BioStar 2 Login]', err.message);
-    sessionToken = null;
-    return null;
-  }
-}
+let dbPool = null;
 
 async function syncEvents() {
   try {
-    if (!sessionToken) {
-      await loginBioStar();
-      if (!sessionToken) return;
+    if (!dbPool) {
+      dbPool = mysql.createPool({
+        host: config.mysqlHost || '127.0.0.1',
+        port: config.mysqlPort || 3306,
+        user: config.mysqlUser || 'cardpass3',
+        password: config.mysqlPassword || 'cardpass3',
+        database: config.mysqlDatabase || 'cardpass3',
+        waitForConnections: true,
+        connectionLimit: 5,
+        queueLimit: 0
+      });
+      console.log(`[MySQL] Ligacao ao CardPass3 (Localhost) estabelecida.`);
     }
 
-    // 1. Obter eventos recentes do BioStar 2
-    const res = await fetch(`${config.biostarUrl}/api/events?limit=100&order_by=id:desc`, {
-      headers: { 'bs-session-id': sessionToken },
-      agent: httpsAgent
+    // A tabela no CardPass3 que regista as picagens é a 'events'.
+    // Eventos de picagem tipicamente tem event_type_id = 4096 ou semelhante (Access Granted / Punch).
+    // Para nao perder dados, lemos da tabela events cruzando com a tabela users.
+    const [rows] = await dbPool.execute(`
+      SELECT e.id_event, e.datetime_local, e.users_id_user, u.reg_number, u.user_name, u.surname, r.unique_name as reader_name
+      FROM events e
+      INNER JOIN users u ON e.users_id_user = u.id_user
+      LEFT JOIN readers r ON e.readers_id_reader = r.id_reader
+      WHERE e.id_event > ?
+      ORDER BY e.id_event ASC
+      LIMIT 200
+    `, [state.lastEventId]);
+
+    if (rows.length === 0) return; // Nenhum evento novo
+
+    const newEvents = rows.map(r => {
+      // Formata a data (evitando problemas de timezone, forçamos o ISO 8601 da BD local)
+      const checktime = new Date(r.datetime_local).toISOString();
+      const rawUserId = String(r.users_id_user);
+      const finalWorkno = r.reg_number ? String(r.reg_number) : rawUserId;
+      const empName = `${r.user_name || ''} ${r.surname || ''}`.trim();
+
+      return {
+        rawEventId: String(r.id_event),
+        workno: finalWorkno,
+        employeeName: empName || null,
+        checktime: checktime,
+        checktype: 1, // Por defeito assumimos IN/OUT alternado ou que a nuvem resolve
+        deviceName: r.reader_name || 'CardPass3 Terminal',
+        deviceSn: null
+      };
     });
 
-    if (res.status === 401) {
-      sessionToken = null; // Sessao expirada
-      return;
-    }
+    console.log(`[Pontual Sync] A enviar ${newEvents.length} novas picagens para o Pontualidade.pt...`);
 
-    const data = await res.json();
-    const rows = data.EventCollection?.rows || data.records || [];
+    const cloudRes = await fetch(config.pontualUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-school-token': config.schoolToken
+      },
+      body: JSON.stringify({ punches: newEvents })
+    });
 
-    if (rows.length === 0) return;
+    const cloudData = await cloudRes.json();
 
-    // Filtrar eventos e aplicar o mapeamento de IDs
-    const newEvents = rows
-      .filter(e => e.id > state.lastEventId)
-      .map(e => {
-        const rawUserId = e.user_id ? String(e.user_id.user_id || e.user_id) : 'UNKNOWN';
-        const finalWorkno = idMapping[rawUserId] || rawUserId; // Mapeia para o ID do Pontual (ex: 600) se existir
-
-        return {
-          rawEventId: String(e.id),
-          workno: String(finalWorkno),
-          employeeName: e.user_id?.name || null,
-          checktime: e.datetime || new Date().toISOString(),
-          checktype: e.event_type_id?.code === 4096 ? 1 : 1,
-          deviceName: e.device_id?.name || 'BioEntry W2',
-          deviceSn: e.device_id?.id ? String(e.device_id.id) : null
-        };
-      });
-
-    if (newEvents.length > 0) {
-      console.log(`[Pontual Sync] A enviar ${newEvents.length} novas picagens para o Pontualidade.pt...`);
-
-      const cloudRes = await fetch(config.pontualUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-school-token': config.schoolToken
-        },
-        body: JSON.stringify({ punches: newEvents })
-      });
-
-      const cloudData = await cloudRes.json();
-
-      if (cloudRes.ok && cloudData.success) {
-        state.lastEventId = Math.max(...rows.map(r => r.id));
-        state.lastSyncTime = new Date().toISOString();
-        saveState();
-        console.log(`[Pontual Sync] Sincronizacao concluida com sucesso! (${cloudData.inserted} novas inseridas)`);
-      } else {
-        console.error('[Pontual Sync Erro Cloud]', cloudData.error || cloudData);
-      }
+    if (cloudRes.ok && cloudData.success) {
+      state.lastEventId = Math.max(...rows.map(r => r.id_event));
+      state.lastSyncTime = new Date().toISOString();
+      saveState();
+      console.log(`[Pontual Sync] Sincronizacao concluida com sucesso! (${cloudData.inserted} inseridas / ignorados duplicados)`);
+    } else {
+      console.error('[Pontual Sync Erro Cloud]', cloudData.error || cloudData);
     }
   } catch (err) {
     console.error('[Erro de Ciclo de Sincronizacao]', err.message);
@@ -141,7 +108,7 @@ async function syncEvents() {
 }
 
 console.log('====================================================');
-console.log('🚀 Agente Pontualidade -> BioStar 2 Ativo');
+console.log('🚀 Agente Pontualidade -> MySQL (CardPass3) Ativo');
 console.log(`📡 Destino: ${config.pontualUrl}`);
 console.log(`⏱️ Intervalo: ${config.pollIntervalSeconds || 30} segundos`);
 console.log('====================================================');

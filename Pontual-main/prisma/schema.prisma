@@ -1,4 +1,4 @@
-﻿// This is your Prisma schema file,
+// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
@@ -26,6 +26,11 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
+  // Multi-seat / Sub-user functionality
+  parentUserId String?
+  parentUser   User?    @relation("UserSubUsers", fields: [parentUserId], references: [id], onDelete: Cascade)
+  subUsers     User[]   @relation("UserSubUsers")
+
   // Biometric Provider ("ANVIZ" or "SUPREMA")
   biometricProvider String? @default("ANVIZ")
   
@@ -97,4 +102,35 @@ model AttendanceLog {
 
   @@unique([userId, rawEventId])
   @@index([userId, checktime])
+}
+
+model AuditLog {
+  id           String   @id @default(cuid())
+
+  // Quem fez a acao (login do utilizador - ex: CMB1, CMB2)
+  actorId      String
+  actorName    String?
+
+  // Conta cliente afetada (ex: CMB parent)
+  clientId     String
+
+  // Tipo de acao: CORRECTION | MANUAL_INSERT | DELETE | LOGIN | EXPORT
+  action       String
+
+  // Colaborador visado (quando aplicavel)
+  targetWorkno String?
+  targetName   String?
+
+  // Valores antes/depois (string JSON)
+  oldValue     String?
+  newValue     String?
+
+  // Contexto livre
+  description  String?
+  ipAddress    String?
+
+  createdAt    DateTime @default(now())
+
+  @@index([clientId, createdAt])
+  @@index([actorId, createdAt])
 }
