@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/db';
 
@@ -12,22 +12,67 @@ function generateRequestId(): string {
 
 export async function POST(request: NextRequest) {
     try {
-        const session = await auth();
+        const token = request.headers.get('x-school-token') || request.headers.get('authorization')?.replace('Bearer ', '');
+        
+        let user: any = null;
 
-        if (!session?.user?.id) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
+        if (token) {
+            user = await prisma.user.findUnique({
+                where: { syncToken: token }
+            });
+            if (!user) {
+                return NextResponse.json({ error: 'Invalid school token' }, { status: 403 });
+            }
+        } else {
+            const session = await auth();
 
-        const user = await prisma.user.findUnique({
-            where: { id: session.user.id }
-        });
+            if (!session?.user?.id) {
+                return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            }
 
-        if (!user) {
-            return NextResponse.json({ error: 'User not found' }, { status: 404 });
+            user = await prisma.user.findUnique({
+                where: { id: session.user.id }
+            });
+
+            if (!user) {
+                return NextResponse.json({ error: 'User not found' }, { status: 404 });
+            }
         }
 
         const body = await request.json();
-        const { token, beginTime, endTime, page = 1, perPage = 100 } = body;
+        const { token: _t, beginTime, endTime, page = 1, perPage = 100, punches } = body;
+
+        // If agent is syncing punches via this endpoint
+        if (Array.isArray(punches) && punches.length > 0) {
+            let inserted = 0;
+            for (const p of punches) {
+                if (!p.checktime || !p.workno) continue;
+                const rawEventId = p.rawEventId ? String(p.rawEventId) : `${p.workno}-${new Date(p.checktime).getTime()}`;
+                try {
+                    await prisma.attendanceLog.upsert({
+                        where: {
+                            userId_rawEventId: {
+                                userId: user.id,
+                                rawEventId: rawEventId
+                            }
+                        },
+                        update: {},
+                        create: {
+                            userId: user.id,
+                            workno: String(p.workno),
+                            employeeName: p.employeeName || null,
+                            checktime: new Date(p.checktime),
+                            checktype: Number(p.checktype) || 1,
+                            deviceName: p.deviceName || 'CardPass3 Terminal',
+                            deviceSn: p.deviceSn || null,
+                            rawEventId: rawEventId
+                        }
+                    });
+                    inserted++;
+                } catch (e) {}
+            }
+            return NextResponse.json({ success: true, school: user.company || user.name, inserted });
+        }
 
         // If client is using Suprema / Local Sync Agent
         if (user.biometricProvider === 'SUPREMA') {
