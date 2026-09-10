@@ -27,8 +27,7 @@ import {
     AlertCircle,
     Search,
     ArrowLeft,
-    CheckCircle2,
-    CalendarDays
+    CheckCircle2
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -66,8 +65,10 @@ type DayRecord = {
     date: Date
     dateStr: string
     isWeekend: boolean
-    firstIn: string | null
-    lastOut: string | null
+    in1: string | null
+    out1: string | null
+    in2: string | null
+    out2: string | null
     workedMinutes: number
     overtimeMinutes: number
     status: 'normal' | 'late' | 'absent' | 'weekend' | 'holiday'
@@ -203,17 +204,26 @@ export default function TimesheetPage() {
         return records.filter(r => r.employeeId === selectedEmployee)
     }, [records, selectedEmployee])
 
-    // Build daily records for the month for the selected employee
+    // Selected employee schedule object
+    const currentEmployeeObj = React.useMemo(() => {
+        return employees.find(e => e.id === selectedEmployee)
+    }, [employees, selectedEmployee])
+
+    const currentEmployeeSchedule = React.useMemo(() => {
+        if (!selectedEmployee || selectedEmployee === "all") return undefined
+        const employeeName = currentEmployeeObj?.name || ''
+        if (isVilaPeixoto) return getVilaPeixotoSchedule(employeeName)
+        if (isGengibre) return getGengibreSchedule(employeeName)
+        return schedules.find(s => (s as any).employeeSchedules?.some((es: any) => es.workno === selectedEmployee)) || schedules[0]
+    }, [selectedEmployee, currentEmployeeObj, schedules, isVilaPeixoto, isGengibre])
+
+    // Build daily records for the month for the selected employee with 4 punch slots (In1, Out1, In2, Out2)
     const monthDays = React.useMemo<DayRecord[]>(() => {
         const monthStart = startOfMonth(currentMonth)
         const monthEnd = endOfMonth(currentMonth)
         const days = eachDayOfInterval({ start: monthStart, end: monthEnd })
 
-        const employeeName = employees.find(e => e.id === selectedEmployee)?.name || ''
-        let employeeSchedule: Schedule | undefined
-        if (isVilaPeixoto) employeeSchedule = getVilaPeixotoSchedule(employeeName)
-        else if (isGengibre) employeeSchedule = getGengibreSchedule(employeeName)
-        else employeeSchedule = schedules.find(s => (s as any).employeeSchedules?.some((es: any) => es.workno === selectedEmployee)) || schedules[0]
+        const employeeSchedule = currentEmployeeSchedule
 
         return days.map(day => {
             const dateStr = format(day, 'yyyy-MM-dd')
@@ -226,8 +236,10 @@ export default function TimesheetPage() {
                     date: day,
                     dateStr,
                     isWeekend: true,
-                    firstIn: null,
-                    lastOut: null,
+                    in1: null,
+                    out1: null,
+                    in2: null,
+                    out2: null,
                     workedMinutes: 0,
                     overtimeMinutes: 0,
                     status: 'weekend' as const
@@ -239,8 +251,10 @@ export default function TimesheetPage() {
                     date: day,
                     dateStr,
                     isWeekend: false,
-                    firstIn: null,
-                    lastOut: null,
+                    in1: null,
+                    out1: null,
+                    in2: null,
+                    out2: null,
                     workedMinutes: 0,
                     overtimeMinutes: 0,
                     status: 'absent' as const
@@ -287,6 +301,35 @@ export default function TimesheetPage() {
                 }
             }
 
+            // Map punches into 4 movement slots: In1, Out1, In2, Out2
+            let in1: string | null = null
+            let out1: string | null = null
+            let in2: string | null = null
+            let out2: string | null = null
+
+            if (sorted.length === 1) {
+                in1 = sorted[0].checktime
+                if (autoCheckout) out2 = 'auto'
+            } else if (sorted.length === 2) {
+                in1 = sorted[0].checktime
+                out2 = sorted[1].checktime
+            } else if (sorted.length === 3) {
+                in1 = sorted[0].checktime
+                out1 = sorted[1].checktime
+                in2 = sorted[2].checktime
+                if (autoCheckout) out2 = 'auto'
+            } else if (sorted.length >= 4) {
+                in1 = sorted[0].checktime
+                out1 = sorted[1].checktime
+                in2 = sorted[2].checktime
+                out2 = sorted[sorted.length - 1].checktime
+            }
+
+            // If workedMinutes was calculated as full day without breaks and we have lunchDuration
+            if (sorted.length === 2 && employeeSchedule?.lunchDuration && workedMinutes > 240) {
+                workedMinutes = Math.max(0, workedMinutes - employeeSchedule.lunchDuration)
+            }
+
             workedMinutes = Math.round(workedMinutes)
             const lastCheckDate = sorted.length > 1 && lastInTime === null ? parseISO(lastCheck.checktime) : null
             const overtimeMinutes = calculateOvertime(firstCheckDate, lastCheckDate, employeeSchedule)
@@ -296,20 +339,24 @@ export default function TimesheetPage() {
                 date: day,
                 dateStr,
                 isWeekend: false,
-                firstIn: firstCheck.checktime,
-                lastOut: (lastCheck.checktype === 2 || lastCheck.checktype === 129) ? lastCheck.checktime : autoCheckout ? 'auto' : null,
+                in1,
+                out1,
+                in2,
+                out2,
                 workedMinutes,
                 overtimeMinutes,
                 status: (isLate && !employeeSchedule?.warningsDisabled) ? 'late' as const : 'normal' as const
             }
         })
-    }, [currentMonth, filteredRecords, schedules, isVilaPeixoto, isGengibre, selectedEmployee, employees])
+    }, [currentMonth, filteredRecords, currentEmployeeSchedule])
 
     // Calculate monthly summary
     const calculateFullSummary = (recordsForEmployee: AttendanceRecord[]) => {
         const monthStart = startOfMonth(currentMonth)
         const monthEnd = endOfMonth(currentMonth)
         const days = eachDayOfInterval({ start: monthStart, end: monthEnd })
+
+        const employeeSchedule = currentEmployeeSchedule
 
         const daysData = days.map(day => {
             const dateStr = format(day, 'yyyy-MM-dd')
@@ -339,13 +386,6 @@ export default function TimesheetPage() {
                 }
             })
 
-            const employeeId = dayRecords[0]?.employeeId || ''
-            const employeeName = dayRecords[0]?.employeeName || ''
-            let employeeSchedule: Schedule;
-            if (isVilaPeixoto) employeeSchedule = getVilaPeixotoSchedule(employeeName);
-            else if (isGengibre) employeeSchedule = getGengibreSchedule(employeeName);
-            else employeeSchedule = schedules.find(s => (s as any).employeeSchedules?.some((es: any) => es.workno === employeeId)) || schedules[0];
-
             if (lastInTime !== null && day < startOfDay(new Date()) && employeeSchedule) {
                 const endTime = typeof employeeSchedule.endTime === 'string'
                     ? (() => { const [h, m] = (employeeSchedule.endTime as string).split(':').map(Number); return { hour: h, minute: m } })()
@@ -356,6 +396,10 @@ export default function TimesheetPage() {
                     workedMinutes += (estimatedOut.getTime() - lastInTime) / (1000 * 60)
                     lastInTime = null
                 }
+            }
+
+            if (sorted.length === 2 && employeeSchedule?.lunchDuration && workedMinutes > 240) {
+                workedMinutes = Math.max(0, workedMinutes - employeeSchedule.lunchDuration)
             }
 
             const lastCheckDate = sorted.length > 1 && lastInTime === null ? parseISO(lastCheck.checktime) : null
@@ -388,7 +432,7 @@ export default function TimesheetPage() {
         }
     }
 
-    const summary = React.useMemo(() => calculateFullSummary(filteredRecords), [filteredRecords, currentMonth, schedules, isVilaPeixoto, isGengibre])
+    const summary = React.useMemo(() => calculateFullSummary(filteredRecords), [filteredRecords, currentMonth, currentEmployeeSchedule])
 
     const formatMinutes = (minutes: number) => {
         if (!minutes || minutes === 0) return '-'
@@ -420,7 +464,7 @@ export default function TimesheetPage() {
     const handlePreviousMonth = () => setCurrentMonth(subMonths(currentMonth, 1))
     const handleNextMonth = () => setCurrentMonth(addMonths(currentMonth, 1))
 
-    const selectedEmployeeObj = employees.find(e => e.id === selectedEmployee)
+    const selectedEmployeeObj = currentEmployeeObj
     const selectedEmployeeName = selectedEmployee === "all"
         ? "Todos os Colaboradores"
         : selectedEmployeeObj?.name || "Colaborador"
@@ -431,16 +475,21 @@ export default function TimesheetPage() {
             .map(d => ({
                 data: format(d.date, 'dd/MM/yyyy'),
                 dia: getDayOfWeek(d.date),
-                entrada: d.firstIn ? format(parseISO(d.firstIn), 'HH:mm') : '-',
-                saida: d.lastOut ? format(parseISO(d.lastOut), 'HH:mm') : '-',
+                in1: d.in1 ? format(parseISO(d.in1), 'HH:mm') : '-',
+                out1: d.out1 ? format(parseISO(d.out1), 'HH:mm') : '-',
+                in2: d.in2 ? format(parseISO(d.in2), 'HH:mm') : '-',
+                out2: d.out2 === 'auto' ? 'Est.' : (d.out2 ? format(parseISO(d.out2), 'HH:mm') : '-'),
                 duracao: formatMinutes(d.workedMinutes),
                 horasExtra: d.overtimeMinutes > 0 ? formatMinutes(d.overtimeMinutes) : '-',
                 estado: d.status === 'absent' ? 'Falta' : (d.status === 'late' ? 'Atraso' : 'OK')
             }))
 
+        const scheduleDesc = currentEmployeeObj?.scheduleName || currentEmployeeSchedule?.name || 'Horário Geral'
+
         exportToPDF(
             dataToExport,
-            `Folha de Ponto - ${selectedEmployeeName} - ${format(currentMonth, 'MMMM yyyy', { locale: pt })}`
+            `${format(currentMonth, 'MMMM yyyy', { locale: pt })} • ${scheduleDesc}`,
+            `Folha de Ponto — ${selectedEmployeeName} (Nº ${selectedEmployee})`
         )
     }
 
@@ -480,8 +529,8 @@ export default function TimesheetPage() {
                     </div>
                     <p className="text-neutral-500 dark:text-neutral-400 mt-1">
                         {selectedEmployee === "all"
-                            ? `${employees.length} colaboradores registados • Consulta rápida e relatórios de assiduidade`
-                            : `Nº Mecanográfico: ${selectedEmployeeObj?.id || selectedEmployee} • ${selectedEmployeeObj?.scheduleName || 'Horário Padrão'}`
+                            ? `${employees.length} colaboradores registados • Consulta rápida de picagens (4 movimentos diários)`
+                            : `Nº Mecanográfico: ${selectedEmployeeObj?.id || selectedEmployee} • Horário: ${selectedEmployeeObj?.scheduleName || currentEmployeeSchedule?.name || 'Horário Padrão'}`
                         }
                     </p>
                 </div>
@@ -572,7 +621,10 @@ export default function TimesheetPage() {
             <div className="hidden print:block mb-6">
                 <h1 className="text-2xl font-bold text-center">FOLHA DE PONTO</h1>
                 <p className="text-center mt-2">{format(currentMonth, 'MMMM yyyy', { locale: pt }).toUpperCase()}</p>
-                <p className="text-center font-medium mt-1">{selectedEmployeeName}</p>
+                <p className="text-center font-medium mt-1">{selectedEmployeeName} — Nº {selectedEmployee}</p>
+                <p className="text-center text-xs text-neutral-600 mt-0.5">
+                    Horário: {selectedEmployeeObj?.scheduleName || currentEmployeeSchedule?.name || 'Geral'}
+                </p>
             </div>
 
             {error && (
@@ -654,8 +706,21 @@ export default function TimesheetPage() {
                     </div>
                 </div>
             ) : (
-                /* VIEW 2: INDIVIDUAL EMPLOYEE TIMESHEET */
+                /* VIEW 2: INDIVIDUAL EMPLOYEE TIMESHEET WITH 4 DAILY MOVEMENTS */
                 <>
+                    {/* Schedule info banner */}
+                    {currentEmployeeObj?.scheduleName && (
+                        <div className="bg-blue-50/70 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 rounded-lg p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-sm print:border-none print:p-0">
+                            <div className="flex items-center gap-2 text-blue-900 dark:text-blue-100 font-medium">
+                                <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0" />
+                                <span>Horário Oficial: <strong>{currentEmployeeObj.scheduleName}</strong></span>
+                            </div>
+                            <div className="text-xs text-blue-700 dark:text-blue-300 font-mono">
+                                Tolerância: 20 min • Almoço previsto: {currentEmployeeSchedule?.lunchDuration || 60}m
+                            </div>
+                        </div>
+                    )}
+
                     {/* Summary Cards */}
                     <div className="grid gap-4 md:grid-cols-4 print:grid-cols-4 print:gap-2">
                         <Card className="border-none shadow-sm print:border print:shadow-none">
@@ -717,14 +782,14 @@ export default function TimesheetPage() {
                         </Card>
                     </div>
 
-                    {/* Timesheet Table */}
+                    {/* Timesheet Table with 4 Punches (In1, Out1, In2, Out2) */}
                     <Card className="border-none shadow-sm print:border print:shadow-none">
                         <CardHeader className="print:hidden">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <CardTitle className="flex items-center gap-2">
                                         <User className="h-5 w-5" />
-                                        Registo Diário — {selectedEmployeeName}
+                                        Registo Diário de 4 Picagens — {selectedEmployeeName}
                                     </CardTitle>
                                     <CardDescription>
                                         {format(currentMonth, 'MMMM yyyy', { locale: pt })} • Nº {selectedEmployee}
@@ -746,19 +811,21 @@ export default function TimesheetPage() {
                                 <table className="w-full text-sm">
                                     <thead>
                                         <tr className="bg-neutral-100 dark:bg-neutral-800 print:bg-gray-100">
-                                            <th className="px-3 py-2 text-left font-medium">Data</th>
-                                            <th className="px-3 py-2 text-left font-medium">Dia</th>
-                                            <th className="px-3 py-2 text-center font-medium">Entrada</th>
-                                            <th className="px-3 py-2 text-center font-medium">Saída</th>
-                                            <th className="px-3 py-2 text-center font-medium">Duração</th>
-                                            <th className="px-3 py-2 text-center font-medium">H. Extra</th>
-                                            <th className="px-3 py-2 text-center font-medium print:hidden">Estado</th>
+                                            <th className="px-3 py-2.5 text-left font-medium">Data</th>
+                                            <th className="px-2 py-2.5 text-left font-medium">Dia</th>
+                                            <th className="px-2 py-2.5 text-center font-medium bg-emerald-50/50 dark:bg-emerald-950/20 text-emerald-800 dark:text-emerald-300">Entr. Manhã</th>
+                                            <th className="px-2 py-2.5 text-center font-medium bg-amber-50/50 dark:bg-amber-950/20 text-amber-800 dark:text-amber-300">Saída Almoço</th>
+                                            <th className="px-2 py-2.5 text-center font-medium bg-emerald-50/50 dark:bg-emerald-950/20 text-emerald-800 dark:text-emerald-300">Entr. Tarde</th>
+                                            <th className="px-2 py-2.5 text-center font-medium bg-amber-50/50 dark:bg-amber-950/20 text-amber-800 dark:text-amber-300">Saída Fim</th>
+                                            <th className="px-3 py-2.5 text-center font-medium">Duração</th>
+                                            <th className="px-3 py-2.5 text-center font-medium">H. Extra</th>
+                                            <th className="px-3 py-2.5 text-center font-medium print:hidden">Estado</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {loading ? (
                                             <tr>
-                                                <td colSpan={7} className="text-center py-8 text-neutral-500">
+                                                <td colSpan={9} className="text-center py-8 text-neutral-500">
                                                     <RefreshCw className="h-5 w-5 animate-spin mx-auto mb-2" />
                                                     A carregar folha de ponto...
                                                 </td>
@@ -777,35 +844,52 @@ export default function TimesheetPage() {
                                                     <td className="px-3 py-2 font-medium">
                                                         {format(day.date, 'dd/MM')}
                                                     </td>
-                                                    <td className="px-3 py-2">
+                                                    <td className="px-2 py-2">
                                                         {getDayOfWeek(day.date)}
                                                     </td>
-                                                    <td className="px-3 py-2 text-center">
-                                                        {day.firstIn ? (
+                                                    {/* In 1 (Manhã) */}
+                                                    <td className="px-2 py-2 text-center font-mono">
+                                                        {day.in1 ? (
                                                             <span className={cn(
-                                                                "font-mono",
-                                                                day.status === 'late' && "text-orange-600 font-semibold"
+                                                                day.status === 'late' && "text-orange-600 font-bold"
                                                             )}>
-                                                                {format(parseISO(day.firstIn), 'HH:mm')}
+                                                                {format(parseISO(day.in1), 'HH:mm')}
                                                             </span>
                                                         ) : (
                                                             <span className="text-neutral-300">-</span>
                                                         )}
                                                     </td>
-                                                    <td className="px-3 py-2 text-center">
-                                                        {day.lastOut === 'auto' ? (
+                                                    {/* Out 1 (Almoço) */}
+                                                    <td className="px-2 py-2 text-center font-mono">
+                                                        {day.out1 ? (
+                                                            <span>{format(parseISO(day.out1), 'HH:mm')}</span>
+                                                        ) : (
+                                                            <span className="text-neutral-300">-</span>
+                                                        )}
+                                                    </td>
+                                                    {/* In 2 (Tarde) */}
+                                                    <td className="px-2 py-2 text-center font-mono">
+                                                        {day.in2 ? (
+                                                            <span>{format(parseISO(day.in2), 'HH:mm')}</span>
+                                                        ) : (
+                                                            <span className="text-neutral-300">-</span>
+                                                        )}
+                                                    </td>
+                                                    {/* Out 2 (Fim) */}
+                                                    <td className="px-2 py-2 text-center font-mono">
+                                                        {day.out2 === 'auto' ? (
                                                             <span className="text-xs text-neutral-400 italic">Saída Est.</span>
-                                                        ) : day.lastOut ? (
-                                                            <span className="font-mono">
-                                                                {format(parseISO(day.lastOut), 'HH:mm')}
-                                                            </span>
+                                                        ) : day.out2 ? (
+                                                            <span>{format(parseISO(day.out2), 'HH:mm')}</span>
                                                         ) : (
                                                             <span className="text-neutral-300">-</span>
                                                         )}
                                                     </td>
+                                                    {/* Duration */}
                                                     <td className="px-3 py-2 text-center font-medium">
                                                         {formatMinutes(day.workedMinutes)}
                                                     </td>
+                                                    {/* Overtime */}
                                                     <td className="px-3 py-2 text-center">
                                                         {day.overtimeMinutes > 0 ? (
                                                             <span className="font-medium text-orange-600">
@@ -815,6 +899,7 @@ export default function TimesheetPage() {
                                                             <span className="text-neutral-300">-</span>
                                                         )}
                                                     </td>
+                                                    {/* Status Badge */}
                                                     <td className="px-3 py-2 text-center print:hidden">
                                                         {getStatusBadge(day.status)}
                                                     </td>
@@ -824,7 +909,7 @@ export default function TimesheetPage() {
                                     </tbody>
                                     <tfoot>
                                         <tr className="bg-neutral-100 dark:bg-neutral-800 font-medium print:bg-gray-200">
-                                            <td colSpan={4} className="px-3 py-3 text-right">
+                                            <td colSpan={6} className="px-3 py-3 text-right">
                                                 TOTAL DO MÊS:
                                             </td>
                                             <td className="px-3 py-3 text-center font-bold">

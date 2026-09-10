@@ -238,24 +238,49 @@ export async function exportToPDF(data: AttendanceData[], period: string, header
         doc.text(`Período: ${period}`, 14, 38);
         doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-PT')}`, 150, 38);
 
-        const tableColumn = ["Data", "Funcionário", "Dep.", "Entrada", "Saída", "Duração", "H. Extra"];
-        const tableRows = data.map(ticket => [
-            ticket.data || '-',
-            ticket.funcionario || '-',
-            ticket.departamento || '-',
-            ticket.entrada || '-',
-            ticket.saida || '-',
-            ticket.duracao || '-',
-            ticket.horasExtra || '-',
-        ]);
+        const has4Punches = data.some(d => d.in1 !== undefined || d.out1 !== undefined || d.in2 !== undefined || d.out2 !== undefined);
+
+        const tableColumn = has4Punches
+            ? ["Data", "Dia", "Entr. Manhã", "Saída Almoço", "Entr. Tarde", "Saída Fim", "Duração", "H. Extra", "Estado"]
+            : ["Data", "Funcionário", "Dep.", "Entrada", "Saída", "Duração", "H. Extra"];
+
+        const tableRows = data.map(ticket => {
+            if (has4Punches) {
+                return [
+                    ticket.data || '-',
+                    ticket.dia || '-',
+                    ticket.in1 || '-',
+                    ticket.out1 || '-',
+                    ticket.in2 || '-',
+                    ticket.out2 || '-',
+                    ticket.duracao || '-',
+                    ticket.horasExtra || '-',
+                    ticket.estado || '-'
+                ];
+            }
+            return [
+                ticket.data || '-',
+                ticket.funcionario || '-',
+                ticket.departamento || '-',
+                ticket.entrada || '-',
+                ticket.saida || '-',
+                ticket.duracao || '-',
+                ticket.horasExtra || '-',
+            ];
+        });
 
         autoTable(doc, {
             head: [tableColumn],
             body: tableRows,
             startY: 45,
             theme: 'grid',
-            styles: { fontSize: 8, cellPadding: 2.5 },
-            headStyles: { fillColor: PRIMARY_COLOR, textColor: 255 },
+            styles: { fontSize: 8, cellPadding: 2.2, halign: 'center' },
+            headStyles: { fillColor: PRIMARY_COLOR, textColor: 255, fontStyle: 'bold' },
+            columnStyles: has4Punches ? {
+                0: { halign: 'left', cellWidth: 22 },
+                1: { halign: 'left', cellWidth: 15 },
+                6: { fontStyle: 'bold' }
+            } : {},
             alternateRowStyles: { fillColor: [248, 250, 252] }
         });
     }
