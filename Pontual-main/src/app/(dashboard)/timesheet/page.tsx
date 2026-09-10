@@ -10,7 +10,8 @@ import {
     isWeekend,
     getDay,
     subMonths,
-    addMonths
+    addMonths,
+    startOfDay
 } from "date-fns"
 import { pt } from "date-fns/locale"
 import {
@@ -21,12 +22,18 @@ import {
     Calendar,
     Clock,
     User,
+    Users,
     Printer,
-    AlertCircle
+    AlertCircle,
+    Search,
+    ArrowLeft,
+    CheckCircle2,
+    CalendarDays
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import {
     Card,
     CardContent,
@@ -44,8 +51,8 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { useSession } from "next-auth/react"
 import { exportToPDF } from "@/lib/exports"
-import { getAttendanceRecords, getSchedules } from "@/lib/api"
-import { isLate as checkIsLate, calculateOvertime, getFormattedScheduleInfo, Schedule, getVilaPeixotoSchedule, getGengibreSchedule } from "@/lib/schedules"
+import { getAttendanceRecords, getSchedules, getEmployees } from "@/lib/api"
+import { isLate as checkIsLate, calculateOvertime, Schedule, getVilaPeixotoSchedule, getGengibreSchedule } from "@/lib/schedules"
 
 type AttendanceRecord = {
     uuid: string
@@ -69,6 +76,8 @@ type DayRecord = {
 type Employee = {
     id: string
     name: string
+    scheduleCode?: string | null
+    scheduleName?: string | null
 }
 
 export default function TimesheetPage() {
@@ -81,6 +90,7 @@ export default function TimesheetPage() {
     const [selectedEmployee, setSelectedEmployee] = React.useState<string>("all")
     const [lastUpdate, setLastUpdate] = React.useState<Date>(new Date())
     const [allEmployees, setAllEmployees] = React.useState<Employee[]>([])
+    const [searchQuery, setSearchQuery] = React.useState<string>("")
 
     const companyName = (session?.user as any)?.company || ""
     const isVilaPeixoto = companyName.toLowerCase().includes("vila peixoto")
@@ -88,22 +98,34 @@ export default function TimesheetPage() {
         companyName.toLowerCase().includes("gengibre") ||
         companyName.toLowerCase().includes("criativa")
 
-    // Extract unique employees
+    // Extract unique employees combining master list + records
     const employees = React.useMemo<Employee[]>(() => {
-        const empMap = new Map<string, string>()
+        const empMap = new Map<string, Employee>()
 
-        // Use allEmployees as the base
-        allEmployees.forEach(e => empMap.set(e.id, e.name))
+        // Use permanent employees list as base
+        allEmployees.forEach(e => empMap.set(e.id, e))
 
-        // Also add anyone found in current records (failsafe)
+        // Also add any employee found in current records (fallback)
         records.forEach(r => {
             if (!empMap.has(r.employeeId)) {
-                empMap.set(r.employeeId, r.employeeName)
+                empMap.set(r.employeeId, { id: r.employeeId, name: r.employeeName })
             }
         })
-        return Array.from(empMap.entries()).map(([id, name]) => ({ id, name }))
-            .sort((a, b) => a.name.localeCompare(b.name))
+
+        return Array.from(empMap.values()).sort((a, b) => a.name.localeCompare(b.name))
     }, [records, allEmployees])
+
+    // Filter employees by search term
+    const filteredEmployeesList = React.useMemo(() => {
+        if (!searchQuery.trim()) return employees
+        const q = searchQuery.toLowerCase().trim()
+        return employees.filter(e =>
+            e.name.toLowerCase().includes(q) ||
+            e.id.toLowerCase().includes(q) ||
+            (e.scheduleName && e.scheduleName.toLowerCase().includes(q)) ||
+            (e.scheduleCode && e.scheduleCode.toLowerCase().includes(q))
+        )
+    }, [employees, searchQuery])
 
     const fetchMonthData = React.useCallback(async () => {
         setLoading(true)
@@ -114,8 +136,6 @@ export default function TimesheetPage() {
             const monthEnd = endOfMonth(currentMonth)
             const now = new Date()
 
-            // For past months, use the full end of the month.
-            // For the current month, cap to 'now' to avoid API errors.
             const isCurrentMonth = format(currentMonth, 'yyyy-MM') === format(now, 'yyyy-MM')
             const adjustedEnd = isCurrentMonth ? now : monthEnd
 
@@ -127,7 +147,7 @@ export default function TimesheetPage() {
                 getSchedules()
             ])
 
-            const formattedRecords: AttendanceRecord[] = (response.payload.list || []).map(item => ({
+            const formattedRecords: AttendanceRecord[] = (response.payload.list || []).map((item: any) => ({
                 uuid: item.uuid,
                 employeeName: `${item.employee.first_name} ${item.employee.last_name}`.trim(),
                 employeeId: item.employee.workno,
@@ -138,17 +158,6 @@ export default function TimesheetPage() {
             setRecords(formattedRecords)
             setSchedules(schedulesData)
             setLastUpdate(new Date())
-
-            // Merge new employees into allEmployees
-            setAllEmployees(prev => {
-                const combined = [...prev]
-                formattedRecords.forEach(r => {
-                    if (!combined.some(c => c.id === r.employeeId)) {
-                        combined.push({ id: r.employeeId, name: r.employeeName })
-                    }
-                })
-                return combined.sort((a, b) => a.name.localeCompare(b.name))
-            })
         } catch (err: any) {
             setError(err.message || 'Erro ao carregar dados')
             console.error('Error fetching month data:', err)
@@ -157,46 +166,36 @@ export default function TimesheetPage() {
         }
     }, [currentMonth])
 
-    // On mount: first load the employee list, then load the month data
+    // On mount: fetch employee master list instantly, then month attendance data
     React.useEffect(() => {
         const init = async () => {
-            // Step 1: Quick fetch to populate the employee dropdown from recent months
             try {
-                const now = new Date()
-                const ago = subMonths(now, 2)
-                const response = await getAttendanceRecords(
-                    ago.toISOString().replace('Z', '+00:00'),
-                    now.toISOString().replace('Z', '+00:00')
-                )
-                const found: Employee[] = []
-                const seen = new Set<string>()
-                response.payload.list.forEach((r: any) => {
-                    if (!seen.has(r.employee.workno)) {
-                        seen.add(r.employee.workno)
-                        found.push({ id: r.employee.workno, name: `${r.employee.first_name} ${r.employee.last_name}`.trim() })
-                    }
-                })
-                setAllEmployees(found.sort((a, b) => a.name.localeCompare(b.name)))
+                const emps = await getEmployees()
+                if (emps && emps.length > 0) {
+                    setAllEmployees(emps.map((e: any) => ({
+                        id: e.workno,
+                        name: e.name || e.fullName || `Colaborador ${e.workno}`,
+                        scheduleCode: e.scheduleCode,
+                        scheduleName: e.scheduleName
+                    })))
+                }
             } catch (e) {
-                console.error("Error fetching initial employees:", e)
+                console.error("Error fetching master employees:", e)
             }
-
-            // Step 2: Then load the current month's data
             await fetchMonthData()
         }
         init()
 
-        // Auto-refresh every 60 seconds
+        // Auto-refresh every 60s
         const interval = setInterval(fetchMonthData, 60 * 1000)
         return () => clearInterval(interval)
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
-    // When the user changes the month, fetch that month's data
+    // When month changes, fetch records for that month
     React.useEffect(() => {
         fetchMonthData()
     }, [fetchMonthData])
-
 
     // Filter records by selected employee
     const filteredRecords = React.useMemo(() => {
@@ -204,11 +203,17 @@ export default function TimesheetPage() {
         return records.filter(r => r.employeeId === selectedEmployee)
     }, [records, selectedEmployee])
 
-    // Build daily records for the month
+    // Build daily records for the month for the selected employee
     const monthDays = React.useMemo<DayRecord[]>(() => {
         const monthStart = startOfMonth(currentMonth)
         const monthEnd = endOfMonth(currentMonth)
         const days = eachDayOfInterval({ start: monthStart, end: monthEnd })
+
+        const employeeName = employees.find(e => e.id === selectedEmployee)?.name || ''
+        let employeeSchedule: Schedule | undefined
+        if (isVilaPeixoto) employeeSchedule = getVilaPeixotoSchedule(employeeName)
+        else if (isGengibre) employeeSchedule = getGengibreSchedule(employeeName)
+        else employeeSchedule = schedules.find(s => (s as any).employeeSchedules?.some((es: any) => es.workno === selectedEmployee)) || schedules[0]
 
         return days.map(day => {
             const dateStr = format(day, 'yyyy-MM-dd')
@@ -242,7 +247,6 @@ export default function TimesheetPage() {
                 }
             }
 
-            // Sort records by time
             const sorted = [...dayRecords].sort((a, b) =>
                 parseISO(a.checktime).getTime() - parseISO(b.checktime).getTime()
             )
@@ -251,18 +255,15 @@ export default function TimesheetPage() {
             const lastCheck = sorted[sorted.length - 1]
             const firstCheckDate = parseISO(firstCheck.checktime)
 
-            // Calculate worked time
             let workedMinutes = 0
             let lastInTime: number | null = null
 
             sorted.forEach(record => {
                 const time = parseISO(record.checktime).getTime()
-                // Entry types: Check-In (0), Overtime In (128), Break End (3)
-                const isEntry = record.checktype === 0 || record.checktype === 128 || record.checktype === 3
-                // Exit types: Check-Out (1), Overtime Out (129), Break Start (2)
-                const isExit = record.checktype === 1 || record.checktype === 129 || record.checktype === 2
+                const isEntry = record.checktype === 0 || record.checktype === 128 || record.checktype === 3 || record.checktype === 1
+                const isExit = record.checktype === 2 || record.checktype === 129
 
-                if (isEntry) {
+                if (isEntry && lastInTime === null) {
                     lastInTime = time
                 } else if (isExit && lastInTime !== null) {
                     workedMinutes += (time - lastInTime) / (1000 * 60)
@@ -271,9 +272,6 @@ export default function TimesheetPage() {
             })
 
             const isPastDay = day < startOfDay(new Date())
-
-            // If a past day has an open check-in (no check-out), estimate the checkout
-            // using the employee's scheduled end time
             let autoCheckout = false
             if (lastInTime !== null && isPastDay && employeeSchedule) {
                 const endTime = typeof employeeSchedule.endTime === 'string'
@@ -290,10 +288,8 @@ export default function TimesheetPage() {
             }
 
             workedMinutes = Math.round(workedMinutes)
-
             const lastCheckDate = sorted.length > 1 && lastInTime === null ? parseISO(lastCheck.checktime) : null
             const overtimeMinutes = calculateOvertime(firstCheckDate, lastCheckDate, employeeSchedule)
-
             const isLate = checkIsLate(firstCheckDate, employeeSchedule)
 
             return {
@@ -301,14 +297,13 @@ export default function TimesheetPage() {
                 dateStr,
                 isWeekend: false,
                 firstIn: firstCheck.checktime,
-                lastOut: (lastCheck.checktype === 1 || lastCheck.checktype === 129) ? lastCheck.checktime
-                    : autoCheckout ? 'auto' : null,
+                lastOut: (lastCheck.checktype === 2 || lastCheck.checktype === 129) ? lastCheck.checktime : autoCheckout ? 'auto' : null,
                 workedMinutes,
                 overtimeMinutes,
-                status: (isLate && !employeeSchedule.warningsDisabled) ? 'late' as const : 'normal' as const
+                status: (isLate && !employeeSchedule?.warningsDisabled) ? 'late' as const : 'normal' as const
             }
         })
-    }, [currentMonth, filteredRecords, schedules, isVilaPeixoto])
+    }, [currentMonth, filteredRecords, schedules, isVilaPeixoto, isGengibre, selectedEmployee, employees])
 
     // Calculate monthly summary
     const calculateFullSummary = (recordsForEmployee: AttendanceRecord[]) => {
@@ -335,9 +330,9 @@ export default function TimesheetPage() {
 
             sorted.forEach(record => {
                 const time = parseISO(record.checktime).getTime()
-                const isEntry = record.checktype === 0 || record.checktype === 128 || record.checktype === 3
-                const isExit = record.checktype === 1 || record.checktype === 129 || record.checktype === 2
-                if (isEntry) lastInTime = time
+                const isEntry = record.checktype === 0 || record.checktype === 128 || record.checktype === 3 || record.checktype === 1
+                const isExit = record.checktype === 2 || record.checktype === 129
+                if (isEntry && lastInTime === null) lastInTime = time
                 else if (isExit && lastInTime !== null) {
                     workedMinutes += (time - lastInTime) / (1000 * 60)
                     lastInTime = null
@@ -351,18 +346,15 @@ export default function TimesheetPage() {
             else if (isGengibre) employeeSchedule = getGengibreSchedule(employeeName);
             else employeeSchedule = schedules.find(s => (s as any).employeeSchedules?.some((es: any) => es.workno === employeeId)) || schedules[0];
 
-            // If a past day has an open check-in (no check-out), estimate using schedule end time
-            if (lastInTime !== null && day < startOfDay(new Date())) {
-                if (employeeSchedule) {
-                    const endTime = typeof employeeSchedule.endTime === 'string'
-                        ? (() => { const [h, m] = (employeeSchedule.endTime as string).split(':').map(Number); return { hour: h, minute: m } })()
-                        : employeeSchedule.endTime as { hour: number; minute: number }
-                    const estimatedOut = new Date(day)
-                    estimatedOut.setHours(endTime.hour, endTime.minute, 0, 0)
-                    if (estimatedOut.getTime() > lastInTime) {
-                        workedMinutes += (estimatedOut.getTime() - lastInTime) / (1000 * 60)
-                        lastInTime = null
-                    }
+            if (lastInTime !== null && day < startOfDay(new Date()) && employeeSchedule) {
+                const endTime = typeof employeeSchedule.endTime === 'string'
+                    ? (() => { const [h, m] = (employeeSchedule.endTime as string).split(':').map(Number); return { hour: h, minute: m } })()
+                    : employeeSchedule.endTime as { hour: number; minute: number }
+                const estimatedOut = new Date(day)
+                estimatedOut.setHours(endTime.hour, endTime.minute, 0, 0)
+                if (estimatedOut.getTime() > lastInTime) {
+                    workedMinutes += (estimatedOut.getTime() - lastInTime) / (1000 * 60)
+                    lastInTime = null
                 }
             }
 
@@ -373,7 +365,7 @@ export default function TimesheetPage() {
             return {
                 workedMinutes: Math.round(workedMinutes),
                 overtimeMinutes,
-                status: (isLate && !employeeSchedule.warningsDisabled) ? 'late' as const : 'normal' as const
+                status: (isLate && !employeeSchedule?.warningsDisabled) ? 'late' as const : 'normal' as const
             }
         })
 
@@ -398,16 +390,8 @@ export default function TimesheetPage() {
 
     const summary = React.useMemo(() => calculateFullSummary(filteredRecords), [filteredRecords, currentMonth, schedules, isVilaPeixoto, isGengibre])
 
-    const allEmployeeSummaries = React.useMemo(() => {
-        if (selectedEmployee !== "all") return []
-        return employees.map(emp => ({
-            ...emp,
-            ...calculateFullSummary(records.filter(r => r.employeeId === emp.id))
-        }))
-    }, [employees, records, currentMonth, schedules, isVilaPeixoto, isGengibre, selectedEmployee])
-
     const formatMinutes = (minutes: number) => {
-        if (minutes === 0) return '-'
+        if (!minutes || minutes === 0) return '-'
         const h = Math.floor(minutes / 60)
         const m = minutes % 60
         return `${h}h ${m.toString().padStart(2, '0')}m`
@@ -436,9 +420,10 @@ export default function TimesheetPage() {
     const handlePreviousMonth = () => setCurrentMonth(subMonths(currentMonth, 1))
     const handleNextMonth = () => setCurrentMonth(addMonths(currentMonth, 1))
 
+    const selectedEmployeeObj = employees.find(e => e.id === selectedEmployee)
     const selectedEmployeeName = selectedEmployee === "all"
         ? "Todos os Colaboradores"
-        : employees.find(e => e.id === selectedEmployee)?.name || "Colaborador"
+        : selectedEmployeeObj?.name || "Colaborador"
 
     const handleExportPDF = () => {
         const dataToExport = monthDays
@@ -463,65 +448,97 @@ export default function TimesheetPage() {
         window.print()
     }
 
+    // Counts for roster cards
+    const punchCountByEmp = React.useMemo(() => {
+        const counts = new Map<string, number>()
+        records.forEach(r => {
+            counts.set(r.employeeId, (counts.get(r.employeeId) || 0) + 1)
+        })
+        return counts
+    }, [records])
+
     return (
         <div className="p-8 space-y-6 print:p-4">
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 print:hidden">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-50">
-                        Folha de Ponto Mensal
-                    </h1>
+                    <div className="flex items-center gap-3">
+                        {selectedEmployee !== "all" && (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setSelectedEmployee("all")}
+                                className="h-8 gap-1"
+                            >
+                                <ArrowLeft className="h-4 w-4" />
+                                Lista
+                            </Button>
+                        )}
+                        <h1 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-50">
+                            {selectedEmployee === "all" ? "Colaboradores & Folha de Ponto" : `Folha de Ponto — ${selectedEmployeeName}`}
+                        </h1>
+                    </div>
                     <p className="text-neutral-500 dark:text-neutral-400 mt-1">
-                        Relatório oficial para RH e processamento de salários
+                        {selectedEmployee === "all"
+                            ? `${employees.length} colaboradores registados • Consulta rápida e relatórios de assiduidade`
+                            : `Nº Mecanográfico: ${selectedEmployeeObj?.id || selectedEmployee} • ${selectedEmployeeObj?.scheduleName || 'Horário Padrão'}`
+                        }
                     </p>
                 </div>
                 <div className="flex gap-2">
-                    <Button variant="outline" onClick={handlePrint}>
-                        <Printer className="h-4 w-4 mr-2" />
-                        Imprimir
-                    </Button>
-                    <Button onClick={handleExportPDF} disabled={loading}>
-                        <FileDown className="h-4 w-4 mr-2" />
-                        Exportar PDF
-                    </Button>
+                    {selectedEmployee !== "all" && (
+                        <>
+                            <Button variant="outline" onClick={handlePrint}>
+                                <Printer className="h-4 w-4 mr-2" />
+                                Imprimir
+                            </Button>
+                            <Button onClick={handleExportPDF} disabled={loading}>
+                                <FileDown className="h-4 w-4 mr-2" />
+                                Exportar PDF
+                            </Button>
+                        </>
+                    )}
                 </div>
             </div>
 
-            {/* Controls */}
+            {/* Controls Bar */}
             <Card className="border-none shadow-sm print:hidden">
                 <CardContent className="pt-6">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {/* Month Selector */}
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                                Mês
+                                Mês de Referência
                             </label>
                             <div className="flex items-center gap-2">
-                                <Button variant="outline" size="icon" onClick={handlePreviousMonth}>
+                                <Button variant="outline" size="icon" onClick={handlePreviousMonth} title="Mês Anterior">
                                     <ChevronLeft className="h-4 w-4" />
                                 </Button>
-                                <div className="flex-1 text-center font-medium py-2 px-4 bg-neutral-100 dark:bg-neutral-800 rounded-md">
+                                <div className="flex-1 text-center font-semibold capitalize py-2 px-4 bg-neutral-100 dark:bg-neutral-800 rounded-md">
                                     {format(currentMonth, 'MMMM yyyy', { locale: pt })}
                                 </div>
-                                <Button variant="outline" size="icon" onClick={handleNextMonth}>
+                                <Button variant="outline" size="icon" onClick={handleNextMonth} title="Próximo Mês">
                                     <ChevronRight className="h-4 w-4" />
                                 </Button>
                             </div>
                         </div>
 
-                        {/* Employee Selector */}
+                        {/* Employee Selector Dropdown */}
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                                Colaborador
+                                Selecionar Colaborador
                             </label>
                             <Select value={selectedEmployee} onValueChange={setSelectedEmployee}>
-                                <SelectTrigger>
+                                <SelectTrigger className="w-full">
                                     <SelectValue placeholder="Selecionar colaborador" />
                                 </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">Todos os Colaboradores</SelectItem>
+                                <SelectContent className="max-h-[350px]">
+                                    <SelectItem value="all">
+                                        👥 Todos os Colaboradores ({employees.length})
+                                    </SelectItem>
                                     {employees.map(emp => (
                                         <SelectItem key={emp.id} value={emp.id}>
+                                            <span className="font-mono text-xs opacity-60 mr-2">[{emp.id}]</span>
                                             {emp.name}
                                         </SelectItem>
                                     ))}
@@ -531,13 +548,10 @@ export default function TimesheetPage() {
 
                         {/* Refresh */}
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300 flex items-center gap-2">
-                                <span className="relative flex h-2 w-2">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                                </span>
+                            <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300 flex items-center justify-between">
+                                <span>Estado da Sincronização</span>
                                 <span className="text-xs font-normal text-neutral-500">
-                                    {format(lastUpdate, 'HH:mm')}
+                                    {format(lastUpdate, 'HH:mm:ss')}
                                 </span>
                             </label>
                             <Button
@@ -547,7 +561,7 @@ export default function TimesheetPage() {
                                 disabled={loading}
                             >
                                 <RefreshCw className={cn("h-4 w-4 mr-2", loading && "animate-spin")} />
-                                Atualizar
+                                {loading ? "A carregar..." : "Atualizar Registos"}
                             </Button>
                         </div>
                     </div>
@@ -569,19 +583,78 @@ export default function TimesheetPage() {
                 </Card>
             )}
 
+            {/* VIEW 1: MASTER LIST OF ALL COLLABORATORS */}
             {selectedEmployee === "all" ? (
-                <Card className="border-dashed border-2 shadow-none py-12 text-center print:hidden">
-                    <div className="flex flex-col items-center justify-center text-neutral-500">
-                        <User className="h-12 w-12 mb-4 opacity-20" />
-                        <h3 className="text-lg font-medium text-neutral-900 dark:text-neutral-100 mb-2">
-                            Aguardando Seleção
-                        </h3>
-                        <p className="max-w-md mx-auto text-sm mb-6">
-                            Selecione um colaborador acima para visualizar a sua folha de ponto e registos individuais.
-                        </p>
+                <div className="space-y-4 print:hidden">
+                    {/* Search and stats bar */}
+                    <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
+                        <div className="relative w-full sm:w-80">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
+                            <Input
+                                placeholder="Filtrar por nome, número ou horário..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="pl-9 h-10"
+                            />
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-neutral-500 self-end sm:self-auto">
+                            <span>A mostrar <strong>{filteredEmployeesList.length}</strong> de <strong>{employees.length}</strong> colaboradores</span>
+                        </div>
                     </div>
-                </Card>
+
+                    {/* Collaborator Grid / Roster */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {filteredEmployeesList.map(emp => {
+                            const punchesInMonth = punchCountByEmp.get(emp.id) || 0
+                            return (
+                                <Card
+                                    key={emp.id}
+                                    onClick={() => setSelectedEmployee(emp.id)}
+                                    className="cursor-pointer border border-neutral-200 dark:border-neutral-800 hover:border-neutral-400 dark:hover:border-neutral-600 hover:shadow-md transition-all duration-150 group"
+                                >
+                                    <CardContent className="p-4 flex items-center justify-between">
+                                        <div className="space-y-1 min-w-0 pr-2">
+                                            <div className="flex items-center gap-2">
+                                                <Badge variant="outline" className="font-mono text-xs px-1.5 py-0 bg-neutral-100 dark:bg-neutral-800 shrink-0">
+                                                    #{emp.id}
+                                                </Badge>
+                                                <h4 className="font-semibold text-sm truncate text-neutral-900 dark:text-neutral-100 group-hover:text-primary transition-colors">
+                                                    {emp.name}
+                                                </h4>
+                                            </div>
+                                            {emp.scheduleName && (
+                                                <p className="text-xs text-neutral-500 truncate">
+                                                    ⏰ {emp.scheduleName}
+                                                </p>
+                                            )}
+                                            <div className="flex items-center gap-2 pt-1 text-xs">
+                                                {punchesInMonth > 0 ? (
+                                                    <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
+                                                        <CheckCircle2 className="h-3.5 w-3.5" />
+                                                        {punchesInMonth} picagens em {format(currentMonth, 'MMM', { locale: pt })}
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-neutral-400 text-xs">
+                                                        Sem picagens neste mês
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            className="opacity-80 group-hover:opacity-100 group-hover:bg-primary group-hover:text-white shrink-0 h-8 px-3"
+                                        >
+                                            Ver Folha →
+                                        </Button>
+                                    </CardContent>
+                                </Card>
+                            )
+                        })}
+                    </div>
+                </div>
             ) : (
+                /* VIEW 2: INDIVIDUAL EMPLOYEE TIMESHEET */
                 <>
                     {/* Summary Cards */}
                     <div className="grid gap-4 md:grid-cols-4 print:grid-cols-4 print:gap-2">
@@ -647,13 +720,26 @@ export default function TimesheetPage() {
                     {/* Timesheet Table */}
                     <Card className="border-none shadow-sm print:border print:shadow-none">
                         <CardHeader className="print:hidden">
-                            <CardTitle className="flex items-center gap-2">
-                                <User className="h-5 w-5" />
-                                Registo Diário - {selectedEmployeeName}
-                            </CardTitle>
-                            <CardDescription>
-                                {format(currentMonth, 'MMMM yyyy', { locale: pt })}
-                            </CardDescription>
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <CardTitle className="flex items-center gap-2">
+                                        <User className="h-5 w-5" />
+                                        Registo Diário — {selectedEmployeeName}
+                                    </CardTitle>
+                                    <CardDescription>
+                                        {format(currentMonth, 'MMMM yyyy', { locale: pt })} • Nº {selectedEmployee}
+                                    </CardDescription>
+                                </div>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setSelectedEmployee("all")}
+                                    className="gap-1.5"
+                                >
+                                    <Users className="h-4 w-4" />
+                                    Ver Todos os Colaboradores
+                                </Button>
+                            </div>
                         </CardHeader>
                         <CardContent className="print:p-0">
                             <div className="rounded-md border overflow-hidden">
@@ -678,7 +764,7 @@ export default function TimesheetPage() {
                                                 </td>
                                             </tr>
                                         ) : (
-                                            monthDays.map((day, index) => (
+                                            monthDays.map((day) => (
                                                 <tr
                                                     key={day.dateStr}
                                                     className={cn(
@@ -698,7 +784,7 @@ export default function TimesheetPage() {
                                                         {day.firstIn ? (
                                                             <span className={cn(
                                                                 "font-mono",
-                                                                day.status === 'late' && "text-orange-600"
+                                                                day.status === 'late' && "text-orange-600 font-semibold"
                                                             )}>
                                                                 {format(parseISO(day.firstIn), 'HH:mm')}
                                                             </span>
@@ -742,10 +828,10 @@ export default function TimesheetPage() {
                                                 TOTAL DO MÊS:
                                             </td>
                                             <td className="px-3 py-3 text-center font-bold">
-                                                {summary.totalWorked}
+                                                {formatMinutes(summary.totalWorked)}
                                             </td>
                                             <td className="px-3 py-3 text-center font-bold text-orange-600">
-                                                {summary.totalOvertime}
+                                                {formatMinutes(summary.totalOvertime)}
                                             </td>
                                             <td className="print:hidden"></td>
                                         </tr>

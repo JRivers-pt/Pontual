@@ -53,6 +53,9 @@ model User {
   
   // Local/Synced Attendance Logs (from Suprema BioStar or local agents)
   attendanceLogs AttendanceLog[]
+
+  // Permanent employee roster
+  employees Employee[]
 }
 
 model Schedule {
@@ -133,4 +136,23 @@ model AuditLog {
 
   @@index([clientId, createdAt])
   @@index([actorId, createdAt])
+}
+
+model Employee {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  workno       String   // Registration number — matches AttendanceLog.workno
+  name         String
+  cardNumber   String?
+  active       Boolean  @default(true)
+  scheduleCode String?
+  scheduleName String?
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([userId, workno])
+  @@index([userId, active])
 }

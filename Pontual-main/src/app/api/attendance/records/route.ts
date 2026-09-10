@@ -84,13 +84,21 @@ export async function POST(request: NextRequest) {
                 if (endTime) whereClause.checktime.lte = new Date(endTime);
             }
 
-            const totalCount = await prisma.attendanceLog.count({ where: whereClause });
-            const logs = await prisma.attendanceLog.findMany({
-                where: whereClause,
-                orderBy: { checktime: 'asc' },
-                skip: (page - 1) * perPage,
-                take: perPage
-            });
+            const [totalCount, logs, employees] = await Promise.all([
+                prisma.attendanceLog.count({ where: whereClause }),
+                prisma.attendanceLog.findMany({
+                    where: whereClause,
+                    orderBy: { checktime: 'asc' },
+                    skip: (page - 1) * perPage,
+                    take: perPage
+                }),
+                prisma.employee.findMany({
+                    where: { userId: user.id },
+                    select: { workno: true, name: true }
+                })
+            ]);
+
+            const empNameMap = new Map(employees.map(e => [e.workno, e.name]));
 
             return NextResponse.json({
                 header: {
@@ -102,20 +110,23 @@ export async function POST(request: NextRequest) {
                 },
                 payload: {
                     count: totalCount,
-                    list: logs.map(l => ({
-                        uuid: l.id,
-                        checktype: l.checktype,
-                        checktime: l.checktime.toISOString(),
-                        device: {
-                            serial_number: l.deviceSn || 'BioEntry_W2',
-                            name: l.deviceName || 'BioEntry W2'
-                        },
-                        employee: {
-                            first_name: l.employeeName || 'Colaborador',
-                            last_name: '',
-                            workno: l.workno
-                        }
-                    })),
+                    list: logs.map(l => {
+                        const fullName = empNameMap.get(l.workno) || l.employeeName || `Colaborador ${l.workno}`;
+                        return {
+                            uuid: l.id,
+                            checktype: l.checktype,
+                            checktime: l.checktime.toISOString(),
+                            device: {
+                                serial_number: l.deviceSn || 'BioEntry_W2',
+                                name: l.deviceName || 'BioEntry W2'
+                            },
+                            employee: {
+                                first_name: fullName,
+                                last_name: '',
+                                workno: l.workno
+                            }
+                        };
+                    }),
                     page: page,
                     perPage: perPage,
                     pageCount: Math.ceil(totalCount / perPage) || 1

@@ -159,50 +159,31 @@ export async function getAttendanceRecords(
 
 export async function getEmployees() {
   try {
-    // 1. Get managed worknos from our database
-    const managedRes = await fetch('/api/employees');
-    const { worknos: managedWorknos } = await managedRes.json().catch(() => ({ worknos: [] }));
-
-    const endDate = new Date();
-    const startDate = new Date();
-    startDate.setMonth(startDate.getMonth() - 1);
-
-    const records = await getAttendanceRecords(
-      startDate.toISOString().replace('Z', '+00:00'),
-      endDate.toISOString().replace('Z', '+00:00')
-    );
-
-    const employeesMap = new Map();
-    records.payload.list.forEach(record => {
-      const key = record.employee.workno;
-      
-      // 2. Only include if in the managed list
-      if (managedWorknos.length > 0 && !managedWorknos.includes(key)) {
-        return;
-      }
-
-      if (!employeesMap.has(key)) {
-        employeesMap.set(key, {
-          workno: record.employee.workno,
-          firstName: record.employee.first_name,
-          lastName: record.employee.last_name,
-          fullName: `${record.employee.first_name} ${record.employee.last_name}`
-        });
-      }
-    });
-
-    return Array.from(employeesMap.values());
+    const res = await fetch('/api/employees');
+    if (!res.ok) throw new Error(`Failed to fetch employees: ${res.status}`);
+    const data = await res.json();
+    return (data.employees || []).map((e: any) => ({
+      workno: e.workno,
+      name: e.name,
+      firstName: e.name.split(' ')[0] || '',
+      lastName: e.name.split(' ').slice(1).join(' ') || '',
+      fullName: e.name,
+      scheduleCode: e.scheduleCode,
+      scheduleName: e.scheduleName
+    }));
   } catch (error) {
     console.error('Error fetching employees:', error);
-    throw error;
+    return [];
   }
 }
 
 export async function getManagedWorknos(): Promise<string[]> {
-  const response = await fetch('/api/employees');
-  if (!response.ok) return [];
-  const data = await response.json();
-  return data.worknos || [];
+  try {
+    const employees = await getEmployees();
+    return employees.map(e => e.workno);
+  } catch {
+    return [];
+  }
 }
 
 export async function getSchedules() {
