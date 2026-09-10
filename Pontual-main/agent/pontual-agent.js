@@ -15,7 +15,8 @@ const mysql = require('mysql2/promise');
 const fetch = require('node-fetch');
 
 const configPath = path.join(__dirname, 'config.json');
-const statePath = path.join(__dirname, 'state.json');
+const stateDir = process.env.STATE_DIR || __dirname;
+const statePath = path.join(stateDir, 'state.json');
 
 if (!fs.existsSync(configPath)) {
   console.error('[ERRO] Ficheiro config.json nao encontrado!');
@@ -28,16 +29,24 @@ let state = { lastEventId: 0, lastSyncTime: null };
 if (fs.existsSync(statePath)) {
   try {
     state = JSON.parse(fs.readFileSync(statePath, 'utf8'));
+    console.log(`[Estado] Ultimo Event ID processado: ${state.lastEventId}`);
   } catch (e) {}
 }
 
 function saveState() {
-  fs.writeFileSync(statePath, JSON.stringify(state, null, 2));
+  try {
+    fs.writeFileSync(statePath, JSON.stringify(state, null, 2));
+  } catch (e) {
+    console.error('[ERRO] Falha ao gravar state.json:', e.message);
+  }
 }
 
 let dbPool = null;
+let isSyncing = false;
 
 async function syncEvents() {
+  if (isSyncing) return;
+  isSyncing = true;
   try {
     if (!dbPool) {
       dbPool = mysql.createPool({
@@ -116,6 +125,8 @@ async function syncEvents() {
 
   } catch (err) {
     console.error('❌ [Erro Sincronizacao]', err.message);
+  } finally {
+    isSyncing = false;
   }
 }
 

@@ -145,13 +145,15 @@ model Employee {
 
   workno       String   // Registration number — matches AttendanceLog.workno
   name         String
-  cardNumber   String?
-  active       Boolean  @default(true)
-  scheduleCode String?
-  scheduleName String?
+  cardNumber          String?
+  active              Boolean  @default(true)
+  scheduleCode        String?
+  scheduleName        String?
+  fingerprintTemplate String?  // Base64 / Hex template from Suprema BioMini USB
+  numFingerprints     Int      @default(0)
 
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 
   @@unique([userId, workno])
   @@index([userId, active])

@@ -43,6 +43,12 @@ export function Sidebar({ className }: SidebarProps) {
             active: pathname === "/",
         },
         {
+            label: "Colaboradores",
+            icon: Users,
+            href: "/employees",
+            active: pathname === "/employees",
+        },
+        {
             label: "Relatórios",
             icon: FileText,
             href: "/reports",

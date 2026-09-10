@@ -77,20 +77,22 @@ function getCheckTypeInfo(type: number) {
 
 // Períodos pré-definidos
 const PRESET_PERIODS = [
-    { label: "Últimos 7 dias", value: "7d", getDates: () => ({ from: addDays(new Date(), -7), to: endOfDay(new Date()) }) },
+    { label: "Ano Corrente (2026)", value: "thisYear", getDates: () => ({ from: new Date(2026, 0, 1), to: endOfDay(new Date()) }) },
+    { label: "Últimos 6 meses", value: "6m", getDates: () => ({ from: addDays(new Date(), -180), to: endOfDay(new Date()) }) },
+    { label: "Últimos 3 meses", value: "3m", getDates: () => ({ from: addDays(new Date(), -90), to: endOfDay(new Date()) }) },
     { label: "Últimos 30 dias", value: "30d", getDates: () => ({ from: addDays(new Date(), -30), to: endOfDay(new Date()) }) },
+    { label: "Julho 2026", value: "jul2026", getDates: () => ({ from: new Date(2026, 6, 1), to: new Date(2026, 6, 31, 23, 59, 59) }) },
+    { label: "Junho 2026", value: "jun2026", getDates: () => ({ from: new Date(2026, 5, 1), to: new Date(2026, 5, 30, 23, 59, 59) }) },
+    { label: "Maio 2026", value: "may2026", getDates: () => ({ from: new Date(2026, 4, 1), to: new Date(2026, 4, 31, 23, 59, 59) }) },
+    { label: "Abril 2026", value: "apr2026", getDates: () => ({ from: new Date(2026, 3, 1), to: new Date(2026, 3, 30, 23, 59, 59) }) },
     { label: "Este mês", value: "thisMonth", getDates: () => ({ from: startOfMonth(new Date()), to: endOfDay(new Date()) }) },
     { label: "Mês passado", value: "lastMonth", getDates: () => ({ from: startOfMonth(subMonths(new Date(), 1)), to: endOfMonth(subMonths(new Date(), 1)) }) },
-    { label: "Últimos 3 meses", value: "3m", getDates: () => ({ from: addDays(new Date(), -90), to: endOfDay(new Date()) }) },
-    { label: "Últimos 6 meses", value: "6m", getDates: () => ({ from: addDays(new Date(), -180), to: endOfDay(new Date()) }) },
-    { label: "Este ano", value: "thisYear", getDates: () => ({ from: new Date(new Date().getFullYear(), 0, 1), to: endOfDay(new Date()) }) },
-    { label: "Mês Específico...", value: "specificMonth", getDates: () => ({ from: startOfMonth(new Date()), to: endOfMonth(new Date()) }) },
 ]
 
 export default function ReportsPage() {
     const { data: session } = useSession()
     const [date, setDate] = React.useState<DateRange | undefined>({
-        from: addDays(new Date(), -30),
+        from: new Date(2026, 0, 1),
         to: endOfDay(new Date()),
     })
     const [records, setRecords] = React.useState<AttendanceRecord[]>([])
@@ -98,7 +100,7 @@ export default function ReportsPage() {
     const [loading, setLoading] = React.useState(false)
     const [error, setError] = React.useState<string | null>(null)
     const [selectedEmployee, setSelectedEmployee] = React.useState<string>("all")
-    const [selectedPeriod, setSelectedPeriod] = React.useState<string>("30d")
+    const [selectedPeriod, setSelectedPeriod] = React.useState<string>("thisYear")
     const [activeTab, setActiveTab] = React.useState<string>("summary")
     const [rateLimitCountdown, setRateLimitCountdown] = React.useState<number>(0)
     const [reportHeader, setReportHeader] = React.useState<string | undefined>(undefined)
@@ -108,7 +110,7 @@ export default function ReportsPage() {
     const [reportType, setReportType] = React.useState<"summary" | "detailed" | "matrix">("summary")
     const [managedWorknos, setManagedWorknos] = React.useState<string[]>([])
 
-    // Fetch user profile for settings
+    // Fetch user profile and master employee list on mount
     React.useEffect(() => {
         fetch('/api/user/profile')
             .then(res => res.json())
@@ -118,35 +120,32 @@ export default function ReportsPage() {
             })
             .catch(err => console.error("Error fetching profile", err));
 
-        // Fetch schedules mapping and managed worknos
+        // Fetch schedules and full master employee roster
         Promise.all([
-            fetch('/api/schedules').then(res => res.json()),
-            fetch('/api/employees').then(res => res.json())
+            fetch('/api/schedules').then(res => res.json()).catch(() => []),
+            fetch('/api/employees').then(res => res.json()).catch(() => ({ employees: [] }))
         ]).then(([schedulesData, employeesData]) => {
             const map = new Map();
-            schedulesData.forEach((sched: any) => {
-                sched.employeeSchedules?.forEach((es: any) => {
-                    map.set(es.workno, sched);
+            if (Array.isArray(schedulesData)) {
+                schedulesData.forEach((sched: any) => {
+                    sched.employeeSchedules?.forEach((es: any) => {
+                        map.set(es.workno, sched);
+                    });
                 });
-            });
+            }
             setSchedulesMap(map);
-            setManagedWorknos(employeesData.worknos || []);
+
+            const emps = employeesData.employees || [];
+            if (emps.length > 0) {
+                setAllEmployees(emps.map((e: any) => ({
+                    id: e.workno,
+                    name: e.name,
+                    recordCount: 0
+                })));
+                setManagedWorknos(emps.map((e: any) => e.workno));
+            }
         }).catch(err => console.error("Error fetching initial data", err));
     }, []);
-
-    // Employee list is populated from records fetched manually by the user
-    // (No auto-fetch on load to avoid CrossChex API rate limit FREQUENT_REQUEST errors)
-
-    // Contador de rate limit
-    React.useEffect(() => {
-        if (rateLimitCountdown <= 0) return;
-
-        const timer = setInterval(() => {
-            setRateLimitCountdown(prev => prev - 1);
-        }, 1000);
-
-        return () => clearInterval(timer);
-    }, [rateLimitCountdown]);
 
     // Juntar a lista mestre de colaboradores com os dados dos registos atuais
     const employees = React.useMemo<Employee[]>(() => {
@@ -174,22 +173,17 @@ export default function ReportsPage() {
 
             const response = await getAttendanceRecords(beginTime, endTime);
 
-            const allFetchedRecords: AttendanceRecord[] = response.payload.list.map(item => ({
+            const allFetchedRecords: AttendanceRecord[] = (response.payload?.list || []).map((item: any) => ({
                 uuid: item.uuid,
                 employeeName: `${item.employee.first_name} ${item.employee.last_name}`.trim(),
                 employeeId: item.employee.workno,
                 checktime: item.checktime,
                 checktype: item.checktype,
-                deviceName: item.device.name,
-                deviceSerial: item.device.serial_number
+                deviceName: item.device?.name || 'Terminal',
+                deviceSerial: item.device?.serial_number || 'Suprema'
             }));
 
-            // Filter by managed worknos if list is available
-            const filteredByManaged = managedWorknos.length > 0 
-                ? allFetchedRecords.filter(r => managedWorknos.includes(r.employeeId))
-                : allFetchedRecords;
-
-            setRecords(filteredByManaged);
+            setRecords(allFetchedRecords);
         } catch (err: any) {
             if (err.message && err.message.includes("Limite da API CrossChex")) {
                 setRateLimitCountdown(30);
@@ -201,8 +195,10 @@ export default function ReportsPage() {
         }
     }, [date]);
 
-    // Auto-fetch removed — triggered manually via 'Atualizar' button
-    // to avoid CrossChex FREQUENT_REQUEST rate limit errors on page load
+    // Auto-fetch data on mount and whenever the date range changes
+    React.useEffect(() => {
+        fetchRecords();
+    }, [fetchRecords]);
 
     // Filtrar registos pelo colaborador selecionado e excluir Julio (ID 8) para VP
     const filteredRecords = React.useMemo(() => {
@@ -558,20 +554,25 @@ export default function ReportsPage() {
                                 <SelectTrigger className="w-full">
                                     <SelectValue placeholder="Selecionar colaborador" />
                                 </SelectTrigger>
-                                <SelectContent>
+                                <SelectContent className="max-h-[350px]">
                                     <SelectItem value="all">
                                         <div className="flex items-center gap-2">
                                             <Users className="h-4 w-4" />
-                                            Todos os Colaboradores
+                                            Todos os Colaboradores ({employees.length})
                                         </div>
                                     </SelectItem>
                                     {employees.map(emp => (
                                         <SelectItem key={emp.id} value={emp.id}>
-                                            <div className="flex items-center justify-between gap-4">
-                                                <span>{emp.name}</span>
-                                                <Badge variant="secondary" className="text-xs">
-                                                    {emp.recordCount} reg.
-                                                </Badge>
+                                            <div className="flex items-center justify-between gap-3">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-mono text-xs opacity-60">[{emp.id}]</span>
+                                                    <span>{emp.name}</span>
+                                                </div>
+                                                {emp.recordCount > 0 && (
+                                                    <Badge variant="secondary" className="text-xs bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40">
+                                                        {emp.recordCount} reg.
+                                                    </Badge>
+                                                )}
                                             </div>
                                         </SelectItem>
                                     ))}
