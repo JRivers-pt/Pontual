@@ -241,7 +241,7 @@ export async function exportToPDF(data: AttendanceData[], period: string, header
         const has4Punches = data.some(d => d.in1 !== undefined || d.out1 !== undefined || d.in2 !== undefined || d.out2 !== undefined);
 
         const tableColumn = has4Punches
-            ? ["Data", "Dia", "Entr. Manhã", "Saída Almoço", "Entr. Tarde", "Saída Fim", "Duração", "H. Extra", "Estado"]
+            ? ["Data", "Dia", "Entr. Manhã", "Saída Almoço", "Entr. Tarde", "Saída Fim", "Duração", "H. Extra", "Observações"]
             : ["Data", "Funcionário", "Dep.", "Entrada", "Saída", "Duração", "H. Extra"];
 
         const tableRows = data.map(ticket => {
@@ -255,7 +255,7 @@ export async function exportToPDF(data: AttendanceData[], period: string, header
                     ticket.out2 || '-',
                     ticket.duracao || '-',
                     ticket.horasExtra || '-',
-                    ticket.estado || '-'
+                    ticket.observacoes || ticket.estado || '-'
                 ];
             }
             return [
@@ -279,10 +279,29 @@ export async function exportToPDF(data: AttendanceData[], period: string, header
             columnStyles: has4Punches ? {
                 0: { halign: 'left', cellWidth: 22 },
                 1: { halign: 'left', cellWidth: 15 },
-                6: { fontStyle: 'bold' }
+                6: { fontStyle: 'bold' },
+                8: { halign: 'left', cellWidth: 26 }
             } : {},
             alternateRowStyles: { fillColor: [248, 250, 252] }
         });
+
+        if (has4Punches) {
+            const finalY = (doc as any).lastAutoTable?.finalY || 200;
+            const sigY = Math.max(finalY + 15, 255);
+            if (sigY > 275) doc.addPage();
+            const lineY = sigY > 275 ? 40 : sigY;
+
+            doc.setFontSize(9);
+            doc.setTextColor(40);
+            doc.text("__________________________", 35, lineY);
+            doc.text("Assinatura do Colaborador", 38, lineY + 5);
+            doc.text("__________________________", 125, lineY);
+            doc.text("Assinatura do Responsável", 128, lineY + 5);
+
+            doc.setFontSize(7);
+            doc.setTextColor(130);
+            doc.text(`Documento gerado automaticamente por Pontualidade.pt em ${new Date().toLocaleDateString('pt-PT')} ${new Date().toLocaleTimeString('pt-PT')}`, 14, 287);
+        }
     }
 
     doc.save(`relatorio_${type}_${new Date().getTime()}.pdf`);
