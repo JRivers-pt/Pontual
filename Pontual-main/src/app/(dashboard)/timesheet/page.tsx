@@ -198,24 +198,34 @@ export default function TimesheetPage() {
         fetchMonthData()
     }, [fetchMonthData])
 
+    // Helper for flexible workno matching (e.g. 0700 === 700)
+    const matchEmpId = React.useCallback((rId: string, sId: string) => {
+        if (!rId || !sId) return false
+        const a = String(rId).trim()
+        const b = String(sId).trim()
+        return a === b ||
+            a.padStart(4, '0') === b.padStart(4, '0') ||
+            a.replace(/^0+/, '') === b.replace(/^0+/, '')
+    }, [])
+
     // Filter records by selected employee
     const filteredRecords = React.useMemo(() => {
         if (selectedEmployee === "all") return records
-        return records.filter(r => r.employeeId === selectedEmployee)
-    }, [records, selectedEmployee])
+        return records.filter(r => matchEmpId(r.employeeId, selectedEmployee))
+    }, [records, selectedEmployee, matchEmpId])
 
     // Selected employee schedule object
     const currentEmployeeObj = React.useMemo(() => {
-        return employees.find(e => e.id === selectedEmployee)
-    }, [employees, selectedEmployee])
+        return employees.find(e => matchEmpId(e.id, selectedEmployee))
+    }, [employees, selectedEmployee, matchEmpId])
 
     const currentEmployeeSchedule = React.useMemo(() => {
         if (!selectedEmployee || selectedEmployee === "all") return undefined
         const employeeName = currentEmployeeObj?.name || ''
         if (isVilaPeixoto) return getVilaPeixotoSchedule(employeeName)
         if (isGengibre) return getGengibreSchedule(employeeName)
-        return schedules.find(s => (s as any).employeeSchedules?.some((es: any) => es.workno === selectedEmployee)) || schedules[0]
-    }, [selectedEmployee, currentEmployeeObj, schedules, isVilaPeixoto, isGengibre])
+        return schedules.find(s => (s as any).employeeSchedules?.some((es: any) => matchEmpId(es.workno, selectedEmployee))) || schedules[0]
+    }, [selectedEmployee, currentEmployeeObj, schedules, isVilaPeixoto, isGengibre, matchEmpId])
 
     // Build daily records for the month for the selected employee with 4 punch slots (In1, Out1, In2, Out2)
     const monthDays = React.useMemo<DayRecord[]>(() => {
@@ -569,6 +579,32 @@ export default function TimesheetPage() {
                                 <Button variant="outline" size="icon" onClick={handleNextMonth} title="Próximo Mês">
                                     <ChevronRight className="h-4 w-4" />
                                 </Button>
+                            </div>
+                            <div className="flex flex-wrap gap-1.5 pt-1">
+                                {[
+                                    { label: "Mês Atual", date: new Date() },
+                                    { label: "Jul 2026", date: new Date(2026, 6, 1) },
+                                    { label: "Jun 2026", date: new Date(2026, 5, 1) },
+                                    { label: "Mai 2026", date: new Date(2026, 4, 1) },
+                                    { label: "Abr 2026", date: new Date(2026, 3, 1) },
+                                ].map((preset) => {
+                                    const isSelected = format(currentMonth, 'yyyy-MM') === format(preset.date, 'yyyy-MM')
+                                    return (
+                                        <button
+                                            key={preset.label}
+                                            type="button"
+                                            onClick={() => setCurrentMonth(preset.date)}
+                                            className={cn(
+                                                "text-xs px-2 py-0.5 rounded font-medium transition-all border",
+                                                isSelected
+                                                    ? "bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900 border-transparent shadow-xs"
+                                                    : "bg-neutral-100 hover:bg-neutral-200 text-neutral-600 dark:bg-neutral-800 dark:hover:bg-neutral-700 dark:text-neutral-300 border-transparent"
+                                            )}
+                                        >
+                                            {preset.label}
+                                        </button>
+                                    )
+                                })}
                             </div>
                         </div>
 

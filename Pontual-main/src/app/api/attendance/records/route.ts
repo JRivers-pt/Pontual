@@ -101,7 +101,12 @@ export async function POST(request: NextRequest) {
                 })
             ]);
 
-            const empNameMap = new Map(employees.map(e => [e.workno, e.name]));
+            const empNameMap = new Map<string, string>();
+            employees.forEach(e => {
+                empNameMap.set(e.workno, e.name);
+                empNameMap.set(e.workno.padStart(4, '0'), e.name);
+                empNameMap.set(e.workno.replace(/^0+/, ''), e.name);
+            });
 
             return NextResponse.json({
                 header: {
@@ -114,7 +119,11 @@ export async function POST(request: NextRequest) {
                 payload: {
                     count: totalCount,
                     list: logs.map(l => {
-                        const fullName = empNameMap.get(l.workno) || l.employeeName || `Colaborador ${l.workno}`;
+                        const fullName = empNameMap.get(l.workno) || 
+                                         empNameMap.get(l.workno.padStart(4, '0')) || 
+                                         empNameMap.get(l.workno.replace(/^0+/, '')) || 
+                                         l.employeeName || 
+                                         `Colaborador ${l.workno}`;
                         return {
                             uuid: l.id,
                             checktype: l.checktype,
@@ -126,7 +135,7 @@ export async function POST(request: NextRequest) {
                             employee: {
                                 first_name: fullName,
                                 last_name: '',
-                                workno: l.workno
+                                workno: l.workno.padStart(4, '0')
                             }
                         };
                     }),
