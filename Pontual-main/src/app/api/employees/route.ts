@@ -2,6 +2,14 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 
+async function getEffectiveUserId(sessionUserId: string) {
+    const user = await prisma.user.findUnique({
+        where: { id: sessionUserId },
+        select: { id: true, parentUserId: true }
+    });
+    return user?.parentUserId || sessionUserId;
+}
+
 /**
  * GET /api/employees
  * Returns the employee list for the logged-in client.
@@ -11,7 +19,7 @@ export const GET = auth(async (req) => {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const userId = req.auth.user.id;
+    const userId = await getEffectiveUserId(req.auth.user.id);
 
     try {
         const employees = await prisma.employee.findMany({
@@ -76,7 +84,7 @@ export const POST = auth(async (req) => {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const userId = req.auth.user.id;
+    const userId = await getEffectiveUserId(req.auth.user.id);
 
     try {
         const body = await req.json();
@@ -188,7 +196,7 @@ export const PUT = auth(async (req) => {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const userId = req.auth.user.id;
+    const userId = await getEffectiveUserId(req.auth.user.id);
 
     try {
         const body = await req.json();
@@ -268,7 +276,7 @@ export const DELETE = auth(async (req) => {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const userId = req.auth.user.id;
+    const userId = await getEffectiveUserId(req.auth.user.id);
     const url = new URL(req.url);
     const workno = url.searchParams.get("workno");
 

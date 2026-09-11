@@ -75,8 +75,11 @@ export async function POST(request: NextRequest) {
         }
 
         // If client is using Suprema / Local Sync Agent
-        if (user.biometricProvider === 'SUPREMA') {
-            const whereClause: any = { userId: user.id };
+        const effectiveUserId = user.parentUserId || user.id;
+        const isSupremaClient = user.biometricProvider === 'SUPREMA' || user.company?.includes('Manuel Bernardes') || user.company?.includes('Maristas');
+
+        if (isSupremaClient || user.biometricProvider === 'SUPREMA') {
+            const whereClause: any = { userId: effectiveUserId };
             
             if (beginTime || endTime) {
                 whereClause.checktime = {};
@@ -93,7 +96,7 @@ export async function POST(request: NextRequest) {
                     take: perPage
                 }),
                 prisma.employee.findMany({
-                    where: { userId: user.id },
+                    where: { userId: effectiveUserId },
                     select: { workno: true, name: true }
                 })
             ]);

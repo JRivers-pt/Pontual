@@ -8,15 +8,17 @@ export const GET = auth(async (req) => {
     }
 
     try {
+        const user = await prisma.user.findUnique({ where: { id: req.auth.user.id } });
+        const effectiveUserId = user?.parentUserId || req.auth.user.id;
+
         let schedules = await prisma.schedule.findMany({
-            where: { userId: req.auth.user.id },
+            where: { userId: effectiveUserId },
             include: {
                 employeeSchedules: true
             }
         });
 
         // AUTO-SEED FOR VILA PEIXOTO
-        const user = await prisma.user.findUnique({ where: { id: req.auth.user.id } });
         const companyName = user?.company;
 
         if (schedules.length === 0 && companyName && companyName.toLowerCase().includes("vila peixoto")) {
@@ -24,23 +26,17 @@ export const GET = auth(async (req) => {
 
             // 1. Create Schedules
             const s12_22 = await prisma.schedule.create({
-                data: { name: "Turno 12h-22h", startTime: "12:00", endTime: "22:00", lateTolerance: 15, userId: user!.id }
+                data: { name: "Turno 12h-22h", startTime: "12:00", endTime: "22:00", lateTolerance: 15, userId: effectiveUserId }
             });
             const s9_18 = await prisma.schedule.create({
-                data: { name: "Turno 9h-18h", startTime: "09:00", endTime: "18:00", lateTolerance: 15, userId: user!.id }
+                data: { name: "Turno 9h-18h", startTime: "09:00", endTime: "18:00", lateTolerance: 15, userId: effectiveUserId }
             });
             const s7_16 = await prisma.schedule.create({
-                data: { name: "Turno Júlio 7h-16h", startTime: "07:00", endTime: "16:00", lateTolerance: 15, userId: user!.id }
+                data: { name: "Turno Júlio 7h-16h", startTime: "07:00", endTime: "16:00", lateTolerance: 15, userId: effectiveUserId }
             });
 
-            // 2. Fetch Employees from CrossChex to get IDs
-            // Note: Since this is an API route, we'd normally call our own internal function or the CrossChex API directly
-            // But to keep it simple and robust, we'll wait for the first assignment or use a heuristic.
-            // ACTUALLY, we can just return the newly created schedules for now.
-            // The mapping might need the employee list.
-
             schedules = await prisma.schedule.findMany({
-                where: { userId: req.auth.user.id },
+                where: { userId: effectiveUserId },
                 include: { employeeSchedules: true }
             });
         }
