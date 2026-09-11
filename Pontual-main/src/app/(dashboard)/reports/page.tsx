@@ -472,7 +472,7 @@ export default function ReportsPage() {
                         funcionario: s.employeeName,
                         id: s.employeeId,
                         departamento: (s as any).department || "-",
-                        entrada: format(parseISO(s.firstIn), 'HH:mm'),
+                        entrada: s.isPlaceholder ? '-' : format(parseISO(s.firstIn), 'HH:mm'),
                         saida: s.lastOut ? format(parseISO(s.lastOut), 'HH:mm') : '-',
                         movimentos: s.allRecords.map((r: AttendanceRecord) => format(parseISO(r.checktime), 'HH:mm')).join(', '),
                         duracao: s.duration,
@@ -493,7 +493,7 @@ export default function ReportsPage() {
                     funcionario: s.employeeName,
                     id_funcionario: s.employeeId,
                     departamento: (s as any).department || "-",
-                    entrada: format(parseISO(s.firstIn), 'HH:mm'),
+                    entrada: s.isPlaceholder ? '-' : format(parseISO(s.firstIn), 'HH:mm'),
                     saida: s.lastOut ? format(parseISO(s.lastOut), 'HH:mm') : '-',
                     movimentos: s.allRecords.map((r: AttendanceRecord) => format(parseISO(r.checktime), 'HH:mm')).join(', '),
                     duracao_total: s.duration,
@@ -866,11 +866,17 @@ export default function ReportsPage() {
                                                             </div>
                                                         </TableCell>
                                                         <TableCell className="text-center">
-                                                            <div className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700 border border-green-100">
-                                                                {format(parseISO(summary.firstIn), 'HH:mm')}
-                                                            </div>
-                                                            {summary.isLate && (
-                                                                <div className="w-2 h-2 rounded-full bg-red-500 inline-block ml-1" title="Atraso" />
+                                                            {summary.isPlaceholder ? (
+                                                                <span className="text-[10px] text-neutral-400 italic">Sem entrada</span>
+                                                            ) : (
+                                                                <>
+                                                                    <div className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700 border border-green-100">
+                                                                        {format(parseISO(summary.firstIn), 'HH:mm')}
+                                                                    </div>
+                                                                    {summary.isLate && (
+                                                                        <div className="w-2 h-2 rounded-full bg-red-500 inline-block ml-1" title="Atraso" />
+                                                                    )}
+                                                                </>
                                                             )}
                                                         </TableCell>
                                                         <TableCell className="text-center">
