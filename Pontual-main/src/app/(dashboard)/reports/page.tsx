@@ -185,7 +185,7 @@ export default function ReportsPage() {
 
             setRecords(allFetchedRecords);
         } catch (err: any) {
-            if (err.message && err.message.includes("Limite da API CrossChex")) {
+            if (err.message && (err.message.includes("Limite") || err.message.includes("FREQUENT_REQUEST") || err.message.includes("CrossChex"))) {
                 setRateLimitCountdown(30);
             }
             setError(err.message || 'Erro ao carregar registos');

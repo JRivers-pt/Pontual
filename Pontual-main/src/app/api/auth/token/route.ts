@@ -18,12 +18,16 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const user = await prisma.user.findUnique({
-            where: { id: session.user.id }
-        });
+        if (!user) {
+            return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        }
 
-        if (!user || !user.apiKey || !user.apiSecret) {
-            return NextResponse.json({ error: 'CrossChex credentials not configured' }, { status: 400 });
+        // If user uses Suprema, SyncToken, local DB, or has no CrossChex credentials
+        if (user.biometricProvider === 'SUPREMA' || user.syncToken || !!user.parentUserId || !user.apiKey || !user.apiSecret) {
+            return NextResponse.json({
+                token: 'internal_session_token',
+                expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+            });
         }
 
         const requestBody = {

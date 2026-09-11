@@ -110,7 +110,7 @@ export async function getAttendanceRecords(
       if (data.header?.nameSpace === "System" && data.payload?.type === "FREQUENT_REQUEST") {
         retries++;
         if (retries >= MAX_RETRIES) {
-          throw new Error("Limite da API CrossChex excedido. Tente novamente em 30 segundos.");
+          throw new Error("Limite de pedidos à API excedido. Tente novamente em 30 segundos.");
         }
         // Wait 31 seconds and retry
         if (onProgress) onProgress(-1); // Signal: waiting for rate limit

@@ -74,11 +74,18 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ success: true, school: user.company || user.name, inserted });
         }
 
-        // If client is using Suprema / Local Sync Agent
+        // If client is using Suprema, SyncToken, sub-user, or has no CrossChex credentials
         const effectiveUserId = user.parentUserId || user.id;
-        const isSupremaClient = user.biometricProvider === 'SUPREMA' || user.company?.includes('Manuel Bernardes') || user.company?.includes('Maristas');
+        const isSupremaClient = user.biometricProvider === 'SUPREMA' || 
+                                user.syncToken || 
+                                !!user.parentUserId || 
+                                !user.apiKey || 
+                                !user.apiSecret || 
+                                user.company?.includes('Manuel Bernardes') || 
+                                user.company?.includes('Maristas') ||
+                                user.company?.includes('CMB');
 
-        if (isSupremaClient || user.biometricProvider === 'SUPREMA') {
+        if (isSupremaClient) {
             const whereClause: any = { userId: effectiveUserId };
             
             if (beginTime || endTime) {
