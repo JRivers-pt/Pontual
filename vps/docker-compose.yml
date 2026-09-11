@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+
+  # ─── Base de dados CardPass3 ───────────────────────────────
+  mysql-pontual:
+    image: mysql:8.0
+    container_name: pontual-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: PontualRoot2026!
+      MYSQL_DATABASE: cardpass3
+      MYSQL_USER: pontual
+      MYSQL_PASSWORD: Pontual2026!
+    volumes:
+      - pontual_mysql_data:/var/lib/mysql
+      - ./backups:/backups          # pasta local /opt/pontual/backups
+    # Apenas acessivel localmente (via Tailscale se necessario)
+    ports:
+      - "127.0.0.1:3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "pontual", "-pPontual2026!"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── Agente Pontual (sync MySQL -> pontualidade.pt) ────────
+  pontual-agent:
+    image: node:20-alpine
+    container_name: pontual-agent
+    restart: always
+    working_dir: /app
+    volumes:
+      - ./agent:/app
+    command: sh -c "npm install --silent && node pontual-agent.js"
+    depends_on:
+      mysql-pontual:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=production
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  pontual_mysql_data:
+    driver: local

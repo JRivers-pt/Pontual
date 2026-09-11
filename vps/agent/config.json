@@ -1,0 +1,11 @@
+{
+  "pontualUrl": "https://www.pontualidade.pt/api/sync/punches",
+  "schoolToken": "pontual_sync_cmb_9f8b4d2a_2026",
+  "clientId": "cmtiirk2q0000ujb09w1ss4hr",
+  "mysqlHost": "mysql-pontual",
+  "mysqlPort": 3306,
+  "mysqlUser": "pontual",
+  "mysqlPassword": "Pontual2026!",
+  "mysqlDatabase": "cardpass3",
+  "pollIntervalSeconds": 30
+}
