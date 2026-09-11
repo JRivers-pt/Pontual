@@ -45,6 +45,7 @@ import {
     SelectTrigger,
     SelectValue
 } from "@/components/ui/select"
+import { useSession } from "next-auth/react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 
 interface EmployeeItem {
@@ -104,11 +105,17 @@ const CMB_SCHEDULES: ScheduleOption[] = [
 ]
 
 export default function EmployeesPage() {
+    const { data: session } = useSession()
     const [employees, setEmployees] = useState<EmployeeItem[]>([])
     const [loading, setLoading] = useState(true)
     const [search, setSearch] = useState("")
     const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive" | "biometric" | "pending">("all")
     const [scheduleFilter, setScheduleFilter] = useState<string>("all")
+
+    const companyName = (session?.user as any)?.company ?? ""
+    const isCmbMaster = (session?.user as any)?.isCmbMaster ||
+        ((companyName?.toLowerCase().includes("bernardes") || companyName?.toLowerCase().includes("maristas")) && !(session?.user as any)?.parentUserId) ||
+        (session?.user as any)?.role === "ADMIN"
 
     // Modal state
     const [modalOpen, setModalOpen] = useState(false)
@@ -347,6 +354,28 @@ export default function EmployeesPage() {
     const activeCount = employees.filter(e => e.active).length
     const biometricCount = employees.filter(e => e.numFingerprints > 0).length
     const scheduledCount = employees.filter(e => Boolean(e.scheduleCode)).length
+
+    if (session && !isCmbMaster) {
+        return (
+            <div className="min-h-[60vh] flex flex-col items-center justify-center text-center p-6 space-y-4">
+                <div className="p-4 bg-amber-500/10 rounded-2xl border border-amber-500/20 text-amber-400">
+                    <Shield className="h-12 w-12 mx-auto" />
+                </div>
+                <h2 className="text-2xl font-bold text-white">Acesso Restrito ao Gestor Principal</h2>
+                <p className="text-sm text-neutral-400 max-w-md">
+                    O cadastro e edição de colaboradores e biometria Suprema é reservado exclusivamente à conta de Gestão Principal (CMB).
+                </p>
+                <div className="pt-2 flex flex-wrap justify-center gap-3">
+                    <Button asChild className="bg-amber-600 hover:bg-amber-500 text-white font-medium">
+                        <Link href="/corrections">Ir para Correções de Ponto</Link>
+                    </Button>
+                    <Button asChild variant="outline" className="border-neutral-800 text-neutral-300 hover:bg-neutral-800">
+                        <Link href="/timesheet">Ver Folha de Ponto</Link>
+                    </Button>
+                </div>
+            </div>
+        )
+    }
 
     return (
         <div className="space-y-6">

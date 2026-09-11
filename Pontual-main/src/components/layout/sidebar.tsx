@@ -18,7 +18,8 @@ import {
     Clock,
     LogOut,
     HelpCircle,
-    Building2
+    Building2,
+    Edit3
 } from "lucide-react"
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> { }
@@ -29,6 +30,10 @@ export function Sidebar({ className }: SidebarProps) {
 
     const companyName = (session?.user as any)?.company ?? null
     const userName = session?.user?.name ?? "Utilizador"
+    const isMaster = (session?.user as any)?.isMaster ?? !(session?.user as any)?.parentUserId
+    const isCmbMaster = (session?.user as any)?.isCmbMaster ||
+        ((companyName?.toLowerCase().includes("bernardes") || companyName?.toLowerCase().includes("maristas")) && !(session?.user as any)?.parentUserId) ||
+        (session?.user as any)?.role === "ADMIN"
 
     // Generate initials from company name or user name
     const initials = companyName
@@ -43,10 +48,10 @@ export function Sidebar({ className }: SidebarProps) {
             active: pathname === "/",
         },
         {
-            label: "Colaboradores",
-            icon: Users,
-            href: "/employees",
-            active: pathname === "/employees",
+            label: "Correção de Ponto",
+            icon: Edit3,
+            href: "/corrections",
+            active: pathname === "/corrections",
         },
         {
             label: "Relatórios",
@@ -61,6 +66,16 @@ export function Sidebar({ className }: SidebarProps) {
             active: pathname === "/timesheet",
         },
     ]
+
+    // Only show "Colaboradores" for CMB Main Account or System Admin
+    if (isCmbMaster) {
+        allRoutes.splice(2, 0, {
+            label: "Colaboradores",
+            icon: Users,
+            href: "/employees",
+            active: pathname === "/employees",
+        })
+    }
 
     // Add Admin routes
     if ((session?.user as any)?.role === "ADMIN") {

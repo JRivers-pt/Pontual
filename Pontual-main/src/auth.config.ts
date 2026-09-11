@@ -45,6 +45,10 @@ export const authConfig = {
                 token.email = user.email;
                 token.company = (user as any).company ?? null;
                 token.role = (user as any).role ?? 'CLIENT';
+                token.username = (user as any).username ?? null;
+                token.parentUserId = (user as any).parentUserId ?? null;
+                token.isMaster = (user as any).isMaster ?? true;
+                token.isCmbMaster = (user as any).isCmbMaster ?? false;
             }
             return token;
         },
@@ -56,6 +60,10 @@ export const authConfig = {
                 session.user.email = (token.email as string) ?? session.user.email;
                 (session.user as any).company = token.company ?? null;
                 (session.user as any).role = token.role ?? 'CLIENT';
+                (session.user as any).username = token.username ?? null;
+                (session.user as any).parentUserId = token.parentUserId ?? null;
+                (session.user as any).isMaster = token.isMaster ?? true;
+                (session.user as any).isCmbMaster = token.isCmbMaster ?? false;
             }
             return session;
         }

@@ -65,12 +65,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 const passwordMatch = await bcrypt.compare(password, user.password);
 
                 if (passwordMatch) {
+                    const isMaster = !user.parentUserId || user.role === 'ADMIN';
+                    const isCmbMaster = (user.username === 'CMB' || user.company?.includes('Bernardes') || user.company?.includes('Maristas')) && isMaster;
+
                     return {
                         id: user.id,
                         name: user.name,
                         email: user.email,
                         company: user.company,
                         role: user.role,
+                        username: user.username,
+                        parentUserId: user.parentUserId,
+                        isMaster: isMaster,
+                        isCmbMaster: isCmbMaster,
                     };
                 }
 
