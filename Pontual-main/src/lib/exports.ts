@@ -20,18 +20,35 @@ interface AttendanceData {
 
 
 async function getBase64ImageFromUrl(imageUrl: string): Promise<string> {
+    if (!imageUrl) return "";
+    if (imageUrl.startsWith("data:image/")) return imageUrl;
     try {
         const res = await fetch(imageUrl);
+        if (!res.ok) return "";
         const blob = await res.blob();
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result as string);
-            reader.onerror = reject;
+            reader.onloadend = () => resolve((reader.result as string) || "");
+            reader.onerror = () => resolve("");
             reader.readAsDataURL(blob);
         });
     } catch (e) {
-        console.error("Failed to load image for PDF:", e);
+        console.warn("Failed to load image for PDF:", e);
         return "";
+    }
+}
+
+function tryAddLogo(pdfDoc: jsPDF, base64Img: string, x: number, y: number, w: number, h: number): boolean {
+    if (!base64Img || !base64Img.startsWith("data:image")) return false;
+    try {
+        const formatMatch = base64Img.match(/^data:image\/([a-zA-Z+]+);base64,/);
+        const formatStr = formatMatch ? formatMatch[1].toUpperCase() : 'JPEG';
+        const imgFormat = formatStr.includes('PNG') ? 'PNG' : 'JPEG';
+        pdfDoc.addImage(base64Img, imgFormat, x, y, w, h, undefined, 'FAST');
+        return true;
+    } catch (e) {
+        console.warn("Error embedding image into PDF:", e);
+        return false;
     }
 }
 
@@ -53,9 +70,7 @@ export async function exportToPDF(data: AttendanceData[], period: string, header
         let textStartX = 14;
         if (logoUrl) {
             const base64Img = await getBase64ImageFromUrl(logoUrl);
-            if (base64Img) {
-                const imgFormat = base64Img.substring(11, base64Img.indexOf(";base64")).toUpperCase();
-                landscapeDoc.addImage(base64Img, imgFormat === 'PNG' ? 'PNG' : 'JPEG', 14, 12, 35, 25, undefined, 'FAST');
+            if (tryAddLogo(landscapeDoc, base64Img, 14, 12, 35, 25)) {
                 textStartX = 55;
             }
         }
@@ -159,9 +174,9 @@ export async function exportToPDF(data: AttendanceData[], period: string, header
 
             let textStartX = 14;
             if (logoUrl && logoBase64) {
-                const imgFormat = logoBase64.substring(11, logoBase64.indexOf(";base64")).toUpperCase();
-                doc.addImage(logoBase64, imgFormat === 'PNG' ? 'PNG' : 'JPEG', 14, 12, 35, 18, undefined, 'FAST');
-                textStartX = 55;
+                if (tryAddLogo(doc, logoBase64, 14, 12, 35, 18)) {
+                    textStartX = 55;
+                }
             }
 
             doc.setFontSize(20);
@@ -201,7 +216,7 @@ export async function exportToPDF(data: AttendanceData[], period: string, header
                 columnStyles: { 0: { cellWidth: 25 }, 3: { cellWidth: 65 } }
             });
 
-            const finalY = (doc as any).lastAutoTable.finalY + 15;
+            const finalY = ((doc as any).lastAutoTable?.finalY || 180) + 15;
             const sigY = Math.max(finalY, 255);
             if (sigY > 275) doc.addPage();
             const lineY = sigY > 275 ? 40 : sigY;
@@ -218,9 +233,7 @@ export async function exportToPDF(data: AttendanceData[], period: string, header
         let textStartX = 14;
         if (logoUrl) {
             const logoBase64 = await getBase64ImageFromUrl(logoUrl);
-            if (logoBase64) {
-                const imgFormat = logoBase64.substring(11, logoBase64.indexOf(";base64")).toUpperCase();
-                doc.addImage(logoBase64, imgFormat === 'PNG' ? 'PNG' : 'JPEG', 14, 12, 35, 18, undefined, 'FAST');
+            if (tryAddLogo(doc, logoBase64, 14, 12, 35, 18)) {
                 textStartX = 55;
             }
         }
@@ -360,8 +373,9 @@ export async function exportToMensalPDF(
     if (logoUrl) {
         try {
             const base64 = await getBase64ImageFromUrl(logoUrl);
-            doc.addImage(base64, 'JPEG', 15, 12, 35, 18);
-            textStartX = 55;
+            if (tryAddLogo(doc, base64, 15, 12, 35, 18)) {
+                textStartX = 55;
+            }
         } catch (e) { console.error(e); }
     }
 

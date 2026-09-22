@@ -403,12 +403,15 @@ export function calculateSmartWorkHours(checks: { time: string | Date | number, 
     let breakDurationMs = 0;
     let lastOutTime: number | null = null;
 
+    // Check if we should use Suprema 1=In, 2=Out convention (when no Anviz 0/3/128 entry types exist)
+    const hasAnvizEntryTypes = sorted.some(r => r.type === 0 || r.type === 3 || r.type === 128);
+
     sorted.forEach(record => {
         const time = record.time;
-        // Entry types: Check-In (0), Overtime In (128), Break End (3)
-        const isEntry = record.type === 0 || record.type === 128 || record.type === 3;
-        // Exit types: Check-Out (1), Overtime Out (129), Break Start (2)
-        const isExit = record.type === 1 || record.type === 129 || record.type === 2;
+        // Entry types: Check-In (0), Overtime In (128), Break End (3), or Suprema In (1 when no Anviz types)
+        const isEntry = record.type === 0 || record.type === 128 || record.type === 3 || (!hasAnvizEntryTypes && record.type === 1);
+        // Exit types: Check-Out (1 in Anviz), Overtime Out (129), Break Start (2)
+        const isExit = (hasAnvizEntryTypes && record.type === 1) || record.type === 129 || record.type === 2;
 
         if (isEntry) {
             lastInTime = time;
@@ -422,6 +425,20 @@ export function calculateSmartWorkHours(checks: { time: string | Date | number, 
             lastInTime = null;
         }
     });
+
+    // Fallback: If checktypes were mismatched, unknown, or identical, pair alternating punches or take first-to-last
+    if (totalWorkMs === 0 && sorted.length >= 2 && last.time > first.time) {
+        if (sorted.length % 2 === 0) {
+            for (let i = 0; i < sorted.length; i += 2) {
+                totalWorkMs += (sorted[i + 1].time - sorted[i].time);
+                if (i > 0) {
+                    breakDurationMs += (sorted[i].time - sorted[i - 1].time);
+                }
+            }
+        } else {
+            totalWorkMs = last.time - first.time;
+        }
+    }
 
     // Smart Deduction Logic
     const totalElapsedMs = last.time - first.time;

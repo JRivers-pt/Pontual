@@ -154,7 +154,8 @@ export async function POST(request: NextRequest) {
         }
 
         // Default: Anviz CrossChex Cloud API
-        if (!token) {
+        const apiToken = _t || token;
+        if (!apiToken) {
             return NextResponse.json(
                 { error: 'Token is required' },
                 { status: 400 }
@@ -171,7 +172,7 @@ export async function POST(request: NextRequest) {
             },
             authorize: {
                 type: 'token',
-                token: token
+                token: apiToken
             },
             payload: {
                 begin_time: beginTime,
@@ -195,6 +196,56 @@ export async function POST(request: NextRequest) {
         }
 
         const data = await response.json();
+
+        // Merge manual corrections from AttendanceLog for Anviz clients on first page
+        if (Number(page) === 1) {
+            try {
+                const whereClause: any = { userId: user.id };
+                if (beginTime || endTime) {
+                    whereClause.checktime = {};
+                    if (beginTime) whereClause.checktime.gte = new Date(beginTime);
+                    if (endTime) whereClause.checktime.lte = new Date(endTime);
+                }
+
+                const manualLogs = await prisma.attendanceLog.findMany({
+                    where: whereClause,
+                    orderBy: { checktime: 'asc' }
+                });
+
+                if (manualLogs.length > 0 && data.payload) {
+                    const mappedManual = manualLogs.map(l => ({
+                        uuid: `manual-${l.id}`,
+                        checktype: l.checktype,
+                        checktime: l.checktime.toISOString().replace(/Z$/, '+00:00'),
+                        device: {
+                            serial_number: 'MANUAL',
+                            name: l.deviceName || 'Correção Manual'
+                        },
+                        employee: {
+                            first_name: l.employeeName || `Colaborador ${l.workno}`,
+                            last_name: '',
+                            workno: String(l.workno).replace(/^0+/, '') || String(l.workno)
+                        }
+                    }));
+
+                    const apiRecords = data.payload.list || [];
+                    const combinedRecords = [...apiRecords, ...mappedManual];
+
+                    const sortOrder = body.order || 'asc';
+                    combinedRecords.sort((a: any, b: any) => {
+                        const timeA = new Date(a.checktime).getTime();
+                        const timeB = new Date(b.checktime).getTime();
+                        return sortOrder === 'desc' ? timeB - timeA : timeA - timeB;
+                    });
+
+                    data.payload.list = combinedRecords;
+                    data.payload.count = combinedRecords.length;
+                }
+            } catch (dbError) {
+                console.error('Error merging manual corrections for Anviz client:', dbError);
+            }
+        }
+
         return NextResponse.json(data);
     } catch (error: any) {
         console.error('Error fetching attendance records:', error);

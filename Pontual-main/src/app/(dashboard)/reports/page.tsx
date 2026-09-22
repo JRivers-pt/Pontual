@@ -168,8 +168,8 @@ export default function ReportsPage() {
         setError(null);
 
         try {
-            const beginTime = date.from.toISOString().replace('Z', '+00:00');
-            const endTime = date.to.toISOString().replace('Z', '+00:00');
+            const beginTime = startOfDay(date.from).toISOString().replace('Z', '+00:00');
+            const endTime = endOfDay(date.to).toISOString().replace('Z', '+00:00');
 
             const response = await getAttendanceRecords(beginTime, endTime);
 
@@ -502,8 +502,9 @@ export default function ReportsPage() {
                 }));
                 exportToExcel(dataToExport);
             }
-        } catch (err) {
-            console.error(err);
+        } catch (err: any) {
+            console.error("Export error:", err);
+            setError(err?.message || "Ocorreu um erro ao gerar o ficheiro de relatório. Por favor tente novamente.");
         } finally {
             setLoading(false);
         }

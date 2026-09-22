@@ -355,39 +355,17 @@ export default function EmployeesPage() {
     const biometricCount = employees.filter(e => e.numFingerprints > 0).length
     const scheduledCount = employees.filter(e => Boolean(e.scheduleCode)).length
 
-    if (session && !isCmbMaster) {
-        return (
-            <div className="min-h-[60vh] flex flex-col items-center justify-center text-center p-6 space-y-4">
-                <div className="p-4 bg-amber-500/10 rounded-2xl border border-amber-500/20 text-amber-400">
-                    <Shield className="h-12 w-12 mx-auto" />
-                </div>
-                <h2 className="text-2xl font-bold text-white">Acesso Restrito ao Gestor Principal</h2>
-                <p className="text-sm text-neutral-400 max-w-md">
-                    O cadastro e edição de colaboradores e biometria Suprema é reservado exclusivamente à conta de Gestão Principal (CMB).
-                </p>
-                <div className="pt-2 flex flex-wrap justify-center gap-3">
-                    <Button asChild className="bg-amber-600 hover:bg-amber-500 text-white font-medium">
-                        <Link href="/corrections">Ir para Correções de Ponto</Link>
-                    </Button>
-                    <Button asChild variant="outline" className="border-neutral-800 text-neutral-300 hover:bg-neutral-800">
-                        <Link href="/timesheet">Ver Folha de Ponto</Link>
-                    </Button>
-                </div>
-            </div>
-        )
-    }
-
     return (
         <div className="space-y-6">
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-white flex items-center gap-3">
-                        <Users className="h-8 w-8 text-blue-500" />
+                    <h1 className="text-3xl font-bold tracking-tight text-neutral-900 flex items-center gap-3">
+                        <Users className="h-8 w-8 text-blue-600" />
                         Gestão de Colaboradores
                     </h1>
-                    <p className="text-neutral-400 text-sm mt-1">
-                        Cadastre e gira colaboradores, horários de trabalho oficiais (H1–H30) e impressões digitais Suprema BioMini.
+                    <p className="text-neutral-500 text-sm mt-1">
+                        Cadastre e gira colaboradores, horários de trabalho oficiais e registo biométrico.
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
@@ -395,14 +373,14 @@ export default function EmployeesPage() {
                         variant="outline"
                         size="sm"
                         onClick={fetchEmployees}
-                        className="border-neutral-800 bg-neutral-900/50 hover:bg-neutral-800 text-neutral-300"
+                        className="border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-700 shadow-xs"
                     >
-                        <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin text-blue-400" : ""}`} />
+                        <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin text-blue-600" : ""}`} />
                         Atualizar
                     </Button>
                     <Button
                         onClick={handleOpenCreate}
-                        className="bg-blue-600 hover:bg-blue-500 text-white font-medium shadow-lg shadow-blue-600/20"
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-xs"
                     >
                         <UserPlus className="h-4 w-4 mr-2" />
                         Adicionar Colaborador
@@ -412,49 +390,49 @@ export default function EmployeesPage() {
 
             {/* Statistics Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <Card className="bg-neutral-900/60 border-neutral-800 shadow-sm backdrop-blur">
+                <Card className="bg-white border-neutral-200 shadow-xs">
                     <CardContent className="p-4 flex items-center justify-between">
                         <div>
-                            <p className="text-xs font-medium text-neutral-400">Total Colaboradores</p>
-                            <p className="text-2xl font-bold text-white mt-1">{totalCount}</p>
+                            <p className="text-xs font-medium text-neutral-500">Total Colaboradores</p>
+                            <p className="text-2xl font-bold text-neutral-900 mt-1">{totalCount}</p>
                         </div>
-                        <div className="p-3 bg-blue-500/10 rounded-xl border border-blue-500/20 text-blue-400">
+                        <div className="p-3 bg-blue-50 rounded-xl border border-blue-100 text-blue-600">
                             <Users className="h-5 w-5" />
                         </div>
                     </CardContent>
                 </Card>
 
-                <Card className="bg-neutral-900/60 border-neutral-800 shadow-sm backdrop-blur">
+                <Card className="bg-white border-neutral-200 shadow-xs">
                     <CardContent className="p-4 flex items-center justify-between">
                         <div>
-                            <p className="text-xs font-medium text-neutral-400">Colaboradores Ativos</p>
-                            <p className="text-2xl font-bold text-emerald-400 mt-1">{activeCount}</p>
+                            <p className="text-xs font-medium text-neutral-500">Colaboradores Ativos</p>
+                            <p className="text-2xl font-bold text-emerald-600 mt-1">{activeCount}</p>
                         </div>
-                        <div className="p-3 bg-emerald-500/10 rounded-xl border border-emerald-500/20 text-emerald-400">
+                        <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-100 text-emerald-600">
                             <CheckCircle2 className="h-5 w-5" />
                         </div>
                     </CardContent>
                 </Card>
 
-                <Card className="bg-neutral-900/60 border-neutral-800 shadow-sm backdrop-blur">
+                <Card className="bg-white border-neutral-200 shadow-xs">
                     <CardContent className="p-4 flex items-center justify-between">
                         <div>
-                            <p className="text-xs font-medium text-neutral-400">Biometria Suprema</p>
-                            <p className="text-2xl font-bold text-cyan-400 mt-1">{biometricCount}</p>
+                            <p className="text-xs font-medium text-neutral-500">Biometria Registada</p>
+                            <p className="text-2xl font-bold text-cyan-600 mt-1">{biometricCount}</p>
                         </div>
-                        <div className="p-3 bg-cyan-500/10 rounded-xl border border-cyan-500/20 text-cyan-400">
+                        <div className="p-3 bg-cyan-50 rounded-xl border border-cyan-100 text-cyan-600">
                             <Fingerprint className="h-5 w-5" />
                         </div>
                     </CardContent>
                 </Card>
 
-                <Card className="bg-neutral-900/60 border-neutral-800 shadow-sm backdrop-blur">
+                <Card className="bg-white border-neutral-200 shadow-xs">
                     <CardContent className="p-4 flex items-center justify-between">
                         <div>
-                            <p className="text-xs font-medium text-neutral-400">Horários Atribuídos</p>
-                            <p className="text-2xl font-bold text-purple-400 mt-1">{scheduledCount}</p>
+                            <p className="text-xs font-medium text-neutral-500">Horários Atribuídos</p>
+                            <p className="text-2xl font-bold text-purple-600 mt-1">{scheduledCount}</p>
                         </div>
-                        <div className="p-3 bg-purple-500/10 rounded-xl border border-purple-500/20 text-purple-400">
+                        <div className="p-3 bg-purple-50 rounded-xl border border-purple-100 text-purple-600">
                             <Clock className="h-5 w-5" />
                         </div>
                     </CardContent>
@@ -462,7 +440,7 @@ export default function EmployeesPage() {
             </div>
 
             {/* Filter & Search Toolbar */}
-            <Card className="bg-neutral-900/80 border-neutral-800 backdrop-blur">
+            <Card className="bg-white border-neutral-200 shadow-xs">
                 <CardContent className="p-4">
                     <div className="flex flex-col md:flex-row gap-3 items-center justify-between">
                         {/* Search Input */}
@@ -472,7 +450,7 @@ export default function EmployeesPage() {
                                 placeholder="Pesquisar por nome, Nº mecanográfico ou cartão..."
                                 value={search}
                                 onChange={e => setSearch(e.target.value)}
-                                className="pl-9 bg-neutral-950/60 border-neutral-700 text-white placeholder:text-neutral-500 h-9"
+                                className="pl-9 bg-white border-neutral-200 text-neutral-900 placeholder:text-neutral-400 h-9"
                             />
                         </div>
 
@@ -480,10 +458,10 @@ export default function EmployeesPage() {
                         <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
                             {/* Status Filter */}
                             <Select value={statusFilter} onValueChange={(v: any) => setStatusFilter(v)}>
-                                <SelectTrigger className="w-[150px] bg-neutral-950/60 border-neutral-700 text-neutral-300 h-9 text-xs">
+                                <SelectTrigger className="w-[150px] bg-white border-neutral-200 text-neutral-700 h-9 text-xs">
                                     <SelectValue placeholder="Estado" />
                                 </SelectTrigger>
-                                <SelectContent className="bg-neutral-900 border-neutral-700 text-neutral-200">
+                                <SelectContent className="bg-white border-neutral-200 text-neutral-800 shadow-md">
                                     <SelectItem value="all">Todos os Estados</SelectItem>
                                     <SelectItem value="active">🟢 Apenas Ativos</SelectItem>
                                     <SelectItem value="inactive">⚪ Inativos</SelectItem>
@@ -494,10 +472,10 @@ export default function EmployeesPage() {
 
                             {/* Schedule Filter */}
                             <Select value={scheduleFilter} onValueChange={setScheduleFilter}>
-                                <SelectTrigger className="w-[160px] bg-neutral-950/60 border-neutral-700 text-neutral-300 h-9 text-xs">
+                                <SelectTrigger className="w-[160px] bg-white border-neutral-200 text-neutral-700 h-9 text-xs">
                                     <SelectValue placeholder="Horário" />
                                 </SelectTrigger>
-                                <SelectContent className="bg-neutral-900 border-neutral-700 text-neutral-200 max-h-72">
+                                <SelectContent className="bg-white border-neutral-200 text-neutral-800 max-h-72 shadow-md">
                                     <SelectItem value="all">Todos os Horários</SelectItem>
                                     {CMB_SCHEDULES.map(s => (
                                         <SelectItem key={s.code} value={s.code}>
@@ -516,7 +494,7 @@ export default function EmployeesPage() {
                                         setStatusFilter("all")
                                         setScheduleFilter("all")
                                     }}
-                                    className="text-neutral-400 hover:text-white h-9 px-2 text-xs"
+                                    className="text-neutral-500 hover:text-neutral-900 h-9 px-2 text-xs"
                                 >
                                     Limpar Filtros
                                 </Button>
@@ -527,32 +505,32 @@ export default function EmployeesPage() {
             </Card>
 
             {/* Employees Master Table */}
-            <Card className="bg-neutral-900/60 border-neutral-800 shadow-md overflow-hidden">
+            <Card className="bg-white border-neutral-200 shadow-xs overflow-hidden">
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm text-neutral-300">
-                        <thead className="bg-neutral-950/80 text-xs uppercase tracking-wider text-neutral-400 border-b border-neutral-800">
+                    <table className="w-full text-left text-sm text-neutral-700">
+                        <thead className="bg-neutral-50/80 text-xs uppercase tracking-wider text-neutral-500 border-b border-neutral-200">
                             <tr>
                                 <th className="py-3 px-4 font-semibold">Nº ID</th>
                                 <th className="py-3 px-4 font-semibold">Colaborador</th>
                                 <th className="py-3 px-4 font-semibold">Horário Oficial</th>
-                                <th className="py-3 px-4 font-semibold">Biometria (Suprema)</th>
+                                <th className="py-3 px-4 font-semibold">Biometria</th>
                                 <th className="py-3 px-4 font-semibold">Cartão RFID</th>
                                 <th className="py-3 px-4 font-semibold text-center">Estado</th>
                                 <th className="py-3 px-4 font-semibold text-right">Ações</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-neutral-800/60">
+                        <tbody className="divide-y divide-neutral-100">
                             {loading ? (
                                 <tr>
                                     <td colSpan={7} className="py-12 text-center text-neutral-400">
-                                        <Loader2 className="h-6 w-6 animate-spin mx-auto text-blue-500 mb-2" />
+                                        <Loader2 className="h-6 w-6 animate-spin mx-auto text-blue-600 mb-2" />
                                         A carregar colaboradores...
                                     </td>
                                 </tr>
                             ) : filteredEmployees.length === 0 ? (
                                 <tr>
-                                    <td colSpan={7} className="py-12 text-center text-neutral-500">
-                                        <Users className="h-8 w-8 mx-auto text-neutral-600 mb-2" />
+                                    <td colSpan={7} className="py-12 text-center text-neutral-400">
+                                        <Users className="h-8 w-8 mx-auto text-neutral-300 mb-2" />
                                         Nenhum colaborador encontrado com os filtros selecionados.
                                     </td>
                                 </tr>
@@ -569,23 +547,23 @@ export default function EmployeesPage() {
                                     return (
                                         <tr
                                             key={emp.id || emp.workno}
-                                            className="hover:bg-neutral-800/40 transition-colors group"
+                                            className="hover:bg-neutral-50/80 transition-colors group"
                                         >
                                             {/* Workno */}
-                                            <td className="py-3 px-4 font-mono font-bold text-blue-400">
+                                            <td className="py-3 px-4 font-mono font-bold text-blue-600">
                                                 #{emp.workno}
                                             </td>
 
                                             {/* Name & Avatar */}
                                             <td className="py-3 px-4">
                                                 <div className="flex items-center gap-3">
-                                                    <Avatar className="h-8 w-8 border border-neutral-700 bg-neutral-800 text-neutral-300">
-                                                        <AvatarFallback className="bg-blue-600/30 text-blue-300 font-semibold text-xs">
+                                                    <Avatar className="h-8 w-8 border border-neutral-200 bg-neutral-100 text-neutral-700">
+                                                        <AvatarFallback className="bg-blue-50 text-blue-700 font-semibold text-xs">
                                                             {initials}
                                                         </AvatarFallback>
                                                     </Avatar>
                                                     <div>
-                                                        <span className="font-semibold text-white group-hover:text-blue-300 transition-colors">
+                                                        <span className="font-semibold text-neutral-900 group-hover:text-blue-600 transition-colors">
                                                             {emp.name}
                                                         </span>
                                                     </div>
@@ -595,14 +573,14 @@ export default function EmployeesPage() {
                                             {/* Schedule */}
                                             <td className="py-3 px-4">
                                                 {emp.scheduleCode ? (
-                                                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-purple-500/10 border border-purple-500/30 text-purple-300 text-xs font-medium">
-                                                        <Clock className="h-3.5 w-3.5 text-purple-400 shrink-0" />
+                                                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-purple-50 border border-purple-200 text-purple-700 text-xs font-medium">
+                                                        <Clock className="h-3.5 w-3.5 text-purple-600 shrink-0" />
                                                         <span>
                                                             {emp.scheduleCode} {sched ? `(${sched.startTime}-${sched.endTime})` : ""}
                                                         </span>
                                                     </div>
                                                 ) : (
-                                                    <Badge variant="outline" className="text-neutral-500 border-neutral-700 text-xs">
+                                                    <Badge variant="outline" className="text-neutral-400 border-neutral-200 text-xs">
                                                         Não atribuído
                                                     </Badge>
                                                 )}
@@ -611,12 +589,12 @@ export default function EmployeesPage() {
                                             {/* Biometrics */}
                                             <td className="py-3 px-4">
                                                 {emp.numFingerprints > 0 ? (
-                                                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-medium">
-                                                        <Fingerprint className="h-3.5 w-3.5 text-emerald-400" />
+                                                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-medium">
+                                                        <Fingerprint className="h-3.5 w-3.5 text-emerald-600" />
                                                         <span>Registada ({emp.numFingerprints})</span>
                                                     </div>
                                                 ) : (
-                                                    <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs">
+                                                    <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-amber-50 border border-amber-200 text-amber-700 text-xs">
                                                         <AlertCircle className="h-3 w-3" />
                                                         <span>Pendente</span>
                                                     </div>
@@ -624,14 +602,14 @@ export default function EmployeesPage() {
                                             </td>
 
                                             {/* Card Number */}
-                                            <td className="py-3 px-4 text-xs font-mono text-neutral-400">
+                                            <td className="py-3 px-4 text-xs font-mono text-neutral-500">
                                                 {emp.cardNumber ? (
                                                     <div className="flex items-center gap-1">
-                                                        <CreditCard className="h-3 w-3 text-neutral-500" />
+                                                        <CreditCard className="h-3 w-3 text-neutral-400" />
                                                         {emp.cardNumber}
                                                     </div>
                                                 ) : (
-                                                    <span className="text-neutral-600">—</span>
+                                                    <span className="text-neutral-300">—</span>
                                                 )}
                                             </td>
 
@@ -639,14 +617,14 @@ export default function EmployeesPage() {
                                             <td className="py-3 px-4 text-center">
                                                 <button
                                                     onClick={() => handleToggleActive(emp)}
-                                                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium transition-all ${
+                                                    className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium transition-all ${
                                                         emp.active
-                                                            ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20"
-                                                            : "bg-neutral-800 text-neutral-400 border border-neutral-700 hover:bg-neutral-700"
+                                                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100"
+                                                            : "bg-neutral-100 text-neutral-500 border border-neutral-200 hover:bg-neutral-200"
                                                     }`}
                                                     title={emp.active ? "Clique para desativar" : "Clique para ativar"}
                                                 >
-                                                    <span className={`h-1.5 w-1.5 rounded-full ${emp.active ? "bg-emerald-400" : "bg-neutral-500"}`} />
+                                                    <span className={`h-1.5 w-1.5 rounded-full ${emp.active ? "bg-emerald-500" : "bg-neutral-400"}`} />
                                                     {emp.active ? "Ativo" : "Inativo"}
                                                 </button>
                                             </td>
@@ -657,7 +635,7 @@ export default function EmployeesPage() {
                                                     {/* Link to Timesheet */}
                                                     <Link
                                                         href={`/timesheet?employee=${emp.workno}`}
-                                                        className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors"
+                                                        className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition-colors"
                                                         title="Ver Folha de Ponto"
                                                     >
                                                         <Calendar className="h-4 w-4" />
@@ -666,7 +644,7 @@ export default function EmployeesPage() {
                                                     {/* Link to Reports */}
                                                     <Link
                                                         href={`/reports?employee=${emp.workno}`}
-                                                        className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors"
+                                                        className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition-colors"
                                                         title="Ver Relatório de Assiduidade"
                                                     >
                                                         <ExternalLink className="h-4 w-4" />
@@ -677,7 +655,7 @@ export default function EmployeesPage() {
                                                         variant="ghost"
                                                         size="sm"
                                                         onClick={() => handleOpenEdit(emp)}
-                                                        className="h-8 w-8 p-0 text-blue-400 hover:text-blue-300 hover:bg-blue-900/30 rounded-lg"
+                                                        className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg"
                                                         title="Editar Colaborador / Biometria"
                                                     >
                                                         <Edit2 className="h-4 w-4" />
@@ -693,49 +671,49 @@ export default function EmployeesPage() {
                 </div>
 
                 {/* Footer Count */}
-                <div className="p-3 bg-neutral-950/60 border-t border-neutral-800 flex items-center justify-between text-xs text-neutral-400">
+                <div className="p-3 bg-neutral-50/80 border-t border-neutral-200 flex items-center justify-between text-xs text-neutral-500">
                     <span>
-                        A mostrar <strong className="text-white">{filteredEmployees.length}</strong> de <strong className="text-white">{totalCount}</strong> colaboradores
+                        A mostrar <strong className="text-neutral-900">{filteredEmployees.length}</strong> de <strong className="text-neutral-900">{totalCount}</strong> colaboradores
                     </span>
-                    <span className="flex items-center gap-1.5">
-                        <Shield className="h-3.5 w-3.5 text-blue-400" />
-                        Sincronizado com Suprema BioStar & Agente Pontualidade
+                    <span className="flex items-center gap-1.5 text-neutral-500">
+                        <Shield className="h-3.5 w-3.5 text-blue-600" />
+                        Sincronizado com Pontualidade Cloud & Terminais
                     </span>
                 </div>
             </Card>
 
             {/* Modal: Adicionar / Editar Colaborador */}
             <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-                <DialogContent className="bg-neutral-900 border-neutral-800 text-white max-w-xl max-h-[90vh] overflow-y-auto">
+                <DialogContent className="bg-white border-neutral-200 text-neutral-900 max-w-xl max-h-[90vh] overflow-y-auto shadow-xl">
                     <DialogHeader>
-                        <DialogTitle className="text-xl font-bold flex items-center gap-2">
+                        <DialogTitle className="text-xl font-bold flex items-center gap-2 text-neutral-900">
                             {modalMode === "create" ? (
                                 <>
-                                    <UserPlus className="h-5 w-5 text-blue-500" />
+                                    <UserPlus className="h-5 w-5 text-blue-600" />
                                     Adicionar Novo Colaborador
                                 </>
                             ) : (
                                 <>
-                                    <Edit2 className="h-5 w-5 text-blue-500" />
+                                    <Edit2 className="h-5 w-5 text-blue-600" />
                                     Editar Colaborador #{formWorkno}
                                 </>
                             )}
                         </DialogTitle>
-                        <DialogDescription className="text-neutral-400 text-xs">
-                            Preencha os dados de identificação, horário de trabalho oficial e registe a impressão digital via leitor Suprema BioMini USB.
+                        <DialogDescription className="text-neutral-500 text-xs">
+                            Preencha os dados de identificação, horário de trabalho oficial e registe a biometria.
                         </DialogDescription>
                     </DialogHeader>
 
                     <form onSubmit={handleSave} className="space-y-4 py-2">
                         {/* Error & Success Messages */}
                         {errorMsg && (
-                            <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-xs flex items-center gap-2">
+                            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-xs flex items-center gap-2">
                                 <AlertCircle className="h-4 w-4 shrink-0" />
                                 <span>{errorMsg}</span>
                             </div>
                         )}
                         {successMsg && (
-                            <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg text-emerald-400 text-xs flex items-center gap-2">
+                            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-600 text-xs flex items-center gap-2">
                                 <CheckCircle2 className="h-4 w-4 shrink-0" />
                                 <span>{successMsg}</span>
                             </div>
@@ -744,7 +722,7 @@ export default function EmployeesPage() {
                         {/* Identification Row */}
                         <div className="grid grid-cols-3 gap-3">
                             <div className="space-y-1.5">
-                                <Label htmlFor="workno" className="text-xs font-semibold text-neutral-300">
+                                <Label htmlFor="workno" className="text-xs font-semibold text-neutral-700">
                                     Nº Mecanográfico (ID) *
                                 </Label>
                                 <Input
@@ -753,13 +731,13 @@ export default function EmployeesPage() {
                                     onChange={e => setFormWorkno(e.target.value)}
                                     placeholder="Ex: 0083"
                                     disabled={modalMode === "edit"}
-                                    className="bg-neutral-950 border-neutral-700 font-mono text-blue-400 font-bold"
+                                    className="bg-white border-neutral-200 font-mono text-blue-600 font-bold"
                                     required
                                 />
                             </div>
 
                             <div className="col-span-2 space-y-1.5">
-                                <Label htmlFor="name" className="text-xs font-semibold text-neutral-300">
+                                <Label htmlFor="name" className="text-xs font-semibold text-neutral-700">
                                     Nome Completo *
                                 </Label>
                                 <Input
@@ -767,7 +745,7 @@ export default function EmployeesPage() {
                                     value={formName}
                                     onChange={e => setFormName(e.target.value)}
                                     placeholder="Nome do colaborador"
-                                    className="bg-neutral-950 border-neutral-700 text-white"
+                                    className="bg-white border-neutral-200 text-neutral-900"
                                     required
                                 />
                             </div>
@@ -776,8 +754,8 @@ export default function EmployeesPage() {
                         {/* Card & Status Row */}
                         <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-1.5">
-                                <Label htmlFor="card" className="text-xs font-semibold text-neutral-300 flex items-center gap-1.5">
-                                    <CreditCard className="h-3.5 w-3.5 text-neutral-400" />
+                                <Label htmlFor="card" className="text-xs font-semibold text-neutral-700 flex items-center gap-1.5">
+                                    <CreditCard className="h-3.5 w-3.5 text-neutral-500" />
                                     Cartão RFID / Proximidade
                                 </Label>
                                 <Input
@@ -785,12 +763,12 @@ export default function EmployeesPage() {
                                     value={formCardNumber}
                                     onChange={e => setFormCardNumber(e.target.value)}
                                     placeholder="Nº do cartão (opcional)"
-                                    className="bg-neutral-950 border-neutral-700 text-neutral-300 font-mono text-xs"
+                                    className="bg-white border-neutral-200 text-neutral-700 font-mono text-xs"
                                 />
                             </div>
 
                             <div className="space-y-1.5">
-                                <Label className="text-xs font-semibold text-neutral-300">
+                                <Label className="text-xs font-semibold text-neutral-700">
                                     Estado do Colaborador
                                 </Label>
                                 <div className="flex items-center gap-3 pt-2">
@@ -800,9 +778,9 @@ export default function EmployeesPage() {
                                             name="active"
                                             checked={formActive}
                                             onChange={() => setFormActive(true)}
-                                            className="text-emerald-500 focus:ring-0"
+                                            className="text-emerald-600 focus:ring-0"
                                         />
-                                        <span className="text-emerald-400 font-medium">Ativo</span>
+                                        <span className="text-emerald-600 font-medium">Ativo</span>
                                     </label>
                                     <label className="flex items-center gap-2 cursor-pointer text-xs">
                                         <input
@@ -810,9 +788,9 @@ export default function EmployeesPage() {
                                             name="active"
                                             checked={!formActive}
                                             onChange={() => setFormActive(false)}
-                                            className="text-neutral-400 focus:ring-0"
+                                            className="text-neutral-500 focus:ring-0"
                                         />
-                                        <span className="text-neutral-400">Inativo</span>
+                                        <span className="text-neutral-500">Inativo</span>
                                     </label>
                                 </div>
                             </div>
@@ -820,18 +798,18 @@ export default function EmployeesPage() {
 
                         {/* Schedule Selection */}
                         <div className="space-y-1.5">
-                            <Label className="text-xs font-semibold text-neutral-300 flex items-center gap-1.5">
-                                <Clock className="h-3.5 w-3.5 text-purple-400" />
-                                Horário de Trabalho Oficial (H1 a H30)
+                            <Label className="text-xs font-semibold text-neutral-700 flex items-center gap-1.5">
+                                <Clock className="h-3.5 w-3.5 text-purple-600" />
+                                Horário de Trabalho Oficial
                             </Label>
                             <Select value={formScheduleCode} onValueChange={setFormScheduleCode}>
-                                <SelectTrigger className="bg-neutral-950 border-neutral-700 text-neutral-200">
+                                <SelectTrigger className="bg-white border-neutral-200 text-neutral-800">
                                     <SelectValue placeholder="Selecione o horário oficial" />
                                 </SelectTrigger>
-                                <SelectContent className="bg-neutral-900 border-neutral-700 text-neutral-200 max-h-60">
+                                <SelectContent className="bg-white border-neutral-200 text-neutral-800 max-h-60 shadow-md">
                                     {CMB_SCHEDULES.map((sched) => (
                                         <SelectItem key={sched.code} value={sched.code}>
-                                            <span className="font-semibold text-purple-300">{sched.code}</span> — {sched.startTime} às {sched.endTime}
+                                            <span className="font-semibold text-purple-700">{sched.code}</span> — {sched.startTime} às {sched.endTime}
                                             {sched.lunchDuration ? ` (Almoço ${sched.lunchDuration}m)` : " (Sem almoço)"}
                                         </SelectItem>
                                     ))}
@@ -839,28 +817,28 @@ export default function EmployeesPage() {
                             </Select>
                         </div>
 
-                        {/* Suprema BioMini USB Biometric Registration Card */}
-                        <div className="p-4 bg-neutral-950/80 rounded-xl border border-neutral-800 space-y-3">
+                        {/* Biometric Registration Card */}
+                        <div className="p-4 bg-neutral-50 rounded-xl border border-neutral-200 space-y-3">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                    <div className="p-2 bg-blue-600/20 rounded-lg border border-blue-500/30 text-blue-400">
+                                    <div className="p-2 bg-blue-50 rounded-lg border border-blue-100 text-blue-600">
                                         <Fingerprint className="h-5 w-5" />
                                     </div>
                                     <div>
-                                        <h4 className="text-sm font-semibold text-white flex items-center gap-1.5">
-                                            Registo Biométrico Suprema USB
-                                            <span className="text-[10px] px-1.5 py-0.5 bg-blue-500/20 text-blue-300 rounded font-mono">
-                                                BioMini Plus / Slim
+                                        <h4 className="text-sm font-semibold text-neutral-900 flex items-center gap-1.5">
+                                            Registo Biométrico
+                                            <span className="text-[10px] px-1.5 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded font-mono">
+                                                Leitor USB / Terminal
                                             </span>
                                         </h4>
-                                        <p className="text-xs text-neutral-400">
-                                            Enrolamento direto via Suprema BioMini e sincronização com a base de dados
+                                        <p className="text-xs text-neutral-500">
+                                            Enrolamento direto via leitor USB ou sincronização com a base de dados
                                         </p>
                                     </div>
                                 </div>
 
                                 {scanSuccess && (
-                                    <div className="flex items-center gap-1 text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-md border border-emerald-500/20">
+                                    <div className="flex items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-md border border-emerald-200">
                                         <Check className="h-3.5 w-3.5" />
                                         <span>Template OK {scanQuality ? `(${scanQuality}%)` : ""}</span>
                                     </div>
@@ -874,18 +852,18 @@ export default function EmployeesPage() {
                                     variant="outline"
                                     onClick={handleCaptureFingerprint}
                                     disabled={scanning}
-                                    className={`w-full border-blue-600/40 bg-blue-950/20 hover:bg-blue-900/30 text-blue-300 font-medium ${
-                                        scanning ? "border-amber-500 text-amber-300 animate-pulse" : ""
+                                    className={`w-full border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium ${
+                                        scanning ? "border-amber-300 text-amber-700 bg-amber-50 animate-pulse" : ""
                                     }`}
                                 >
                                     {scanning ? (
                                         <>
-                                            <Loader2 className="h-4 w-4 mr-2 animate-spin text-amber-400" />
-                                            Aguarde: Coloque o dedo no leitor Suprema USB...
+                                            <Loader2 className="h-4 w-4 mr-2 animate-spin text-amber-600" />
+                                            Aguarde: Coloque o dedo no leitor biométrico USB...
                                         </>
                                     ) : (
                                         <>
-                                            <Fingerprint className="h-4 w-4 mr-2 text-blue-400" />
+                                            <Fingerprint className="h-4 w-4 mr-2 text-blue-600" />
                                             {formFingerprint ? "Recapturar Impressão Digital" : "Capturar Impressão Digital via USB"}
                                         </>
                                     )}
@@ -893,27 +871,27 @@ export default function EmployeesPage() {
                             </div>
 
                             {formFingerprint && (
-                                <p className="text-[11px] text-neutral-400 flex items-center gap-1">
-                                    <Sparkles className="h-3 w-3 text-emerald-400" />
-                                    Template biométrico Suprema UniFinger pronto para gravação e sincronização com os terminais.
+                                <p className="text-[11px] text-neutral-500 flex items-center gap-1">
+                                    <Sparkles className="h-3 w-3 text-emerald-600" />
+                                    Template biométrico pronto para gravação e sincronização com os terminais.
                                 </p>
                             )}
                         </div>
 
                         {/* Modal Footer */}
-                        <DialogFooter className="pt-2 border-t border-neutral-800 flex items-center justify-between">
+                        <DialogFooter className="pt-2 border-t border-neutral-200 flex items-center justify-between">
                             <Button
                                 type="button"
                                 variant="ghost"
                                 onClick={() => setModalOpen(false)}
-                                className="text-neutral-400 hover:text-white"
+                                className="text-neutral-500 hover:text-neutral-900"
                             >
                                 Cancelar
                             </Button>
                             <Button
                                 type="submit"
                                 disabled={saving}
-                                className="bg-blue-600 hover:bg-blue-500 text-white font-medium shadow-md shadow-blue-600/20"
+                                className="bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-xs"
                             >
                                 {saving ? (
                                     <>

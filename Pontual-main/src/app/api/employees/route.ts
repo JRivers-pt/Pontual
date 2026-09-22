@@ -51,20 +51,47 @@ export const GET = auth(async (req) => {
             orderBy: { workno: 'asc' }
         });
 
-        const fallback = logs.map(l => ({
-            id: l.workno,
-            workno: l.workno,
-            name: l.employeeName || l.workno,
-            cardNumber: null,
-            active: true,
-            scheduleCode: null,
-            scheduleName: null,
-            numFingerprints: 0,
-            createdAt: new Date(),
-            updatedAt: new Date()
-        })).sort((a, b) => a.name.localeCompare(b.name));
+        if (logs.length > 0) {
+            const fallback = logs.map(l => ({
+                id: l.workno,
+                workno: l.workno,
+                name: l.employeeName || `Colaborador ${l.workno}`,
+                cardNumber: null,
+                active: true,
+                scheduleCode: null,
+                scheduleName: null,
+                numFingerprints: 0,
+                createdAt: new Date(),
+                updatedAt: new Date()
+            })).sort((a, b) => a.name.localeCompare(b.name));
 
-        return NextResponse.json({ employees: fallback });
+            return NextResponse.json({ employees: fallback });
+        }
+
+        // Fallback 2: derive from EmployeeSchedule associated with this client's schedules
+        const schedEmployees = await prisma.employeeSchedule.findMany({
+            where: { schedule: { userId } },
+            include: { schedule: true },
+            orderBy: { workno: 'asc' }
+        });
+
+        if (schedEmployees.length > 0) {
+            const schedList = schedEmployees.map(se => ({
+                id: se.workno,
+                workno: se.workno,
+                name: `Colaborador ${se.workno}`,
+                cardNumber: null,
+                active: true,
+                scheduleCode: null,
+                scheduleName: se.schedule?.name || null,
+                numFingerprints: 0,
+                createdAt: se.createdAt,
+                updatedAt: se.updatedAt
+            }));
+            return NextResponse.json({ employees: schedList });
+        }
+
+        return NextResponse.json({ employees: [] });
 
     } catch (error: any) {
         console.error("Error fetching employees:", error);

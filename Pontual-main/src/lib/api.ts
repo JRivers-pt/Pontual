@@ -139,6 +139,17 @@ export async function getAttendanceRecords(
     page++;
   }
 
+  // Deduplicate records to prevent any duplicate entries across pages or manual merges
+  const seenKeys = new Set<string>();
+  const deduplicatedRecords: AttendanceRecord[] = [];
+  for (const r of allRecords) {
+    const key = r.uuid || `${r.employee?.workno}-${r.checktime}-${r.checktype}`;
+    if (!seenKeys.has(key)) {
+      seenKeys.add(key);
+      deduplicatedRecords.push(r);
+    }
+  }
+
   return {
     header: {
       nameSpace: 'attendance.record',
@@ -148,10 +159,10 @@ export async function getAttendanceRecords(
       timestamp: new Date().toISOString()
     },
     payload: {
-      count: allRecords.length,
-      list: allRecords,
+      count: deduplicatedRecords.length,
+      list: deduplicatedRecords,
       page: 1,
-      perPage: allRecords.length,
+      perPage: deduplicatedRecords.length,
       pageCount: 1
     }
   };
