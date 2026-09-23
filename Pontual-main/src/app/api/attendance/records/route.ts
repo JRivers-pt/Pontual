@@ -197,53 +197,97 @@ export async function POST(request: NextRequest) {
 
         const data = await response.json();
 
-        // Merge manual corrections from AttendanceLog for Anviz clients on first page
-        if (Number(page) === 1) {
-            try {
-                const whereClause: any = { userId: user.id };
-                if (beginTime || endTime) {
-                    whereClause.checktime = {};
-                    if (beginTime) whereClause.checktime.gte = new Date(beginTime);
-                    if (endTime) whereClause.checktime.lte = new Date(endTime);
-                }
-
-                const manualLogs = await prisma.attendanceLog.findMany({
-                    where: whereClause,
-                    orderBy: { checktime: 'asc' }
-                });
-
-                if (manualLogs.length > 0 && data.payload) {
-                    const mappedManual = manualLogs.map(l => ({
-                        uuid: `manual-${l.id}`,
-                        checktype: l.checktype,
-                        checktime: l.checktime.toISOString().replace(/Z$/, '+00:00'),
-                        device: {
-                            serial_number: 'MANUAL',
-                            name: l.deviceName || 'Correção Manual'
-                        },
-                        employee: {
-                            first_name: l.employeeName || `Colaborador ${l.workno}`,
-                            last_name: '',
-                            workno: String(l.workno).replace(/^0+/, '') || String(l.workno)
-                        }
-                    }));
-
-                    const apiRecords = data.payload.list || [];
-                    const combinedRecords = [...apiRecords, ...mappedManual];
-
-                    const sortOrder = body.order || 'asc';
-                    combinedRecords.sort((a: any, b: any) => {
-                        const timeA = new Date(a.checktime).getTime();
-                        const timeB = new Date(b.checktime).getTime();
-                        return sortOrder === 'desc' ? timeB - timeA : timeA - timeB;
-                    });
-
-                    data.payload.list = combinedRecords;
-                    data.payload.count = combinedRecords.length;
-                }
-            } catch (dbError) {
-                console.error('Error merging manual corrections for Anviz client:', dbError);
+        // Merge local manual corrections / insertions for this client
+        try {
+            const manualWhere: any = { userId: effectiveUserId };
+            if (beginTime || endTime) {
+                manualWhere.checktime = {};
+                if (beginTime) manualWhere.checktime.gte = new Date(beginTime);
+                if (endTime) manualWhere.checktime.lte = new Date(endTime);
             }
+
+            const [manualLogs, deletedAudits, employees] = await Promise.all([
+                prisma.attendanceLog.findMany({ where: manualWhere, orderBy: { checktime: 'asc' } }),
+                prisma.auditLog.findMany({
+                    where: { clientId: effectiveUserId, action: 'DELETE', oldValue: { not: null } },
+                    select: { oldValue: true, targetWorkno: true }
+                }),
+                prisma.employee.findMany({ where: { userId: effectiveUserId }, select: { workno: true, name: true } })
+            ]);
+
+            const empNameMap = new Map<string, string>();
+            employees.forEach(e => {
+                empNameMap.set(e.workno, e.name);
+                empNameMap.set(e.workno.padStart(4, '0'), e.name);
+                empNameMap.set(e.workno.replace(/^0+/, ''), e.name);
+            });
+
+            const deletedKeys = new Set<string>();
+            for (const d of deletedAudits) {
+                try {
+                    const parsed = JSON.parse(d.oldValue!);
+                    if (parsed.checktime) {
+                        const t = new Date(parsed.checktime).toISOString().substring(0, 16);
+                        deletedKeys.add(`${String(d.targetWorkno).replace(/^0+/, '')}_${t}`);
+                    }
+                } catch (e) {}
+            }
+
+            let list = (data.payload?.list || []).filter((r: any) => {
+                const w = String(r.employee?.workno || '').replace(/^0+/, '');
+                const t = new Date(r.checktime).toISOString().substring(0, 16);
+                return !deletedKeys.has(`${w}_${t}`);
+            });
+
+            // Convert manual logs to standard records
+            const manualRecords = manualLogs.map(l => {
+                const fullName = empNameMap.get(l.workno) || 
+                                 empNameMap.get(l.workno.padStart(4, '0')) || 
+                                 empNameMap.get(l.workno.replace(/^0+/, '')) || 
+                                 l.employeeName || 
+                                 `Colaborador ${l.workno}`;
+                return {
+                    uuid: l.id,
+                    checktype: l.checktype,
+                    checktime: l.checktime.toISOString().replace('Z', '+00:00'),
+                    device: {
+                        serial_number: l.deviceSn || 'MANUAL',
+                        name: l.deviceName || 'Correção Manual'
+                    },
+                    employee: {
+                        first_name: fullName,
+                        last_name: '',
+                        workno: l.workno.padStart(4, '0')
+                    }
+                };
+            });
+
+            const existingKeys = new Set(list.map((r: any) => 
+                `${String(r.employee?.workno).replace(/^0+/, '')}_${new Date(r.checktime).getTime()}`
+            ));
+
+            for (const mr of manualRecords) {
+                const key = `${String(mr.employee.workno).replace(/^0+/, '')}_${new Date(mr.checktime).getTime()}`;
+                if (!existingKeys.has(key)) {
+                    list.push(mr);
+                    existingKeys.add(key);
+                }
+            }
+
+            // Sort chronologically
+            const sortOrder = body.order || 'asc';
+            list.sort((a: any, b: any) => {
+                const timeA = new Date(a.checktime).getTime();
+                const timeB = new Date(b.checktime).getTime();
+                return sortOrder === 'desc' ? timeB - timeA : timeA - timeB;
+            });
+
+            if (data.payload) {
+                data.payload.list = list;
+                data.payload.count = list.length;
+            }
+        } catch (mergeErr) {
+            console.error("Error merging manual logs for CrossChex client:", mergeErr);
         }
 
         return NextResponse.json(data);

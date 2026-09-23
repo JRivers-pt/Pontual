@@ -91,8 +91,103 @@ export const GET = auth(async (req) => {
             return NextResponse.json({ employees: schedList });
         }
 
-        return NextResponse.json({ employees: [] });
+        // Fallback 3: For CrossChex clients, auto-sync active roster from CrossChex
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { apiKey: true, apiSecret: true, apiUrl: true }
+        });
 
+        if (user?.apiKey && user?.apiSecret) {
+            try {
+                const tokenRes = await fetch(user.apiUrl || 'https://api.eu.crosschexcloud.com/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        header: {
+                            nameSpace: 'authorize.token',
+                            nameAction: 'token',
+                            version: '1.0',
+                            requestId: `${Date.now()}`,
+                            timestamp: new Date().toISOString()
+                        },
+                        payload: {
+                            api_key: user.apiKey,
+                            api_secret: user.apiSecret
+                        }
+                    })
+                });
+                const tokenData = await tokenRes.json();
+                const token = tokenData.payload?.token;
+
+                if (token) {
+                    const now = new Date();
+                    const past = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+                    const recRes = await fetch(user.apiUrl || 'https://api.eu.crosschexcloud.com/', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            header: {
+                                nameSpace: 'attendance.record',
+                                nameAction: 'getrecord',
+                                version: '1.0',
+                                requestId: `${Date.now()}`,
+                                timestamp: new Date().toISOString()
+                            },
+                            authorize: { type: 'token', token },
+                            payload: {
+                                begin_time: past.toISOString().replace('Z', '+00:00'),
+                                end_time: now.toISOString().replace('Z', '+00:00'),
+                                order: 'desc',
+                                page: 1,
+                                per_page: 500
+                            }
+                        })
+                    });
+                    const recData = await recRes.json();
+                    const ccList = recData.payload?.list || [];
+                    const foundMap = new Map<string, string>();
+
+                    for (const item of ccList) {
+                        const emp = item.employee;
+                        if (emp && emp.workno) {
+                            const wNo = String(emp.workno).replace(/^0+/, '') || String(emp.workno);
+                            const fullName = `${emp.first_name || ''} ${emp.last_name || ''}`.trim() || `Colaborador ${wNo}`;
+                            if (!foundMap.has(wNo)) {
+                                foundMap.set(wNo, fullName);
+                            }
+                        }
+                    }
+
+                    if (foundMap.size > 0) {
+                        const createdEmployees = [];
+                        for (const [wNo, empName] of foundMap.entries()) {
+                            try {
+                                const created = await prisma.employee.upsert({
+                                    where: { userId_workno: { userId, workno: wNo } },
+                                    update: { name: empName, active: true },
+                                    create: {
+                                        userId,
+                                        workno: wNo,
+                                        name: empName,
+                                        active: true
+                                    }
+                                });
+                                createdEmployees.push(created);
+                            } catch (e) {}
+                        }
+                        if (createdEmployees.length > 0) {
+                            return NextResponse.json({
+                                employees: createdEmployees.sort((a, b) => a.name.localeCompare(b.name))
+                            });
+                        }
+                    }
+                }
+            } catch (ccError) {
+                console.error('Error auto-syncing CrossChex employees:', ccError);
+            }
+        }
+
+        return NextResponse.json({ employees: [] });
     } catch (error: any) {
         console.error("Error fetching employees:", error);
         return NextResponse.json({

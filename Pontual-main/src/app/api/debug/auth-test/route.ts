@@ -36,36 +36,97 @@ export async function GET(request: NextRequest) {
                 diagnostics.userListError = e.message;
             }
 
-            // Test 4: Auth test
+            // Test 4: Auth & VE deep diagnostic
             const { searchParams } = new URL(request.url);
-            const username = searchParams.get('username');
+            const username = searchParams.get('username') || 'VE';
             const password = searchParams.get('password');
 
-            if (username && password) {
-                try {
-                    const bcrypt = (await import('bcryptjs')).default;
-                    const normalizedUsername = username.toLowerCase();
-                    const user = await prisma.user.findUnique({
-                        where: { username: normalizedUsername }
+            try {
+                const veUser = await prisma.user.findFirst({
+                    where: { username: { equals: username, mode: 'insensitive' } }
+                });
+
+                if (veUser) {
+                    const [empCount, logCount, schedCount, auditCount] = await Promise.all([
+                        prisma.employee.count({ where: { userId: veUser.id } }),
+                        prisma.attendanceLog.count({ where: { userId: veUser.id } }),
+                        prisma.schedule.count({ where: { userId: veUser.id } }),
+                        prisma.auditLog.count({ where: { clientId: veUser.id } })
+                    ]);
+
+                    const sampleLogs = await prisma.attendanceLog.findMany({
+                        where: { userId: veUser.id },
+                        take: 5,
+                        orderBy: { checktime: 'desc' }
                     });
 
-                    if (user) {
-                        const passwordMatch = await bcrypt.compare(password, user.password);
-                        diagnostics.authTest = {
-                            usernameSearched: normalizedUsername,
-                            userFound: true,
-                            hashPrefix: user.password.substring(0, 7),
-                            passwordMatch,
-                        };
-                    } else {
-                        diagnostics.authTest = {
-                            usernameSearched: normalizedUsername,
-                            userFound: false,
-                        };
+                    const sampleEmployees = await prisma.employee.findMany({
+                        where: { userId: veUser.id },
+                        take: 5
+                    });
+
+                    let crosschexTest: any = null;
+                    if (veUser.apiKey && veUser.apiSecret) {
+                        try {
+                            const ccRes = await fetch(veUser.apiUrl || 'https://api.eu.crosschexcloud.com/', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    header: {
+                                        nameSpace: 'authorize.token',
+                                        nameAction: 'token',
+                                        version: '1.0',
+                                        requestId: `${Date.now()}`,
+                                        timestamp: new Date().toISOString()
+                                    },
+                                    payload: {
+                                        api_key: veUser.apiKey,
+                                        api_secret: veUser.apiSecret
+                                    }
+                                })
+                            });
+                            const ccData = await ccRes.json();
+                            crosschexTest = {
+                                status: ccRes.status,
+                                ok: ccRes.ok,
+                                data: ccData
+                            };
+                        } catch (ccErr: any) {
+                            crosschexTest = { error: ccErr.message };
+                        }
                     }
-                } catch (e: any) {
-                    diagnostics.authTestError = e.message;
+
+                    diagnostics.targetUserDiag = {
+                        found: true,
+                        id: veUser.id,
+                        username: veUser.username,
+                        company: veUser.company,
+                        role: veUser.role,
+                        parentUserId: veUser.parentUserId,
+                        biometricProvider: veUser.biometricProvider,
+                        hasApiKey: !!veUser.apiKey,
+                        hasApiSecret: !!veUser.apiSecret,
+                        apiUrl: veUser.apiUrl,
+                        syncToken: veUser.syncToken,
+                        empCount,
+                        logCount,
+                        schedCount,
+                        auditCount,
+                        sampleEmployees,
+                        sampleLogs,
+                        crosschexTest
+                    };
+
+                    if (password) {
+                        const bcrypt = (await import('bcryptjs')).default;
+                        const passwordMatch = await bcrypt.compare(password, veUser.password);
+                        diagnostics.targetUserDiag.passwordMatch = passwordMatch;
+                    }
+                } else {
+                    diagnostics.targetUserDiag = { found: false, username };
                 }
+            } catch (diagErr: any) {
+                diagnostics.targetUserDiagError = diagErr.message;
             }
         } catch (e: any) {
             diagnostics.dbConnection = 'FAILED';

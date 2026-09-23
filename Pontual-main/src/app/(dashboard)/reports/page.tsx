@@ -41,7 +41,7 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { exportToPDF, exportToExcel, exportToMensalPDF } from "@/lib/exports"
 import { getAttendanceRecords, getEmployees as fetchAllEmployeesApi } from "@/lib/api"
-import { calculateSmartWorkHours, getFormattedScheduleInfo } from "@/lib/schedules"
+import { calculateSmartWorkHours, getFormattedScheduleInfo, getClientRules } from "@/lib/schedules"
 import { ExportModal } from "@/components/reports/ExportModal"
 import { useSession } from "next-auth/react"
 
@@ -77,30 +77,29 @@ function getCheckTypeInfo(type: number) {
 
 // Períodos pré-definidos
 const PRESET_PERIODS = [
-    { label: "Ano Corrente (2026)", value: "thisYear", getDates: () => ({ from: new Date(2026, 0, 1), to: endOfDay(new Date()) }) },
-    { label: "Últimos 6 meses", value: "6m", getDates: () => ({ from: addDays(new Date(), -180), to: endOfDay(new Date()) }) },
-    { label: "Últimos 3 meses", value: "3m", getDates: () => ({ from: addDays(new Date(), -90), to: endOfDay(new Date()) }) },
-    { label: "Últimos 30 dias", value: "30d", getDates: () => ({ from: addDays(new Date(), -30), to: endOfDay(new Date()) }) },
-    { label: "Julho 2026", value: "jul2026", getDates: () => ({ from: new Date(2026, 6, 1), to: new Date(2026, 6, 31, 23, 59, 59) }) },
-    { label: "Junho 2026", value: "jun2026", getDates: () => ({ from: new Date(2026, 5, 1), to: new Date(2026, 5, 30, 23, 59, 59) }) },
-    { label: "Maio 2026", value: "may2026", getDates: () => ({ from: new Date(2026, 4, 1), to: new Date(2026, 4, 31, 23, 59, 59) }) },
-    { label: "Abril 2026", value: "apr2026", getDates: () => ({ from: new Date(2026, 3, 1), to: new Date(2026, 3, 30, 23, 59, 59) }) },
     { label: "Este mês", value: "thisMonth", getDates: () => ({ from: startOfMonth(new Date()), to: endOfDay(new Date()) }) },
     { label: "Mês passado", value: "lastMonth", getDates: () => ({ from: startOfMonth(subMonths(new Date(), 1)), to: endOfMonth(subMonths(new Date(), 1)) }) },
+    { label: "Últimos 30 dias", value: "30d", getDates: () => ({ from: addDays(new Date(), -30), to: endOfDay(new Date()) }) },
+    { label: "Setembro 2026", value: "sep2026", getDates: () => ({ from: new Date(2026, 8, 1), to: new Date(2026, 8, 30, 23, 59, 59) }) },
+    { label: "Agosto 2026", value: "aug2026", getDates: () => ({ from: new Date(2026, 7, 1), to: new Date(2026, 7, 31, 23, 59, 59) }) },
+    { label: "Julho 2026", value: "jul2026", getDates: () => ({ from: new Date(2026, 6, 1), to: new Date(2026, 6, 31, 23, 59, 59) }) },
+    { label: "Junho 2026", value: "jun2026", getDates: () => ({ from: new Date(2026, 5, 1), to: new Date(2026, 5, 30, 23, 59, 59) }) },
+    { label: "Últimos 3 meses", value: "3m", getDates: () => ({ from: addDays(new Date(), -90), to: endOfDay(new Date()) }) },
+    { label: "Ano Corrente (2026)", value: "thisYear", getDates: () => ({ from: new Date(2026, 0, 1), to: endOfDay(new Date()) }) },
 ]
 
 export default function ReportsPage() {
     const { data: session } = useSession()
-    const [date, setDate] = React.useState<DateRange | undefined>({
-        from: new Date(2026, 0, 1),
+    const [date, setDate] = React.useState<DateRange | undefined>(() => ({
+        from: startOfMonth(new Date()),
         to: endOfDay(new Date()),
-    })
+    }))
     const [records, setRecords] = React.useState<AttendanceRecord[]>([])
     const [allEmployees, setAllEmployees] = React.useState<Employee[]>([])
     const [loading, setLoading] = React.useState(false)
     const [error, setError] = React.useState<string | null>(null)
     const [selectedEmployee, setSelectedEmployee] = React.useState<string>("all")
-    const [selectedPeriod, setSelectedPeriod] = React.useState<string>("thisYear")
+    const [selectedPeriod, setSelectedPeriod] = React.useState<string>("thisMonth")
     const [activeTab, setActiveTab] = React.useState<string>("summary")
     const [rateLimitCountdown, setRateLimitCountdown] = React.useState<number>(0)
     const [reportHeader, setReportHeader] = React.useState<string | undefined>(undefined)
@@ -369,7 +368,6 @@ export default function ReportsPage() {
         const isExempt = isGengibre && (selectedEmployee === "18" || selectedEmployee === "11");
         
         const rawOtMs = dailySummaries.reduce((acc, s) => acc + s.overtimeMs, 0);
-        const { getClientRules } = require("@/lib/schedules");
         const rules = getClientRules(company);
         const EXEMPTION_MS = 20 * 60 * 60 * 1000;
         

@@ -38,7 +38,13 @@ export async function GET(request: NextRequest) {
 
     const where: any = {};
     if (clientId) where.clientId = clientId;
-    if (action) where.action = action;
+    if (action) {
+      if (action.includes(',')) {
+        where.action = { in: action.split(',').map((a: string) => a.trim()) };
+      } else {
+        where.action = action;
+      }
+    }
     if (actorName) where.actorName = { contains: actorName, mode: 'insensitive' };
     if (targetWorkno) where.targetWorkno = { contains: targetWorkno };
     if (dateFrom || dateTo) {
