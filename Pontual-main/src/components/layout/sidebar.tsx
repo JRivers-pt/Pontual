@@ -19,7 +19,8 @@ import {
     LogOut,
     HelpCircle,
     Building2,
-    Edit3
+    Edit3,
+    Server
 } from "lucide-react"
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> { }
@@ -64,6 +65,12 @@ export function Sidebar({ className }: SidebarProps) {
             icon: ClipboardList,
             href: "/timesheet",
             active: pathname === "/timesheet",
+        },
+        {
+            label: "Equipamentos & Rede",
+            icon: Server,
+            href: "/devices",
+            active: pathname === "/devices",
         },
     ]
 
