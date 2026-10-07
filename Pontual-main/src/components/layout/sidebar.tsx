@@ -66,12 +66,6 @@ export function Sidebar({ className }: SidebarProps) {
             href: "/timesheet",
             active: pathname === "/timesheet",
         },
-        {
-            label: "Equipamentos & Rede",
-            icon: Server,
-            href: "/devices",
-            active: pathname === "/devices",
-        },
     ]
 
     // Only show "Colaboradores" for CMB Main Account or System Admin
@@ -86,6 +80,12 @@ export function Sidebar({ className }: SidebarProps) {
 
     // Add Admin routes
     if ((session?.user as any)?.role === "ADMIN") {
+        allRoutes.push({
+            label: "Equipamentos & Rede",
+            icon: Server,
+            href: "/devices",
+            active: pathname === "/devices",
+        })
         allRoutes.push({
             label: "Gestão de Horários",
             icon: Clock,
