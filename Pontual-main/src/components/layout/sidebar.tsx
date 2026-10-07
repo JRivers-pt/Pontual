@@ -19,8 +19,7 @@ import {
     LogOut,
     HelpCircle,
     Building2,
-    Edit3,
-    Server
+    Edit3
 } from "lucide-react"
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> { }
@@ -80,12 +79,6 @@ export function Sidebar({ className }: SidebarProps) {
 
     // Add Admin routes
     if ((session?.user as any)?.role === "ADMIN") {
-        allRoutes.push({
-            label: "Equipamentos & Rede",
-            icon: Server,
-            href: "/devices",
-            active: pathname === "/devices",
-        })
         allRoutes.push({
             label: "Gestão de Horários",
             icon: Clock,
