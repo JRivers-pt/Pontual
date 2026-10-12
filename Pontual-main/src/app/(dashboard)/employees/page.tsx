@@ -137,6 +137,30 @@ export default function EmployeesPage() {
     const [scanQuality, setScanQuality] = useState<number | null>(null)
     const [scanSuccess, setScanSuccess] = useState(false)
     const [scannerConnected, setScannerConnected] = useState<boolean | null>(null)
+    const [scanImage, setScanImage] = useState<string | null>(null)
+    const [scannerDeviceName, setScannerDeviceName] = useState<string>("BioMini Plus 2")
+
+    // Check USB Agent connection
+    const checkUsbScanner = async () => {
+        const ports = [8082, 8081]
+        for (const port of ports) {
+            const proto = port === 8081 ? "https" : "http"
+            try {
+                const res = await fetch(`${proto}://localhost:${port}/api/devices?timestamp=${Date.now()}`, {
+                    signal: AbortSignal.timeout(1500)
+                })
+                if (res.ok) {
+                    const data = await res.json()
+                    if (data?.Devices && Array.isArray(data.Devices) && data.Devices.length > 0) {
+                        setScannerConnected(true)
+                        setScannerDeviceName(data.Devices[0].name || "BioMini Plus 2")
+                        return
+                    }
+                }
+            } catch {}
+        }
+        setScannerConnected(false)
+    }
 
     // Fetch Employees
     const fetchEmployees = async () => {
@@ -156,6 +180,7 @@ export default function EmployeesPage() {
 
     useEffect(() => {
         fetchEmployees()
+        checkUsbScanner()
     }, [])
 
     // Open Modal for Create
@@ -176,9 +201,11 @@ export default function EmployeesPage() {
         setFormFingerprint(null)
         setScanSuccess(false)
         setScanQuality(null)
+        setScanImage(null)
         setErrorMsg(null)
         setSuccessMsg(null)
         setModalOpen(true)
+        checkUsbScanner()
     }
 
     // Open Modal for Edit
@@ -195,54 +222,90 @@ export default function EmployeesPage() {
         setErrorMsg(null)
         setSuccessMsg(null)
         setModalOpen(true)
+        checkUsbScanner()
     }
 
     // Biometric Enrollment via Suprema BioMini / USB Agent
     const handleCaptureFingerprint = async () => {
         setScanning(true)
         setErrorMsg(null)
+        setSuccessMsg(null)
 
         try {
-            // Attempt 1: Call local Suprema BioMini WebService on localhost:8000 / localhost:8001
             let capturedTemplate: string | null = null
-            let quality = 95
+            let quality = 100
+            let capturedImg: string | null = null
+            let lastError = ""
 
-            try {
-                const controller = new AbortController()
-                const timeoutId = setTimeout(() => controller.abort(), 2000)
-                
-                const agentRes = await fetch("http://localhost:8000/api/biomini/capture", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ workno: formWorkno, name: formName }),
-                    signal: controller.signal
-                }).catch(() => null)
+            // Suprema USB Device Agent runs on HTTP 8082 and HTTPS 8081
+            const endpoints = [
+                { url: "http://localhost:8082", port: 8082 },
+                { url: "https://localhost:8081", port: 8081 }
+            ]
 
-                clearTimeout(timeoutId)
+            for (const ep of endpoints) {
+                try {
+                    // 1. Verify reader availability
+                    try {
+                        const devRes = await fetch(`${ep.url}/api/devices?timestamp=${Date.now()}`, {
+                            signal: AbortSignal.timeout(2000)
+                        })
+                        if (devRes.ok) {
+                            const devData = await devRes.json()
+                            if (devData?.Devices && Array.isArray(devData.Devices) && devData.Devices.length > 0) {
+                                setScannerConnected(true)
+                                setScannerDeviceName(devData.Devices[0].name || "BioMini Plus 2")
+                            }
+                        }
+                    } catch {}
 
-                if (agentRes && agentRes.ok) {
-                    const agentData = await agentRes.json()
-                    capturedTemplate = agentData.templateBase64 || agentData.template
-                    quality = agentData.quality || 96
-                    setScannerConnected(true)
+                    // 2. Trigger Biometric Scan on BioMini Plus 2
+                    const scanRes = await fetch(`${ep.url}/api/scanbiomini`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            template_type: 0,
+                            enroll_quality: 80,
+                            hide_popup: true
+                        }),
+                        signal: AbortSignal.timeout(18000) // 18 seconds to place finger
+                    })
+
+                    if (scanRes.ok) {
+                        const scanData = await scanRes.json()
+                        if (scanData.template) {
+                            capturedTemplate = scanData.template
+                            quality = scanData.score || 100
+                            if (scanData.image?.data) {
+                                capturedImg = `data:image/jpeg;base64,${scanData.image.data}`
+                            }
+                            setScannerConnected(true)
+                            break
+                        } else if (scanData.retcode && scanData.retcode !== 1 && scanData.retcode !== "1") {
+                            lastError = `Código retcode: ${scanData.retcode}`
+                        }
+                    }
+                } catch (epErr: any) {
+                    lastError = epErr.message
                 }
-            } catch {
-                // Local web service not responding directly on port 8000
             }
 
-            // Fallback: If BioMini Web Service is in background or standalone, simulate high-quality capture
             if (!capturedTemplate) {
-                await new Promise(resolve => setTimeout(resolve, 1600))
-                capturedTemplate = `SUPREMA_UNIFINGER_V2_${formWorkno}_${Date.now()}`
-                quality = 98
-                setScannerConnected(true)
+                throw new Error(
+                    lastError.includes("timeout") || lastError.includes("abort")
+                        ? "Tempo limite esgotado. Coloque o dedo firmemente no leitor USB e tente novamente."
+                        : "Não foi possível comunicar com o leitor Suprema BioMini USB (portas 8081/8082). Verifique se o leitor está ligado e o agente a correr."
+                )
             }
 
             setFormFingerprint(capturedTemplate)
             setScanQuality(quality)
+            if (capturedImg) setScanImage(capturedImg)
             setScanSuccess(true)
+            setSuccessMsg(`Impressão digital capturada com sucesso! (Qualidade: ${quality}%)`)
         } catch (err: any) {
-            setErrorMsg("Não foi possível comunicar com o leitor Suprema BioMini USB: " + err.message)
+            setErrorMsg("Erro na captura biométrica: " + err.message)
+            setScanSuccess(false)
         } finally {
             setScanning(false)
         }
@@ -827,9 +890,16 @@ export default function EmployeesPage() {
                                     <div>
                                         <h4 className="text-sm font-semibold text-neutral-900 flex items-center gap-1.5">
                                             Registo Biométrico
-                                            <span className="text-[10px] px-1.5 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded font-mono">
-                                                Leitor USB / Terminal
-                                            </span>
+                                            {scannerConnected ? (
+                                                <span className="text-[10px] px-1.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded font-medium flex items-center gap-1">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                                    {scannerDeviceName} Pronto
+                                                </span>
+                                            ) : (
+                                                <span className="text-[10px] px-1.5 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded font-mono">
+                                                    Leitor USB / Terminal
+                                                </span>
+                                            )}
                                         </h4>
                                         <p className="text-xs text-neutral-500">
                                             Enrolamento direto via leitor USB ou sincronização com a base de dados
@@ -869,6 +939,16 @@ export default function EmployeesPage() {
                                     )}
                                 </Button>
                             </div>
+
+                            {scanImage && (
+                                <div className="flex items-center gap-3 p-2 bg-white rounded-lg border border-neutral-200">
+                                    <img src={scanImage} alt="Impressão Digital" className="w-10 h-12 object-cover rounded border border-neutral-300 shadow-sm bg-neutral-50" />
+                                    <div className="text-xs">
+                                        <p className="font-semibold text-emerald-700">Cristas Biométricas Válidas</p>
+                                        <p className="text-[11px] text-neutral-500">Qualidade: {scanQuality || 100}% • Suprema BioMini</p>
+                                    </div>
+                                </div>
+                            )}
 
                             {formFingerprint && (
                                 <p className="text-[11px] text-neutral-500 flex items-center gap-1">
