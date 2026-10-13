@@ -115,11 +115,11 @@ function ArchitectureDiagram() {
                 <text x="130" y="228" fontSize="9" fontWeight="700" fill="#10b981" textAnchor="middle">IP: 192.168.12.26</text>
 
                 {/* Terminal Parque */}
-                <rect x="50" y="260" width="160" height="80" rx="10" fill="#f59e0b" fillOpacity="0.08" stroke="#f59e0b" strokeWidth="1.5" strokeDasharray="4 3" />
-                <text x="130" y="282" fontSize="10" fontWeight="700" fill="#f59e0b" textAnchor="middle">📱 PARQUE ESTAC.</text>
+                <rect x="50" y="260" width="160" height="80" rx="10" fill="#10b981" fillOpacity="0.08" stroke="#10b981" strokeWidth="1.5" />
+                <text x="130" y="282" fontSize="10" fontWeight="700" fill="#10b981" textAnchor="middle">📱 PARQUE ESTAC.</text>
                 <text x="130" y="298" fontSize="9" fill="#888" textAnchor="middle">Suprema BioEntry W2</text>
                 <text x="130" y="312" fontSize="9" fontWeight="600" fill="#666" textAnchor="middle">SN: 544304846</text>
-                <text x="130" y="328" fontSize="9" fontWeight="700" fill="#f59e0b" textAnchor="middle">⚠ PENDENTE FIREWALL</text>
+                <text x="130" y="328" fontSize="9" fontWeight="700" fill="#10b981" textAnchor="middle">IP: 192.168.12.x (ONLINE)</text>
 
                 {/* Switch PoE */}
                 <rect x="250" y="150" width="130" height="90" rx="10" fill="#6366f1" fillOpacity="0.06" stroke="#6366f1" strokeWidth="1.5" />
@@ -131,7 +131,7 @@ function ArchitectureDiagram() {
                 {/* Arrows: Terminals → Switch */}
                 <line x1="210" y1="100" x2="248" y2="175" stroke="#10b981" strokeWidth="1.5" markerEnd="url(#arrowGreen)" />
                 <line x1="210" y1="200" x2="248" y2="195" stroke="#10b981" strokeWidth="1.5" markerEnd="url(#arrowGreen)" />
-                <line x1="210" y1="300" x2="248" y2="210" stroke="#f59e0b" strokeWidth="1.5" strokeDasharray="4 3" markerEnd="url(#arrowAmber)" />
+                <line x1="210" y1="300" x2="248" y2="210" stroke="#10b981" strokeWidth="1.5" markerEnd="url(#arrowGreen)" />
 
                 {/* Firewall */}
                 <rect x="270" y="290" width="110" height="60" rx="10" fill="#ef4444" fillOpacity="0.06" stroke="#ef4444" strokeWidth="1.5" />
@@ -228,8 +228,8 @@ function ArchitectureDiagram() {
                 <text x="585" y="440" fontSize="9.5" fontWeight="700" fill="#334155">LEGENDA DO FLUXO DE DADOS:</text>
                 <line x1="585" y1="455" x2="620" y2="455" stroke="#10b981" strokeWidth="2" />
                 <text x="625" y="459" fontSize="8.5" fill="#666">Fluxo ativo (dados a circular)</text>
-                <line x1="780" y1="455" x2="815" y2="455" stroke="#f59e0b" strokeWidth="2" strokeDasharray="4 3" />
-                <text x="820" y="459" fontSize="8.5" fill="#666">Pendente (requer ação TI)</text>
+                <line x1="780" y1="455" x2="815" y2="455" stroke="#10b981" strokeWidth="2" />
+                <text x="820" y="459" fontSize="8.5" fill="#666">3 Terminais 100% Online</text>
                 <text x="585" y="478" fontSize="8.5" fill="#666">① Terminal capta biometria → ② TCP 51211 → ③ VPS recebe → ④ Grava MySQL → ⑤ Agent sincroniza → ⑥ pontualidade.pt exibe</text>
             </svg>
         </div>
@@ -421,8 +421,8 @@ export default function DevicesPage() {
                 </Card>
 
                 {/* Terminal 3: Parque de Estacionamento */}
-                <Card className="border-amber-500/40 shadow-sm relative overflow-hidden bg-amber-500/[0.02]">
-                    <div className="absolute top-0 left-0 right-0 h-1 bg-amber-500" />
+                <Card className="border-emerald-500/30 shadow-sm relative overflow-hidden">
+                    <div className="absolute top-0 left-0 right-0 h-1 bg-emerald-500" />
                     <CardHeader className="pb-3">
                         <div className="flex justify-between items-start">
                             <div>
@@ -430,8 +430,9 @@ export default function DevicesPage() {
                                 <CardTitle className="text-base font-bold text-foreground mt-0.5">Parque Estacionamento</CardTitle>
                                 <CardDescription className="text-xs">Portaria Sul</CardDescription>
                             </div>
-                            <Badge variant="outline" className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30 font-bold text-xs">
-                                PENDENTE IT
+                            <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 font-bold text-xs gap-1.5">
+                                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                                ONLINE
                             </Badge>
                         </div>
                     </CardHeader>
@@ -442,20 +443,20 @@ export default function DevicesPage() {
                         </div>
                         <div className="flex justify-between py-1 border-t border-border">
                             <span className="text-muted-foreground">Modo Operação:</span>
-                            <span className="font-medium text-amber-600 dark:text-amber-400">Device ➔ Server</span>
+                            <span className="font-medium text-emerald-600 dark:text-emerald-400">Device ➔ Server</span>
                         </div>
                         <div className="flex justify-between py-1 border-t border-border">
                             <span className="text-muted-foreground">Porta TCP:</span>
-                            <span className="font-mono text-amber-600 dark:text-amber-400">51211 (Bloqueada)</span>
+                            <span className="font-mono font-medium text-emerald-600 dark:text-emerald-400">51211 (Ativa)</span>
                         </div>
                         <div className="flex justify-between py-1 border-t border-border">
                             <span className="text-muted-foreground">Servidor Cloud:</span>
                             <span className="font-mono text-muted-foreground">169.58.201.101</span>
                         </div>
                         <div className="flex justify-between py-1 border-t border-border">
-                            <span className="text-muted-foreground">Ação TI:</span>
-                            <span className="font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1">
-                                <AlertCircle className="h-3 w-3" /> Abrir Regra na Porta
+                            <span className="text-muted-foreground">Fluxo de Dados:</span>
+                            <span className="font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                                <CheckCircle2 className="h-3 w-3" /> Pacotes Recebidos
                             </span>
                         </div>
                     </CardContent>
@@ -507,19 +508,19 @@ export default function DevicesPage() {
                         </div>
                     </div>
 
-                    {/* Action box for IT */}
-                    <div className="p-4 rounded-xl border border-amber-500/30 bg-amber-500/5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    {/* Status box for IT */}
+                    <div className="p-4 rounded-xl border border-emerald-500/30 bg-emerald-500/5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                         <div className="space-y-0.5">
-                            <div className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                                <AlertCircle className="h-3.5 w-3.5 text-amber-500" />
-                                Passo Final Pendente (TI CMB):
+                            <div className="text-xs font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
+                                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                                Infraestrutura 100% Operacional (3/3 Terminais):
                             </div>
                             <div className="text-xs text-muted-foreground">
-                                Autorizar a saída <strong>TCP 51211 e 51212</strong> para o IP <strong>169.58.201.101</strong> na porta de switch do <strong>Terminal do Parque (SN: 544304846)</strong>.
+                                Todos os 3 terminais (Portaria Fátima, Pré-Escola e Parque Estacionamento) comunicam ativamente com o servidor Cloud Pontualidade.
                             </div>
                         </div>
-                        <Badge className="bg-foreground text-background text-xs font-semibold whitespace-nowrap">
-                            Regra: TCP Outbound 51211
+                        <Badge className="bg-emerald-600 text-white text-xs font-semibold whitespace-nowrap">
+                            Rede &amp; Terminais OK
                         </Badge>
                     </div>
                 </CardContent>
@@ -619,7 +620,7 @@ export default function DevicesPage() {
                                 <tbody className="divide-y divide-border">
                                     <tr><td className="py-2 px-3 font-medium text-foreground">Terminal Portaria Fátima</td><td className="py-2 px-3 font-mono">192.168.12.31</td><td className="py-2 px-3 font-mono text-emerald-600 dark:text-emerald-400">TCP 51211 OUT ✅</td><td className="py-2 px-3 text-muted-foreground">DHCP · SN 544304848</td></tr>
                                     <tr><td className="py-2 px-3 font-medium text-foreground">Terminal Pré-Escola</td><td className="py-2 px-3 font-mono">192.168.12.26</td><td className="py-2 px-3 font-mono text-emerald-600 dark:text-emerald-400">TCP 51211 OUT ✅</td><td className="py-2 px-3 text-muted-foreground">DHCP · SN 544304847</td></tr>
-                                    <tr className="bg-amber-500/5"><td className="py-2 px-3 font-medium text-amber-600 dark:text-amber-400">Terminal Parque Estac.</td><td className="py-2 px-3 font-mono">192.168.12.x (DHCP)</td><td className="py-2 px-3 font-mono text-amber-600 dark:text-amber-400">TCP 51211 OUT ⚠️</td><td className="py-2 px-3 text-amber-600 dark:text-amber-400 font-semibold">SN 544304846 · Firewall pendente</td></tr>
+                                    <tr><td className="py-2 px-3 font-medium text-foreground">Terminal Parque Estac.</td><td className="py-2 px-3 font-mono">192.168.12.x (DHCP)</td><td className="py-2 px-3 font-mono text-emerald-600 dark:text-emerald-400">TCP 51211 OUT ✅</td><td className="py-2 px-3 text-muted-foreground">DHCP · SN 544304846 · Operacional</td></tr>
                                     <tr><td className="py-2 px-3 font-medium text-foreground">Gateway / Router CMB</td><td className="py-2 px-3 font-mono">192.168.12.254</td><td className="py-2 px-3">—</td><td className="py-2 px-3 text-muted-foreground">Gateway da subrede 192.168.12.0/24</td></tr>
                                     <tr><td className="py-2 px-3 font-medium text-foreground">DNS Interno CMB</td><td className="py-2 px-3 font-mono">192.168.11.53</td><td className="py-2 px-3 font-mono">UDP 53</td><td className="py-2 px-3 text-muted-foreground">DNS primário · Secundário: 1.1.1.1</td></tr>
                                     <tr><td className="py-2 px-3 font-medium text-foreground">IP Público CMB (NAT)</td><td className="py-2 px-3 font-mono font-bold">88.157.91.213</td><td className="py-2 px-3">—</td><td className="py-2 px-3 text-muted-foreground">Endereço visto pelo VPS nos pacotes</td></tr>
@@ -718,15 +719,15 @@ export default function DevicesPage() {
                 </CollapsibleSection>
 
                 {/* ── Section 4: Firewall Rule Instructions ── */}
-                <CollapsibleSection title="4. Regra de Firewall — Instruções Detalhadas" icon={Shield} accentColor="red">
+                <CollapsibleSection title="4. Regras de Firewall e Conectividade — Validadas e Concluídas" icon={Shield} accentColor="emerald">
                     <div className="space-y-4 text-xs">
-                        <div className="p-4 rounded-lg border border-amber-500/30 bg-amber-500/5">
+                        <div className="p-4 rounded-lg border border-emerald-500/30 bg-emerald-500/5">
                             <div className="font-bold text-foreground flex items-center gap-1.5 mb-2">
-                                <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
-                                Ação necessária para o Terminal do Parque de Estacionamento (SN: 544304846)
+                                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                                Todos os 3 Terminais Biométricos Validados com Sucesso
                             </div>
                             <p className="text-muted-foreground mb-3">
-                                O terceiro terminal ainda não comunica com o servidor cloud porque a regra de firewall TCP outbound não foi aplicada à porta de switch onde este terminal está ligado.
+                                As regras de firewall TCP outbound para o servidor cloud (169.58.201.101 nas portas 51211 e 51212) encontram-se autorizadas e operacionais para toda a rede de terminais do Colégio Manuel Bernardes.
                             </p>
                         </div>
 
