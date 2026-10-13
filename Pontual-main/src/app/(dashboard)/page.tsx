@@ -65,15 +65,20 @@ export default function DashboardPage() {
   const [lastUpdate, setLastUpdate] = React.useState<Date>(new Date())
 
   const companyName = (session?.user as any)?.company || ""
+  const username = (session?.user as any)?.username || ""
   const isVilaPeixoto = companyName.toLowerCase().includes("vila peixoto")
   const isGengibre = companyName.toLowerCase().includes("cozinha") ||
     companyName.toLowerCase().includes("gengibre") ||
     companyName.toLowerCase().includes("criativa")
+  const isCmb = companyName.toLowerCase().includes("bernardes") ||
+    companyName.toLowerCase().includes("maristas") ||
+    companyName.toLowerCase().includes("cmb") ||
+    username.toUpperCase().startsWith("CMB")
 
 
 
-  const fetchData = React.useCallback(async () => {
-    setLoading(true)
+  const fetchData = React.useCallback(async (isSilent = false) => {
+    if (!isSilent) setLoading(true)
     setError(null)
 
     try {
@@ -112,14 +117,22 @@ export default function DashboardPage() {
         }, 2000)
       }
     } finally {
-      setLoading(false)
+      if (!isSilent) setLoading(false)
     }
   }, [])
 
   React.useEffect(() => {
     fetchData()
-    // No auto-refresh — manual only to avoid CrossChex API rate limits
-  }, [fetchData])
+
+    // Para o cliente CMB (e On-Premise/Suprema sem limites de quota de API), auto-refresh automático a cada 10 minutos
+    if (isCmb) {
+      const interval = setInterval(() => {
+        fetchData(true)
+      }, 10 * 60 * 1000) // 10 minutos
+
+      return () => clearInterval(interval)
+    }
+  }, [fetchData, isCmb])
 
   // Process employee statuses
   const employeeStatuses = React.useMemo<EmployeeStatus[]>(() => {
@@ -279,13 +292,13 @@ export default function DashboardPage() {
               <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
             </span>
             <span className="text-xs font-medium text-green-700 dark:text-green-400">
-              Ao vivo • Atualizado: {format(lastUpdate, 'HH:mm')}
+              {isCmb ? "Auto-refresh 10m • " : "Ao vivo • "}Atualizado: {format(lastUpdate, 'HH:mm')}
             </span>
           </div>
           <Button
             variant="outline"
             size="sm"
-            onClick={fetchData}
+            onClick={() => fetchData(false)}
             disabled={loading}
           >
             <RefreshCw className={cn("h-4 w-4 mr-2", loading && "animate-spin")} />
