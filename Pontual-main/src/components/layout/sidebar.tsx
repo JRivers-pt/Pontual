@@ -33,74 +33,92 @@ export function Sidebar({ className }: SidebarProps) {
 
     const companyName = (session?.user as any)?.company ?? null
     const userName = session?.user?.name ?? "Utilizador"
+    const username = (session?.user as any)?.username ?? ""
+    const userRole = (session?.user as any)?.role
 
     // Generate initials from company name or user name
     const initials = companyName
         ? companyName.split(" ").filter(Boolean).slice(0, 2).map((w: string) => w[0].toUpperCase()).join("")
         : userName.split(" ").slice(0, 2).map((w: string) => w[0].toUpperCase()).join("")
 
-    const isCmb = companyName?.toLowerCase().includes("bernardes") ||
-        companyName?.toLowerCase().includes("maristas") ||
-        companyName?.toLowerCase().includes("cmb") ||
-        (session?.user as any)?.role === "ADMIN"
+    const isItTechnician = username?.toUpperCase() === "CMB_IT" ||
+        username?.toUpperCase().endsWith("_IT") ||
+        userName?.toLowerCase().includes("ti / redes") ||
+        userName?.toLowerCase().includes("técnico de informática") ||
+        userName?.toLowerCase().includes("departamento de ti")
 
-    const allRoutes = [
-        {
+    const isAdmin = userRole === "ADMIN"
+
+    const allRoutes = []
+
+    if (isItTechnician) {
+        allRoutes.push({
             label: "Dashboard",
             icon: LayoutDashboard,
             href: "/",
             active: pathname === "/",
-        },
-        {
-            label: "Colaboradores",
-            icon: Users,
-            href: "/employees",
-            active: pathname === "/employees",
-        },
-        {
-            label: "Folha de Ponto",
-            icon: ClipboardList,
-            href: "/timesheet",
-            active: pathname === "/timesheet",
-        },
-        {
-            label: "Correções de Ponto",
-            icon: Edit3,
-            href: "/corrections",
-            active: pathname === "/corrections",
-        },
-        {
-            label: "Relatórios",
-            icon: FileText,
-            href: "/reports",
-            active: pathname === "/reports",
-        },
-    ]
-
-    // Equipamentos & Rede (CMB e Admin)
-    if (isCmb || (session?.user as any)?.role === "ADMIN") {
+        })
         allRoutes.push({
             label: "Equipamentos & Rede",
             icon: Server,
             href: "/devices",
             active: pathname === "/devices",
         })
-    }
+    } else {
+        allRoutes.push(
+            {
+                label: "Dashboard",
+                icon: LayoutDashboard,
+                href: "/",
+                active: pathname === "/",
+            },
+            {
+                label: "Colaboradores",
+                icon: Users,
+                href: "/employees",
+                active: pathname === "/employees",
+            },
+            {
+                label: "Folha de Ponto",
+                icon: ClipboardList,
+                href: "/timesheet",
+                active: pathname === "/timesheet",
+            },
+            {
+                label: "Correções de Ponto",
+                icon: Edit3,
+                href: "/corrections",
+                active: pathname === "/corrections",
+            },
+            {
+                label: "Relatórios",
+                icon: FileText,
+                href: "/reports",
+                active: pathname === "/reports",
+            }
+        )
 
-    // Add Admin routes
-    if ((session?.user as any)?.role === "ADMIN") {
-        allRoutes.push({
-            label: "Gestão de Horários",
-            icon: Clock,
-            href: "/schedules",
-            active: pathname === "/schedules",
-        })
-        allRoutes.push({
-            label: "Gestão de Clientes",
-            icon: Building2,
-            href: "/admin/clients",
-            active: pathname.startsWith("/admin"),
-        })
+        // Add Equipamentos & Rede and Admin routes for ADMIN
+        if (isAdmin) {
+            allRoutes.push({
+                label: "Equipamentos & Rede",
+                icon: Server,
+                href: "/devices",
+                active: pathname === "/devices",
+            })
+            allRoutes.push({
+                label: "Gestão de Horários",
+                icon: Clock,
+                href: "/schedules",
+                active: pathname === "/schedules",
+            })
+            allRoutes.push({
+                label: "Gestão de Clientes",
+                icon: Building2,
+                href: "/admin/clients",
+                active: pathname.startsWith("/admin"),
+            })
+        }
     }
 
     return (

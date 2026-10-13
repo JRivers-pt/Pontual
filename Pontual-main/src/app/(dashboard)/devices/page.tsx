@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import {
     Server,
@@ -237,9 +238,26 @@ function ArchitectureDiagram() {
 
 
 export default function DevicesPage() {
-    const { data: session } = useSession()
+    const router = useRouter()
+    const { data: session, status } = useSession()
     const [isRefreshing, setIsRefreshing] = React.useState(false)
     const [lastUpdated, setLastUpdated] = React.useState<string>("11:30")
+
+    const username = (session?.user as any)?.username ?? ""
+    const userRole = (session?.user as any)?.role
+    const userName = session?.user?.name ?? ""
+    const isItTechnician = username?.toUpperCase() === "CMB_IT" ||
+        username?.toUpperCase().endsWith("_IT") ||
+        userName?.toLowerCase().includes("ti / redes") ||
+        userName?.toLowerCase().includes("técnico de informática") ||
+        userName?.toLowerCase().includes("departamento de ti")
+    const isAdmin = userRole === "ADMIN"
+
+    React.useEffect(() => {
+        if (status === "authenticated" && !isItTechnician && !isAdmin) {
+            router.replace("/")
+        }
+    }, [status, isItTechnician, isAdmin, router])
 
     React.useEffect(() => {
         const updateTime = () => {
@@ -250,6 +268,10 @@ export default function DevicesPage() {
         const timer = setInterval(updateTime, 30000)
         return () => clearInterval(timer)
     }, [])
+
+    if (status === "authenticated" && !isItTechnician && !isAdmin) {
+        return null
+    }
 
     const handleRefresh = () => {
         setIsRefreshing(true)

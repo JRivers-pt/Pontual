@@ -113,9 +113,16 @@ export default function EmployeesPage() {
     const [scheduleFilter, setScheduleFilter] = useState<string>("all")
 
     const companyName = (session?.user as any)?.company ?? ""
+    const username = (session?.user as any)?.username ?? ""
     const isCmbMaster = (session?.user as any)?.isCmbMaster ||
         ((companyName?.toLowerCase().includes("bernardes") || companyName?.toLowerCase().includes("maristas")) && !(session?.user as any)?.parentUserId) ||
         (session?.user as any)?.role === "ADMIN"
+
+    const isCmb = companyName?.toLowerCase().includes("bernardes") ||
+        companyName?.toLowerCase().includes("maristas") ||
+        companyName?.toLowerCase().includes("cmb") ||
+        username?.toUpperCase().startsWith("CMB") ||
+        ((session?.user as any)?.role === "ADMIN" && employees.some(e => /^H\d{2}$/.test(e.scheduleCode || "")))
 
     // Modal state
     const [modalOpen, setModalOpen] = useState(false)
@@ -394,7 +401,7 @@ export default function EmployeesPage() {
             const matchSearch =
                 emp.name.toLowerCase().includes(search.toLowerCase()) ||
                 emp.workno.includes(search) ||
-                (emp.cardNumber && emp.cardNumber.toLowerCase().includes(search.toLowerCase())) ||
+                (!isCmb && emp.cardNumber && emp.cardNumber.toLowerCase().includes(search.toLowerCase())) ||
                 (emp.scheduleCode && emp.scheduleCode.toLowerCase().includes(search.toLowerCase()))
 
             if (!matchSearch) return false
@@ -510,7 +517,7 @@ export default function EmployeesPage() {
                         <div className="relative w-full md:w-96">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
                             <Input
-                                placeholder="Pesquisar por nome, Nº mecanográfico ou cartão..."
+                                placeholder={isCmb ? "Pesquisar por nome ou Nº mecanográfico..." : "Pesquisar por nome, Nº mecanográfico ou cartão..."}
                                 value={search}
                                 onChange={e => setSearch(e.target.value)}
                                 className="pl-9 bg-white border-neutral-200 text-neutral-900 placeholder:text-neutral-400 h-9"
@@ -577,7 +584,7 @@ export default function EmployeesPage() {
                                 <th className="py-3 px-4 font-semibold">Colaborador</th>
                                 <th className="py-3 px-4 font-semibold">Horário Oficial</th>
                                 <th className="py-3 px-4 font-semibold">Biometria</th>
-                                <th className="py-3 px-4 font-semibold">Cartão RFID</th>
+                                {!isCmb && <th className="py-3 px-4 font-semibold">Cartão RFID</th>}
                                 <th className="py-3 px-4 font-semibold text-center">Estado</th>
                                 <th className="py-3 px-4 font-semibold text-right">Ações</th>
                             </tr>
@@ -585,14 +592,14 @@ export default function EmployeesPage() {
                         <tbody className="divide-y divide-neutral-100">
                             {loading ? (
                                 <tr>
-                                    <td colSpan={7} className="py-12 text-center text-neutral-400">
+                                    <td colSpan={isCmb ? 6 : 7} className="py-12 text-center text-neutral-400">
                                         <Loader2 className="h-6 w-6 animate-spin mx-auto text-blue-600 mb-2" />
                                         A carregar colaboradores...
                                     </td>
                                 </tr>
                             ) : filteredEmployees.length === 0 ? (
                                 <tr>
-                                    <td colSpan={7} className="py-12 text-center text-neutral-400">
+                                    <td colSpan={isCmb ? 6 : 7} className="py-12 text-center text-neutral-400">
                                         <Users className="h-8 w-8 mx-auto text-neutral-300 mb-2" />
                                         Nenhum colaborador encontrado com os filtros selecionados.
                                     </td>
@@ -664,17 +671,19 @@ export default function EmployeesPage() {
                                                 )}
                                             </td>
 
-                                            {/* Card Number */}
-                                            <td className="py-3 px-4 text-xs font-mono text-neutral-500">
-                                                {emp.cardNumber ? (
-                                                    <div className="flex items-center gap-1">
-                                                        <CreditCard className="h-3 w-3 text-neutral-400" />
-                                                        {emp.cardNumber}
-                                                    </div>
-                                                ) : (
-                                                    <span className="text-neutral-300">—</span>
-                                                )}
-                                            </td>
+                                            {/* Card Number (apenas para outros clientes que usam RFID) */}
+                                            {!isCmb && (
+                                                <td className="py-3 px-4 text-xs font-mono text-neutral-500">
+                                                    {emp.cardNumber ? (
+                                                        <div className="flex items-center gap-1">
+                                                            <CreditCard className="h-3 w-3 text-neutral-400" />
+                                                            {emp.cardNumber}
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-neutral-300">—</span>
+                                                    )}
+                                                </td>
+                                            )}
 
                                             {/* Active Status Toggle */}
                                             <td className="py-3 px-4 text-center">
@@ -815,26 +824,56 @@ export default function EmployeesPage() {
                         </div>
 
                         {/* Card & Status Row */}
-                        <div className="grid grid-cols-2 gap-3">
-                            <div className="space-y-1.5">
-                                <Label htmlFor="card" className="text-xs font-semibold text-neutral-700 flex items-center gap-1.5">
-                                    <CreditCard className="h-3.5 w-3.5 text-neutral-500" />
-                                    Cartão RFID / Proximidade
-                                </Label>
-                                <Input
-                                    id="card"
-                                    value={formCardNumber}
-                                    onChange={e => setFormCardNumber(e.target.value)}
-                                    placeholder="Nº do cartão (opcional)"
-                                    className="bg-white border-neutral-200 text-neutral-700 font-mono text-xs"
-                                />
-                            </div>
+                        {!isCmb ? (
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="space-y-1.5">
+                                    <Label htmlFor="card" className="text-xs font-semibold text-neutral-700 flex items-center gap-1.5">
+                                        <CreditCard className="h-3.5 w-3.5 text-neutral-500" />
+                                        Cartão RFID / Proximidade
+                                    </Label>
+                                    <Input
+                                        id="card"
+                                        value={formCardNumber}
+                                        onChange={e => setFormCardNumber(e.target.value)}
+                                        placeholder="Nº do cartão (opcional)"
+                                        className="bg-white border-neutral-200 text-neutral-700 font-mono text-xs"
+                                    />
+                                </div>
 
-                            <div className="space-y-1.5">
+                                <div className="space-y-1.5">
+                                    <Label className="text-xs font-semibold text-neutral-700">
+                                        Estado do Colaborador
+                                    </Label>
+                                    <div className="flex items-center gap-3 pt-2">
+                                        <label className="flex items-center gap-2 cursor-pointer text-xs">
+                                            <input
+                                                type="radio"
+                                                name="active"
+                                                checked={formActive}
+                                                onChange={() => setFormActive(true)}
+                                                className="text-emerald-600 focus:ring-0"
+                                            />
+                                            <span className="text-emerald-600 font-medium">Ativo</span>
+                                        </label>
+                                        <label className="flex items-center gap-2 cursor-pointer text-xs">
+                                            <input
+                                                type="radio"
+                                                name="active"
+                                                checked={!formActive}
+                                                onChange={() => setFormActive(false)}
+                                                className="text-neutral-500 focus:ring-0"
+                                            />
+                                            <span className="text-neutral-500">Inativo</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="space-y-1.5 p-3 bg-neutral-50 rounded-lg border border-neutral-200">
                                 <Label className="text-xs font-semibold text-neutral-700">
                                     Estado do Colaborador
                                 </Label>
-                                <div className="flex items-center gap-3 pt-2">
+                                <div className="flex items-center gap-4 pt-1">
                                     <label className="flex items-center gap-2 cursor-pointer text-xs">
                                         <input
                                             type="radio"
@@ -857,7 +896,7 @@ export default function EmployeesPage() {
                                     </label>
                                 </div>
                             </div>
-                        </div>
+                        )}
 
                         {/* Schedule Selection */}
                         <div className="space-y-1.5">
