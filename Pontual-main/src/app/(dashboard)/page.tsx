@@ -15,7 +15,8 @@ import {
   Calendar,
   Activity,
   LogOut,
-  HelpCircle
+  HelpCircle,
+  ChevronRight
 } from "lucide-react"
 
 import Link from "next/link"
@@ -460,22 +461,25 @@ export default function DashboardPage() {
             ) : (
               <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
                 {employeeStatuses.map(emp => (
-                  <div
+                  <Link
                     key={emp.id}
-                    className="flex items-center justify-between p-3 rounded-lg bg-neutral-50 dark:bg-neutral-900 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                    href={`/timesheet?employee=${emp.id}`}
+                    className="flex items-center justify-between p-3 rounded-lg bg-neutral-50 dark:bg-neutral-900 hover:bg-blue-50/60 dark:hover:bg-neutral-800 transition-all group cursor-pointer border border-transparent hover:border-blue-200 dark:hover:border-neutral-700"
+                    title={`Ver folha de ponto de ${emp.name}`}
                   >
                     <div className="flex items-center gap-3">
                       <div className={cn(
-                        "w-2 h-2 rounded-full",
+                        "w-2 h-2 rounded-full shrink-0",
                         emp.status === 'present' && "bg-green-500",
                         emp.status === 'late' && "bg-orange-500",
                         emp.status === 'left' && "bg-gray-400"
                       )} />
                       <div>
-                        <p className="font-medium text-neutral-900 dark:text-neutral-100">
+                        <p className="font-medium text-neutral-900 dark:text-neutral-100 group-hover:text-blue-600 transition-colors flex items-center gap-1.5">
                           {emp.name}
+                          <ChevronRight className="h-3.5 w-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-blue-500" />
                         </p>
-                        <p className="text-xs text-neutral-500">
+                        <p className="text-xs text-neutral-500 font-mono">
                           ID: {emp.id}
                         </p>
                       </div>
@@ -494,7 +498,7 @@ export default function DashboardPage() {
                       </div>
                       {getStatusBadge(emp.status)}
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             )}

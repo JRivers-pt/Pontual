@@ -27,9 +27,11 @@ import {
     AlertCircle,
     Search,
     ArrowLeft,
-    CheckCircle2
+    CheckCircle2,
+    FileEdit
 } from "lucide-react"
 
+import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -186,6 +188,15 @@ export default function TimesheetPage() {
             await fetchMonthData()
         }
         init()
+
+        // Suporte para pré-filtrar colaborador via URL (ex: ?employee=0548)
+        if (typeof window !== "undefined") {
+            const params = new URLSearchParams(window.location.search)
+            const empParam = params.get("employee")
+            if (empParam) {
+                setSelectedEmployee(empParam)
+            }
+        }
 
         // Auto-refresh every 60s
         const interval = setInterval(fetchMonthData, 60 * 1000)
@@ -526,7 +537,14 @@ export default function TimesheetPage() {
                             <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => setSelectedEmployee("all")}
+                                onClick={() => {
+                                    setSelectedEmployee("all")
+                                    if (typeof window !== "undefined") {
+                                        const url = new URL(window.location.href)
+                                        url.searchParams.delete("employee")
+                                        window.history.replaceState({}, '', url.pathname + (url.searchParams.toString() ? '?' + url.searchParams.toString() : ''))
+                                    }
+                                }}
                                 className="h-8 gap-1"
                             >
                                 <ArrowLeft className="h-4 w-4" />
@@ -547,6 +565,12 @@ export default function TimesheetPage() {
                 <div className="flex gap-2">
                     {selectedEmployee !== "all" && (
                         <>
+                            <Link href={`/corrections?employee=${selectedEmployeeObj?.id || selectedEmployee}`}>
+                                <Button variant="outline" className="border-amber-200 text-amber-700 hover:bg-amber-50">
+                                    <FileEdit className="h-4 w-4 mr-2 text-amber-600" />
+                                    Corrigir Ponto
+                                </Button>
+                            </Link>
                             <Button variant="outline" onClick={handlePrint}>
                                 <Printer className="h-4 w-4 mr-2" />
                                 Imprimir
@@ -871,7 +895,7 @@ export default function TimesheetPage() {
                                                 <tr
                                                     key={day.dateStr}
                                                     className={cn(
-                                                        "border-t",
+                                                        "border-t group hover:bg-neutral-50/70 transition-colors",
                                                         day.isWeekend && "bg-neutral-50 dark:bg-neutral-900/50 print:bg-gray-50",
                                                         day.status === 'absent' && "bg-red-50/50 print:bg-red-50",
                                                         day.status === 'late' && "bg-orange-50/50 print:bg-orange-50"
@@ -935,9 +959,18 @@ export default function TimesheetPage() {
                                                             <span className="text-neutral-300">-</span>
                                                         )}
                                                     </td>
-                                                    {/* Status Badge */}
+                                                    {/* Status Badge & Quick Correction */}
                                                     <td className="px-3 py-2 text-center print:hidden">
-                                                        {getStatusBadge(day.status)}
+                                                        <div className="flex items-center justify-center gap-1.5">
+                                                            {getStatusBadge(day.status)}
+                                                            <Link
+                                                                href={`/corrections?employee=${selectedEmployeeObj?.id || selectedEmployee}&date=${day.dateStr}`}
+                                                                className="opacity-0 group-hover:opacity-100 p-1 text-neutral-400 hover:text-amber-600 hover:bg-amber-50 rounded transition-all"
+                                                                title={`Corrigir picagem de ${format(day.date, 'dd/MM')}`}
+                                                            >
+                                                                <FileEdit className="h-3.5 w-3.5" />
+                                                            </Link>
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             ))

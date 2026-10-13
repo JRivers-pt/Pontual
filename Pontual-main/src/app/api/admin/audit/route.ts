@@ -16,14 +16,6 @@ export async function GET(request: NextRequest) {
     const user = await prisma.user.findUnique({ where: { id: session.user.id } });
     if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
 
-    // Apenas a conta principal (sem parentUserId) ou ADMIN pode ver os logs
-    if (user.parentUserId && user.role !== 'ADMIN') {
-      return NextResponse.json(
-        { error: 'Apenas a conta principal ou Administrador pode consultar os logs de auditoria.' },
-        { status: 403 }
-      );
-    }
-
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
     const perPage = parseInt(searchParams.get('perPage') || '50');
@@ -33,8 +25,8 @@ export async function GET(request: NextRequest) {
     const dateFrom = searchParams.get('dateFrom') || undefined;
     const dateTo = searchParams.get('dateTo') || undefined;
 
-    // ADMIN ve tudo; cliente ve apenas os seus proprios logs
-    const clientId = user.role === 'ADMIN' ? undefined : user.id;
+    // ADMIN vê tudo; empresa cliente vê os logs da sua própria organização (seja conta principal ou sub-utilizador RH)
+    const clientId = user.role === 'ADMIN' ? undefined : (user.parentUserId || user.id);
 
     const where: any = {};
     if (clientId) where.clientId = clientId;

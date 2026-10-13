@@ -109,8 +109,27 @@ export default function ReportsPage() {
     const [reportType, setReportType] = React.useState<"summary" | "detailed" | "matrix">("summary")
     const [managedWorknos, setManagedWorknos] = React.useState<string[]>([])
 
+    // Helper para correspondência flexível de IDs (ex: 0548 === 548)
+    const matchEmpId = React.useCallback((rId?: string, sId?: string) => {
+        if (!rId || !sId) return false;
+        const a = String(rId).trim();
+        const b = String(sId).trim();
+        return a === b ||
+            a.padStart(4, '0') === b.padStart(4, '0') ||
+            a.replace(/^0+/, '') === b.replace(/^0+/, '');
+    }, []);
+
     // Fetch user profile and master employee list on mount
     React.useEffect(() => {
+        // Pré-selecionar colaborador caso venha parâmetro na URL (?employee=0548)
+        if (typeof window !== "undefined") {
+            const params = new URLSearchParams(window.location.search);
+            const empParam = params.get("employee");
+            if (empParam) {
+                setSelectedEmployee(empParam);
+            }
+        }
+
         fetch('/api/user/profile')
             .then(res => res.json())
             .then(data => {
@@ -136,15 +155,27 @@ export default function ReportsPage() {
 
             const emps = employeesData.employees || [];
             if (emps.length > 0) {
-                setAllEmployees(emps.map((e: any) => ({
+                const formatted = emps.map((e: any) => ({
                     id: e.workno,
                     name: e.name,
                     recordCount: 0
-                })));
+                }));
+                setAllEmployees(formatted);
                 setManagedWorknos(emps.map((e: any) => e.workno));
+
+                if (typeof window !== "undefined") {
+                    const params = new URLSearchParams(window.location.search);
+                    const empParam = params.get("employee");
+                    if (empParam) {
+                        const matched = formatted.find((e: any) => matchEmpId(e.id, empParam));
+                        if (matched) {
+                            setSelectedEmployee(matched.id);
+                        }
+                    }
+                }
             }
         }).catch(err => console.error("Error fetching initial data", err));
-    }, []);
+    }, [matchEmpId]);
 
     // Juntar a lista mestre de colaboradores com os dados dos registos atuais
     const employees = React.useMemo<Employee[]>(() => {
@@ -210,8 +241,8 @@ export default function ReportsPage() {
         }
         
         if (selectedEmployee === "all") return filtered;
-        return filtered.filter(r => r.employeeId === selectedEmployee);
-    }, [records, selectedEmployee, session]);
+        return filtered.filter(r => matchEmpId(r.employeeId, selectedEmployee));
+    }, [records, selectedEmployee, session, matchEmpId]);
 
     // Agrupar registos por data e funcionário e calcular horas reais
     const dailySummaries = React.useMemo(() => {
@@ -276,7 +307,8 @@ export default function ReportsPage() {
         const summariesWithWarnings = summaries.map(s => {
             if (s.isPlaceholder) return s;
             
-            const sched = schedulesMap.get(s.employeeId);
+            const sched = schedulesMap.get(s.employeeId) ||
+                Array.from(schedulesMap.entries()).find(([k]) => matchEmpId(k, s.employeeId))?.[1];
             if (!sched) return s;
 
             // Late Detection
@@ -305,7 +337,9 @@ export default function ReportsPage() {
 
         // If single employee, inject absences
         if (selectedEmployee !== "all" && date?.from && date?.to && employees.length > 0) {
-            const empName = employees.find(e => e.id === selectedEmployee)?.name || "Colaborador";
+            const empObj = employees.find(e => matchEmpId(e.id, selectedEmployee));
+            const empName = empObj?.name || "Colaborador";
+            const effectiveEmpId = empObj?.id || selectedEmployee;
             const existingDates = new Set(summariesWithWarnings.map(s => s.date));
             let current = startOfDay(date.from);
             const last = startOfDay(date.to);
@@ -317,9 +351,9 @@ export default function ReportsPage() {
 
                 if (!isWeekend && !existingDates.has(dateKey)) {
                     summariesWithWarnings.push({
-                        id: `absent_${selectedEmployee}_${dateKey}`,
+                        id: `absent_${effectiveEmpId}_${dateKey}`,
                         date: dateKey,
-                        employeeId: selectedEmployee,
+                        employeeId: effectiveEmpId,
                         employeeName: empName,
                         department: "-",
                         firstIn: current.toISOString(),
@@ -344,7 +378,7 @@ export default function ReportsPage() {
             if (nameCompare !== 0) return nameCompare;
             return b.date.localeCompare(a.date);
         });
-    }, [filteredRecords, selectedEmployee, date, employees, schedulesMap]);
+    }, [filteredRecords, selectedEmployee, date, employees, schedulesMap, session, matchEmpId]);
 
     // Estatísticas do colaborador selecionado
     const stats = React.useMemo(() => {
@@ -441,9 +475,10 @@ export default function ReportsPage() {
     const handleExport = async (type: "summary" | "detailed" | "matrix" | "mensal", fileFormat: "pdf" | "excel") => {
         setLoading(true);
         try {
+            const empObj = employees.find(e => matchEmpId(e.id, selectedEmployee));
             const employeeName = selectedEmployee === "all"
                 ? "Todos"
-                : employees.find(e => e.id === selectedEmployee)?.name || "Colaborador";
+                : empObj?.name || "Colaborador";
 
             const periodName = selectedPeriod === "custom" 
                 ? `${format(date?.from || new Date(), "dd/MM")} a ${format(date?.to || new Date(), "dd/MM/yy")}`
@@ -549,7 +584,21 @@ export default function ReportsPage() {
                             <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
                                 Colaborador
                             </label>
-                            <Select value={selectedEmployee} onValueChange={setSelectedEmployee}>
+                            <Select 
+                                value={selectedEmployee} 
+                                onValueChange={(val) => {
+                                    setSelectedEmployee(val);
+                                    if (typeof window !== "undefined") {
+                                        const url = new URL(window.location.href);
+                                        if (val === "all") {
+                                            url.searchParams.delete("employee");
+                                        } else {
+                                            url.searchParams.set("employee", val);
+                                        }
+                                        window.history.replaceState({}, '', url.pathname + (url.searchParams.toString() ? '?' + url.searchParams.toString() : ''));
+                                    }
+                                }}
+                            >
                                 <SelectTrigger className="w-full">
                                     <SelectValue placeholder="Selecionar colaborador" />
                                 </SelectTrigger>

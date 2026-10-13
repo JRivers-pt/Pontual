@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState, useEffect, useMemo } from "react"
+import Link from "next/link"
 import { useSession } from "next-auth/react"
 import {
     Edit3,
@@ -110,7 +111,35 @@ export default function CorrectionsPage() {
                 }))
                 setEmployees(list)
                 if (list.length > 0) {
-                    if (!selectedWorkno) {
+                    let preselect = ""
+                    if (typeof window !== "undefined") {
+                        const params = new URLSearchParams(window.location.search)
+                        const empParam = params.get("employee")
+                        if (empParam) {
+                            const match = list.find((item: any) => {
+                                const a = String(item.workno).trim()
+                                const b = String(empParam).trim()
+                                return a === b ||
+                                    a.padStart(4, '0') === b.padStart(4, '0') ||
+                                    a.replace(/^0+/, '') === b.replace(/^0+/, '')
+                            })
+                            if (match) preselect = match.workno
+                        }
+
+                        const dateParam = params.get("date")
+                        if (dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam)) {
+                            setSelectedDate(dateParam)
+                        }
+
+                        const slotParam = params.get("slot")
+                        if (slotParam && ["in1", "out1", "in2", "out2"].includes(slotParam)) {
+                            setPunchSlot(slotParam as any)
+                        }
+                    }
+
+                    if (preselect) {
+                        setSelectedWorkno(preselect)
+                    } else if (!selectedWorkno) {
                         setSelectedWorkno(list[0].workno)
                     }
                     setIsManualInput(false)
@@ -308,15 +337,27 @@ export default function CorrectionsPage() {
                                             <User className="h-3.5 w-3.5 text-blue-600" />
                                             Colaborador *
                                         </Label>
-                                        {employees.length > 0 && (
-                                            <button
-                                                type="button"
-                                                onClick={() => setIsManualInput(!isManualInput)}
-                                                className="text-[11px] text-blue-600 hover:text-blue-700 font-medium hover:underline"
-                                            >
-                                                {isManualInput ? "Selecionar da lista" : "Introduzir manualmente"}
-                                            </button>
-                                        )}
+                                        <div className="flex items-center gap-3">
+                                            {!isManualInput && selectedWorkno && (
+                                                <Link
+                                                    href={`/timesheet?employee=${selectedWorkno}`}
+                                                    className="text-[11px] text-neutral-500 hover:text-blue-600 font-medium hover:underline flex items-center gap-1"
+                                                    title="Ver folha de ponto deste colaborador"
+                                                >
+                                                    <Calendar className="h-3 w-3" />
+                                                    Ver Folha de Ponto
+                                                </Link>
+                                            )}
+                                            {employees.length > 0 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setIsManualInput(!isManualInput)}
+                                                    className="text-[11px] text-blue-600 hover:text-blue-700 font-medium hover:underline"
+                                                >
+                                                    {isManualInput ? "Selecionar da lista" : "Introduzir manualmente"}
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
 
                                     {!isManualInput && employees.length > 0 ? (

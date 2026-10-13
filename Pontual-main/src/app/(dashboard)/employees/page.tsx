@@ -23,7 +23,8 @@ import {
     Loader2,
     Calendar,
     ChevronRight,
-    ArrowUpDown
+    ArrowUpDown,
+    FileEdit
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -720,6 +721,15 @@ export default function EmployeesPage() {
                                                         title="Ver Relatório de Assiduidade"
                                                     >
                                                         <ExternalLink className="h-4 w-4" />
+                                                    </Link>
+
+                                                    {/* Link to Corrections */}
+                                                    <Link
+                                                        href={`/corrections?employee=${emp.workno}`}
+                                                        className="p-1.5 rounded-lg text-neutral-400 hover:text-amber-600 hover:bg-amber-50 transition-colors"
+                                                        title="Inserir Correção de Ponto"
+                                                    >
+                                                        <FileEdit className="h-4 w-4" />
                                                     </Link>
 
                                                     {/* Edit Button */}
