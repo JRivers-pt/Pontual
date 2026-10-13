@@ -19,7 +19,10 @@ import {
     LogOut,
     HelpCircle,
     Building2,
-    ExternalLink
+    ExternalLink,
+    Edit3,
+    Server,
+    Fingerprint
 } from "lucide-react"
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> { }
@@ -36,6 +39,11 @@ export function Sidebar({ className }: SidebarProps) {
         ? companyName.split(" ").filter(Boolean).slice(0, 2).map((w: string) => w[0].toUpperCase()).join("")
         : userName.split(" ").slice(0, 2).map((w: string) => w[0].toUpperCase()).join("")
 
+    const isCmb = companyName?.toLowerCase().includes("bernardes") ||
+        companyName?.toLowerCase().includes("maristas") ||
+        companyName?.toLowerCase().includes("cmb") ||
+        (session?.user as any)?.role === "ADMIN"
+
     const allRoutes = [
         {
             label: "Dashboard",
@@ -44,10 +52,10 @@ export function Sidebar({ className }: SidebarProps) {
             active: pathname === "/",
         },
         {
-            label: "Relatórios",
-            icon: FileText,
-            href: "/reports",
-            active: pathname === "/reports",
+            label: "Colaboradores",
+            icon: Users,
+            href: "/employees",
+            active: pathname === "/employees",
         },
         {
             label: "Folha de Ponto",
@@ -57,11 +65,27 @@ export function Sidebar({ className }: SidebarProps) {
         },
         {
             label: "Correções de Ponto",
-            icon: Clock,
-            href: "/timesheet/corrections",
-            active: pathname === "/timesheet/corrections",
+            icon: Edit3,
+            href: "/corrections",
+            active: pathname === "/corrections",
+        },
+        {
+            label: "Relatórios",
+            icon: FileText,
+            href: "/reports",
+            active: pathname === "/reports",
         },
     ]
+
+    // Equipamentos & Rede (CMB e Admin)
+    if (isCmb || (session?.user as any)?.role === "ADMIN") {
+        allRoutes.push({
+            label: "Equipamentos & Rede",
+            icon: Server,
+            href: "/devices",
+            active: pathname === "/devices",
+        })
+    }
 
     // Add Admin routes
     if ((session?.user as any)?.role === "ADMIN") {
@@ -73,7 +97,7 @@ export function Sidebar({ className }: SidebarProps) {
         })
         allRoutes.push({
             label: "Gestão de Clientes",
-            icon: Users,
+            icon: Building2,
             href: "/admin/clients",
             active: pathname.startsWith("/admin"),
         })
