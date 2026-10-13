@@ -252,34 +252,58 @@ export async function exportToPDF(data: AttendanceData[], period: string, header
         doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-PT')}`, 150, 38);
 
         const has4Punches = data.some(d => d.in1 !== undefined || d.out1 !== undefined || d.in2 !== undefined || d.out2 !== undefined);
+        const hasOvertime = data.some(d => d.horasExtra !== undefined && d.horasExtra !== '-');
+        const uniqueEmployees = Array.from(new Set(data.map(d => d.funcionario).filter(Boolean)));
+        const isSingleEmployee = uniqueEmployees.length <= 1;
 
-        const tableColumn = has4Punches
-            ? ["Data", "Dia", "Entr. Manhã", "Saída Almoço", "Entr. Tarde", "Saída Fim", "Duração", "H. Extra", "Observações"]
-            : ["Data", "Funcionário", "Dep.", "Entrada", "Saída", "Duração", "H. Extra"];
+        let tableColumn: string[];
+        if (has4Punches) {
+            tableColumn = isSingleEmployee
+                ? ["Data", "Dia", "Entr. Manhã", "Saída Almoço", "Entr. Tarde", "Saída Fim", "Duração", ...(hasOvertime ? ["H. Extra"] : []), "Estado"]
+                : ["Data", "Colaborador", "Entr. Manhã", "Saída Almoço", "Entr. Tarde", "Saída Fim", "Duração", ...(hasOvertime ? ["H. Extra"] : []), "Estado"];
+        } else {
+            tableColumn = ["Data", "Funcionário", "Dep.", "Entrada", "Saída", "Duração", ...(hasOvertime ? ["H. Extra"] : [])];
+        }
 
         const tableRows = data.map(ticket => {
             if (has4Punches) {
-                return [
-                    ticket.data || '-',
-                    ticket.dia || '-',
-                    ticket.in1 || '-',
-                    ticket.out1 || '-',
-                    ticket.in2 || '-',
-                    ticket.out2 || '-',
-                    ticket.duracao || '-',
-                    ticket.horasExtra || '-',
-                    ticket.observacoes || ticket.estado || '-'
-                ];
+                const row = isSingleEmployee
+                    ? [
+                        ticket.data || '-',
+                        ticket.dia || '-',
+                        ticket.in1 || '-',
+                        ticket.out1 || '-',
+                        ticket.in2 || '-',
+                        ticket.out2 || '-',
+                        ticket.duracao || '-',
+                    ]
+                    : [
+                        ticket.data || '-',
+                        ticket.funcionario || '-',
+                        ticket.in1 || '-',
+                        ticket.out1 || '-',
+                        ticket.in2 || '-',
+                        ticket.out2 || '-',
+                        ticket.duracao || '-',
+                    ];
+                if (hasOvertime) {
+                    row.push(ticket.horasExtra || '-');
+                }
+                row.push(ticket.observacoes || ticket.estado || '-');
+                return row;
             }
-            return [
+            const row = [
                 ticket.data || '-',
                 ticket.funcionario || '-',
                 ticket.departamento || '-',
                 ticket.entrada || '-',
                 ticket.saida || '-',
                 ticket.duracao || '-',
-                ticket.horasExtra || '-',
             ];
+            if (hasOvertime) {
+                row.push(ticket.horasExtra || '-');
+            }
+            return row;
         });
 
         autoTable(doc, {
@@ -287,13 +311,12 @@ export async function exportToPDF(data: AttendanceData[], period: string, header
             body: tableRows,
             startY: 45,
             theme: 'grid',
-            styles: { fontSize: 8, cellPadding: 2.2, halign: 'center' },
+            styles: { fontSize: 8, cellPadding: 2, halign: 'center' },
             headStyles: { fillColor: PRIMARY_COLOR, textColor: 255, fontStyle: 'bold' },
             columnStyles: has4Punches ? {
-                0: { halign: 'left', cellWidth: 22 },
-                1: { halign: 'left', cellWidth: 15 },
+                0: { halign: 'center', cellWidth: 20 },
+                1: { halign: isSingleEmployee ? 'center' : 'left' },
                 6: { fontStyle: 'bold' },
-                8: { halign: 'left', cellWidth: 26 }
             } : {},
             alternateRowStyles: { fillColor: [248, 250, 252] }
         });

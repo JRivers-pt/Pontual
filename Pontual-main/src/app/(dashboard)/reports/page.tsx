@@ -106,7 +106,6 @@ export default function ReportsPage() {
     const [logoUrl, setLogoUrl] = React.useState<string | undefined>(undefined)
     const [schedulesMap, setSchedulesMap] = React.useState<Map<string, any>>(new Map())
     const [isExportModalOpen, setIsExportModalOpen] = React.useState(false)
-    const [reportType, setReportType] = React.useState<"summary" | "detailed" | "matrix">("summary")
     const [managedWorknos, setManagedWorknos] = React.useState<string[]>([])
 
     // Helper para correspondência flexível de IDs (ex: 0548 === 548)
@@ -283,6 +282,28 @@ export default function ReportsPage() {
             const isLastEntry = lastRecord.checktype === 0 || lastRecord.checktype === 128 || lastRecord.checktype === 3;
             const lastOutTime = !isLastEntry ? last.checktime : null;
 
+            // 4 Movimentos Diários (Entrada Manhã, Saída Almoço, Entrada Tarde, Saída Fim)
+            let in1: string | null = null;
+            let out1: string | null = null;
+            let in2: string | null = null;
+            let out2: string | null = null;
+
+            if (sorted.length === 1) {
+                in1 = format(parseISO(sorted[0].checktime), 'HH:mm');
+            } else if (sorted.length === 2) {
+                in1 = format(parseISO(sorted[0].checktime), 'HH:mm');
+                out2 = format(parseISO(sorted[1].checktime), 'HH:mm');
+            } else if (sorted.length === 3) {
+                in1 = format(parseISO(sorted[0].checktime), 'HH:mm');
+                out1 = format(parseISO(sorted[1].checktime), 'HH:mm');
+                in2 = format(parseISO(sorted[2].checktime), 'HH:mm');
+            } else if (sorted.length >= 4) {
+                in1 = format(parseISO(sorted[0].checktime), 'HH:mm');
+                out1 = format(parseISO(sorted[1].checktime), 'HH:mm');
+                in2 = format(parseISO(sorted[2].checktime), 'HH:mm');
+                out2 = format(parseISO(sorted[sorted.length - 1].checktime), 'HH:mm');
+            }
+
             return {
                 id: `${first.employeeId}_${first.checktime}`,
                 date: format(parseISO(first.checktime), 'yyyy-MM-dd'),
@@ -291,6 +312,10 @@ export default function ReportsPage() {
                 department: (first as any).department || "Geral",
                 firstIn: first.checktime,
                 lastOut: lastOutTime,
+                in1,
+                out1,
+                in2,
+                out2,
                 duration: durationStr,
                 durationMs: totalWorkMs,
                 overtime: overtimeStr,
@@ -358,6 +383,10 @@ export default function ReportsPage() {
                         department: "-",
                         firstIn: current.toISOString(),
                         lastOut: null,
+                        in1: null,
+                        out1: null,
+                        in2: null,
+                        out2: null,
                         duration: "Falta",
                         durationMs: 0,
                         overtime: "-",
@@ -397,8 +426,8 @@ export default function ReportsPage() {
         const isGengibre = company.includes("gengibre") || company.includes("cozinha criativa");
         const isVP = company.includes("vila peixoto") || company.includes("vp");
         const isVE = company.includes("ve") || company.includes("vontade e empenho");
-        
-        const showOvertime = isGengibre || isVE;
+        // Apenas o cliente Gengibre necessita e utiliza o cálculo de horas extra
+        const showOvertime = isGengibre;
         const isExempt = isGengibre && (selectedEmployee === "18" || selectedEmployee === "11");
         
         const rawOtMs = dailySummaries.reduce((acc, s) => acc + s.overtimeMs, 0);
@@ -472,12 +501,12 @@ export default function ReportsPage() {
         }
     }
 
-    const handleExport = async (type: "summary" | "detailed" | "matrix" | "mensal", fileFormat: "pdf" | "excel") => {
+    const handleExport = async (_type: "summary", fileFormat: "pdf" | "excel") => {
         setLoading(true);
         try {
             const empObj = employees.find(e => matchEmpId(e.id, selectedEmployee));
             const employeeName = selectedEmployee === "all"
-                ? "Todos"
+                ? "Todos os Colaboradores"
                 : empObj?.name || "Colaborador";
 
             const periodName = selectedPeriod === "custom" 
@@ -485,54 +514,49 @@ export default function ReportsPage() {
                 : PRESET_PERIODS.find(p => p.value === selectedPeriod)?.label || "Período";
 
             if (fileFormat === "pdf") {
-                if (type === "mensal") {
-                    const dataToExport = dailySummaries.map(s => ({
-                        funcionario: s.employeeName,
-                        departamento: (s as any).department || "-",
-                        duracao: s.duration,
-                        horasExtra: s.overtime,
-                        isLate: s.isLate
-                    }));
-                    await exportToMensalPDF(
-                        dataToExport,
-                        `${employeeName} - ${periodName}`,
-                        reportHeader,
-                        logoUrl
-                    );
-                } else {
-                    const dataToExport = dailySummaries.map(s => ({
-                        data: format(parseISO(s.firstIn), 'dd/MM/yyyy', { locale: pt }),
-                        funcionario: s.employeeName,
-                        id: s.employeeId,
-                        departamento: (s as any).department || "-",
-                        entrada: s.isPlaceholder ? '-' : format(parseISO(s.firstIn), 'HH:mm'),
-                        saida: s.lastOut ? format(parseISO(s.lastOut), 'HH:mm') : '-',
-                        movimentos: s.allRecords.map((r: AttendanceRecord) => format(parseISO(r.checktime), 'HH:mm')).join(', '),
-                        duracao: s.duration,
-                        horasExtra: s.overtime
-                    }));
-                    
-                    await exportToPDF(
-                        dataToExport, 
-                        `${employeeName} - ${periodName}`, 
-                        reportHeader,
-                        type,
-                        logoUrl
-                    );
-                }
-            } else {
                 const dataToExport = dailySummaries.map(s => ({
                     data: format(parseISO(s.firstIn), 'dd/MM/yyyy', { locale: pt }),
+                    dia: format(parseISO(s.firstIn), 'EEEE', { locale: pt }),
                     funcionario: s.employeeName,
-                    id_funcionario: s.employeeId,
+                    id: s.employeeId,
                     departamento: (s as any).department || "-",
-                    entrada: s.isPlaceholder ? '-' : format(parseISO(s.firstIn), 'HH:mm'),
-                    saida: s.lastOut ? format(parseISO(s.lastOut), 'HH:mm') : '-',
-                    movimentos: s.allRecords.map((r: AttendanceRecord) => format(parseISO(r.checktime), 'HH:mm')).join(', '),
-                    duracao_total: s.duration,
-                    horas_extra: s.overtime,
-                    registos_no_dia: s.recordCount
+                    in1: s.in1 || '-',
+                    out1: s.out1 || '-',
+                    in2: s.in2 || '-',
+                    out2: s.out2 || '-',
+                    duracao: s.duration,
+                    horasExtra: stats.showOvertime ? s.overtime : undefined,
+                    estado: s.isPlaceholder ? 'Falta' : (s.isLate ? 'Atraso' : 'OK')
                 }));
+                
+                await exportToPDF(
+                    dataToExport, 
+                    `${employeeName} • ${periodName}`, 
+                    reportHeader || "Relatório Geral de Assiduidade",
+                    "summary",
+                    logoUrl,
+                    session?.user?.company || ""
+                );
+            } else {
+                const dataToExport = dailySummaries.map(s => {
+                    const row: any = {
+                        data: format(parseISO(s.firstIn), 'dd/MM/yyyy', { locale: pt }),
+                        dia: format(parseISO(s.firstIn), 'EEEE', { locale: pt }),
+                        funcionario: s.employeeName,
+                        id_funcionario: s.employeeId,
+                        departamento: (s as any).department || "-",
+                        entr_manha: s.in1 || '-',
+                        saida_almoco: s.out1 || '-',
+                        entr_tarde: s.in2 || '-',
+                        saida_fim: s.out2 || '-',
+                        duracao_total: s.duration,
+                        estado: s.isPlaceholder ? 'Falta' : (s.isLate ? 'Atraso' : 'OK')
+                    };
+                    if (stats.showOvertime) {
+                        row.horas_extra = s.overtime;
+                    }
+                    return row;
+                });
                 exportToExcel(dataToExport);
             }
         } catch (err: any) {
@@ -860,28 +884,29 @@ export default function ReportsPage() {
                             <div className="rounded-md border overflow-hidden">
                                 <Table>
                                     <TableHeader>
-                                        <TableRow className="bg-neutral-50 dark:bg-neutral-900 hover:bg-neutral-50">
-                                            <TableHead className="w-[120px]">Data</TableHead>
+                                        <TableRow className="bg-neutral-50 dark:bg-neutral-900 hover:bg-neutral-50 text-xs">
+                                            <TableHead className="w-[110px]">Data</TableHead>
                                             <TableHead>Funcionário</TableHead>
-                                            <TableHead className="text-center">Entrada</TableHead>
-                                            <TableHead className="text-center">Saída</TableHead>
-                                            <TableHead className="text-center">Movimentos (24h)</TableHead>
-                                            <TableHead className="text-center">Duração</TableHead>
-                                            {stats.showOvertime && <TableHead className="text-center">Horas Extra</TableHead>}
-                                            <TableHead className="text-right">Registos</TableHead>
+                                            <TableHead className="text-center font-semibold bg-emerald-50/50 dark:bg-emerald-950/20 text-emerald-800 dark:text-emerald-300">Entr. Manhã</TableHead>
+                                            <TableHead className="text-center font-semibold bg-amber-50/50 dark:bg-amber-950/20 text-amber-800 dark:text-amber-300">Saída Almoço</TableHead>
+                                            <TableHead className="text-center font-semibold bg-emerald-50/50 dark:bg-emerald-950/20 text-emerald-800 dark:text-emerald-300">Entr. Tarde</TableHead>
+                                            <TableHead className="text-center font-semibold bg-amber-50/50 dark:bg-amber-950/20 text-amber-800 dark:text-amber-300">Saída Fim</TableHead>
+                                            <TableHead className="text-center font-semibold">Duração</TableHead>
+                                            {stats.showOvertime && <TableHead className="text-center font-semibold text-orange-600">Horas Extra</TableHead>}
+                                            <TableHead className="text-center font-semibold">Estado</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                         {loading ? (
                                             <TableRow>
-                                                <TableCell colSpan={8} className="text-center py-8 text-neutral-500">
+                                                <TableCell colSpan={stats.showOvertime ? 9 : 8} className="text-center py-8 text-neutral-500">
                                                     <RefreshCw className="h-5 w-5 animate-spin mx-auto mb-2" />
                                                     A carregar relatórios...
                                                 </TableCell>
                                             </TableRow>
                                         ) : selectedEmployee === "all" && dailySummaries.length === 0 ? (
                                             <TableRow>
-                                                <TableCell colSpan={8} className="text-center py-12 text-neutral-500">
+                                                <TableCell colSpan={stats.showOvertime ? 9 : 8} className="text-center py-12 text-neutral-500">
                                                     <User className="h-10 w-10 mx-auto mb-3 opacity-30" />
                                                     <p className="font-medium text-neutral-600 dark:text-neutral-400">Selecione um colaborador</p>
                                                     <p className="text-xs text-neutral-400 mt-1">Escolha um colaborador no filtro acima e clique em &quot;Atualizar&quot; para ver o resumo diário</p>
@@ -889,7 +914,7 @@ export default function ReportsPage() {
                                             </TableRow>
                                         ) : dailySummaries.length === 0 ? (
                                             <TableRow>
-                                                <TableCell colSpan={8} className="text-center py-8 text-neutral-500">
+                                                <TableCell colSpan={stats.showOvertime ? 9 : 8} className="text-center py-8 text-neutral-500">
                                                     Sem atividade no período selecionado
                                                 </TableCell>
                                             </TableRow>
@@ -900,66 +925,65 @@ export default function ReportsPage() {
                                                     <TableRow 
                                                         key={summary.id}
                                                         className={cn(
-                                                            summary.isPlaceholder && "bg-red-50/50 dark:bg-red-950/10"
+                                                            summary.isPlaceholder && "bg-red-50/50 dark:bg-red-950/10",
+                                                            "hover:bg-neutral-50/80 transition-colors"
                                                         )}
                                                     >
-                                                        <TableCell className="font-medium">
-                                                            {format(parseISO(summary.firstIn), 'dd MMM yyyy', { locale: pt })}
-                                                            <div className="text-[10px] text-neutral-400 md:hidden">{summary.employeeName}</div>
+                                                        <TableCell className="font-medium text-xs">
+                                                            {format(parseISO(summary.firstIn), 'dd/MM/yyyy')}
+                                                            <div className="text-[10px] text-neutral-400 capitalize">
+                                                                {format(parseISO(summary.firstIn), 'EEEE', { locale: pt })}
+                                                            </div>
                                                         </TableCell>
-                                                        <TableCell className="hidden md:table-cell">
+                                                        <TableCell>
                                                             <div className="flex flex-col">
-                                                                <span className="font-semibold text-neutral-900 dark:text-neutral-100">{summary.employeeName}</span>
-                                                                <span className="text-xs text-neutral-500">ID: {summary.employeeId}</span>
+                                                                <span className="font-semibold text-xs text-neutral-900 dark:text-neutral-100">{summary.employeeName}</span>
+                                                                <span className="text-[10px] text-neutral-500 font-mono">#{summary.employeeId}</span>
                                                             </div>
                                                         </TableCell>
-                                                        <TableCell className="text-center">
-                                                            {summary.isPlaceholder ? (
-                                                                <span className="text-[10px] text-neutral-400 italic">Sem entrada</span>
+                                                        {/* In 1 (Manhã) */}
+                                                        <TableCell className="text-center font-mono text-xs">
+                                                            {summary.in1 ? (
+                                                                <span className={cn(summary.isLate && "text-orange-600 font-bold")}>
+                                                                    {summary.in1}
+                                                                </span>
                                                             ) : (
-                                                                <>
-                                                                    <div className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700 border border-green-100">
-                                                                        {format(parseISO(summary.firstIn), 'HH:mm')}
-                                                                    </div>
-                                                                    {summary.isLate && (
-                                                                        <div className="w-2 h-2 rounded-full bg-red-500 inline-block ml-1" title="Atraso" />
-                                                                    )}
-                                                                </>
+                                                                <span className="text-neutral-300">-</span>
                                                             )}
                                                         </TableCell>
-                                                        <TableCell className="text-center">
-                                                            {summary.lastOut ? (
-                                                                <div className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-50 text-red-700 border border-red-100">
-                                                                    {format(parseISO(summary.lastOut), 'HH:mm')}
-                                                                </div>
+                                                        {/* Out 1 (Almoço) */}
+                                                        <TableCell className="text-center font-mono text-xs">
+                                                            {summary.out1 ? (
+                                                                <span>{summary.out1}</span>
                                                             ) : (
-                                                                <span className="text-[10px] text-neutral-400 italic">Sem saída</span>
-                                                            )}
-                                                            {summary.isEarly && (
-                                                                <div className="w-2 h-2 rounded-full bg-yellow-500 inline-block ml-1" title="Saída Antecipada" />
+                                                                <span className="text-neutral-300">-</span>
                                                             )}
                                                         </TableCell>
-                                                        <TableCell className="text-center">
-                                                            <div className="flex flex-wrap gap-1 justify-center max-w-[180px] mx-auto">
-                                                                {summary.allRecords.map((r: AttendanceRecord, i: number) => {
-                                                                    const info = getCheckTypeInfo(r.checktype);
-                                                                    return (
-                                                                        <Badge key={i} variant="outline" className={cn("text-[9px] px-1 py-0 h-4 min-w-[32px] justify-center", info.color)} title={info.label}>
-                                                                            {format(parseISO(r.checktime), 'HH:mm')}
-                                                                        </Badge>
-                                                                    )
-                                                                })}
-                                                            </div>
+                                                        {/* In 2 (Tarde) */}
+                                                        <TableCell className="text-center font-mono text-xs">
+                                                            {summary.in2 ? (
+                                                                <span>{summary.in2}</span>
+                                                            ) : (
+                                                                <span className="text-neutral-300">-</span>
+                                                            )}
                                                         </TableCell>
-                                                        <TableCell className="text-center">
-                                                            <span className="text-sm font-medium text-neutral-600 dark:text-neutral-400">
-                                                                {summary.duration}
-                                                            </span>
+                                                        {/* Out 2 (Fim) */}
+                                                        <TableCell className="text-center font-mono text-xs">
+                                                            {summary.out2 ? (
+                                                                <span>{summary.out2}</span>
+                                                            ) : (
+                                                                <span className="text-neutral-300">-</span>
+                                                            )}
                                                         </TableCell>
+                                                        {/* Duração */}
+                                                        <TableCell className="text-center font-medium text-xs">
+                                                            {summary.isPlaceholder ? '-' : summary.duration}
+                                                        </TableCell>
+                                                        {/* Horas Extra (Apenas Gengibre) */}
                                                         {stats.showOvertime && (
-                                                            <TableCell className="text-center">
+                                                            <TableCell className="text-center text-xs">
                                                                 {hasOvertime ? (
-                                                                    <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200 font-bold">
+                                                                    <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200 font-bold text-[11px]">
                                                                         {summary.overtime}
                                                                     </Badge>
                                                                 ) : (
@@ -967,13 +991,18 @@ export default function ReportsPage() {
                                                                 )}
                                                             </TableCell>
                                                         )}
-                                                        <TableCell className="text-right">
-                                                            <Badge variant="secondary" className="font-mono text-[10px]">
-                                                                {summary.recordCount} logs
-                                                            </Badge>
+                                                        {/* Estado */}
+                                                        <TableCell className="text-center">
+                                                            {summary.isPlaceholder ? (
+                                                                <Badge className="bg-red-100 text-red-700 border-red-200 text-[10px]">Falta</Badge>
+                                                            ) : summary.isLate ? (
+                                                                <Badge className="bg-orange-100 text-orange-700 border-orange-200 text-[10px]">Atraso</Badge>
+                                                            ) : (
+                                                                <Badge className="bg-green-100 text-green-700 border-green-200 text-[10px]">OK</Badge>
+                                                            )}
                                                         </TableCell>
                                                     </TableRow>
-                                                )
+                                                );
                                             })
                                         )}
                                     </TableBody>
