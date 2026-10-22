@@ -47,7 +47,9 @@ export async function POST(request: NextRequest) {
             let inserted = 0;
             for (const p of punches) {
                 if (!p.checktime || !p.workno) continue;
-                const rawEventId = p.rawEventId ? String(p.rawEventId) : `${p.workno}-${new Date(p.checktime).getTime()}`;
+                const punchDate = new Date(p.checktime);
+                if (isNaN(punchDate.getTime()) || punchDate.getUTCDay() === 0) continue;
+                const rawEventId = p.rawEventId ? String(p.rawEventId) : `${p.workno}-${punchDate.getTime()}`;
                 try {
                     await prisma.attendanceLog.upsert({
                         where: {

@@ -193,8 +193,11 @@ export default function DashboardPage() {
       const isLate = checkIsLate(firstCheckDate, employeeSchedule)
       const scheduleInfo = getFormattedScheduleInfo(employeeSchedule)
 
-      // Determine if still present (last check was entry type)
-      const lastWasEntry = lastCheck.type === 0 || lastCheck.type === 128
+      // Determine if still present (last check was entry type, or odd punch count for Suprema where all punches have type=1)
+      const allSupremaType1 = sortedChecks.every(c => c.type === 1)
+      const lastWasEntry = allSupremaType1
+        ? (sortedChecks.length % 2 === 1)
+        : (lastCheck.type === 0 || lastCheck.type === 3 || lastCheck.type === 128)
 
       // Calculate total minutes worked using smart logic
       const calcChecks = sortedChecks.map(c => ({ time: c.time, type: c.type }))

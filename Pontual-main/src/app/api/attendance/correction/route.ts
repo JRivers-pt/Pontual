@@ -30,11 +30,31 @@ export async function POST(request: NextRequest) {
 
     const clientId = resolveClientId(user);
 
+    // Bloquear realização ou alteração de registos ao domingo
+    const isSundayDate = (d: Date | string) => {
+      const dt = typeof d === 'string' ? new Date(d) : d;
+      return !isNaN(dt.getTime()) && dt.getUTCDay() === 0;
+    };
+
+    if (checktime && isSundayDate(checktime)) {
+      return NextResponse.json(
+        { error: 'Não é permitido realizar ou alterar registos de ponto ao domingo.' },
+        { status: 400 }
+      );
+    }
+
     // ── CASO 1: Correção de registo existente ──
     if (logId) {
       const existing = await prisma.attendanceLog.findUnique({ where: { id: logId } });
       if (!existing || existing.userId !== clientId) {
         return NextResponse.json({ error: 'Registo nao encontrado ou sem permissao' }, { status: 404 });
+      }
+
+      if (isSundayDate(existing.checktime)) {
+        return NextResponse.json(
+          { error: 'Não é permitido alterar registos de ponto de domingo.' },
+          { status: 400 }
+        );
       }
 
       const updated = await prisma.attendanceLog.update({
@@ -130,6 +150,13 @@ export async function DELETE(request: NextRequest) {
 
     if (!existing || existing.userId !== clientId) {
       return NextResponse.json({ error: 'Registo nao encontrado ou sem permissao' }, { status: 404 });
+    }
+
+    if (existing.checktime.getUTCDay() === 0) {
+      return NextResponse.json(
+        { error: 'Não é permitido alterar ou eliminar registos de ponto ao domingo.' },
+        { status: 400 }
+      );
     }
 
     await prisma.attendanceLog.delete({ where: { id: logId } });

@@ -180,11 +180,22 @@ export default function CorrectionsPage() {
 
     const selectedEmployeeObj = employees.find(e => e.workno === selectedWorkno)
 
+    const isSelectedDateSunday = useMemo(() => {
+        if (!selectedDate) return false
+        const dt = new Date(`${selectedDate}T12:00:00Z`)
+        return !isNaN(dt.getTime()) && dt.getUTCDay() === 0
+    }, [selectedDate])
+
     // Handle submit correction
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setErrorMsg(null)
         setSuccessMsg(null)
+
+        if (isSelectedDateSunday) {
+            setErrorMsg("Não é permitido realizar ou alterar registos de ponto ao domingo.")
+            return
+        }
 
         const finalWorkno = isManualInput ? manualWorkno.trim() : selectedWorkno
         const finalEmployeeName = isManualInput
@@ -409,9 +420,14 @@ export default function CorrectionsPage() {
                                             type="date"
                                             value={selectedDate}
                                             onChange={e => setSelectedDate(e.target.value)}
-                                            className="bg-white dark:bg-neutral-950 border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-neutral-100 h-10"
+                                            className={`bg-white dark:bg-neutral-950 border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-neutral-100 h-10 ${isSelectedDateSunday ? "border-red-400 ring-1 ring-red-400" : ""}`}
                                             required
                                         />
+                                        {isSelectedDateSunday && (
+                                            <p className="text-[11px] text-red-600 font-medium mt-1">
+                                                ⚠️ Registos e alterações estão bloqueados aos domingos.
+                                            </p>
+                                        )}
                                     </div>
 
                                     <div className="space-y-1.5">
@@ -514,8 +530,8 @@ export default function CorrectionsPage() {
 
                                 <Button
                                     type="submit"
-                                    disabled={submitting}
-                                    className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold shadow-sm h-11"
+                                    disabled={submitting || isSelectedDateSunday}
+                                    className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold shadow-sm h-11 disabled:opacity-50"
                                 >
                                     {submitting ? (
                                         <>

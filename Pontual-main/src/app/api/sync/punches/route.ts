@@ -34,7 +34,13 @@ export async function POST(request: NextRequest) {
     for (const p of punches) {
       if (!p.checktime || !p.workno) continue;
 
-      const rawEventId = p.rawEventId ? String(p.rawEventId) : `${p.workno}-${new Date(p.checktime).getTime()}`;
+      const punchDate = new Date(p.checktime);
+      if (isNaN(punchDate.getTime()) || punchDate.getUTCDay() === 0) {
+        // Bloquear registos de ponto ao domingo
+        continue;
+      }
+
+      const rawEventId = p.rawEventId ? String(p.rawEventId) : `${p.workno}-${punchDate.getTime()}`;
 
       try {
         await prisma.attendanceLog.upsert({

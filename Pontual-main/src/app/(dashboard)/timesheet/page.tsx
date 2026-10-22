@@ -346,6 +346,24 @@ export default function TimesheetPage() {
                 out2 = sorted[sorted.length - 1].checktime
             }
 
+            // Fallback for Suprema terminals where all verification punches share checktype=1:
+            // compute duration directly from the 4 movement slots (In1->Out1 + In2->Out2)
+            if (workedMinutes === 0 && sorted.length >= 2) {
+                if (in1 && out1 && in2 && out2 && out2 !== 'auto') {
+                    const m1 = (parseISO(out1).getTime() - parseISO(in1).getTime()) / (1000 * 60)
+                    const m2 = (parseISO(out2).getTime() - parseISO(in2).getTime()) / (1000 * 60)
+                    workedMinutes = Math.max(0, m1) + Math.max(0, m2)
+                    lastInTime = null
+                } else if (in1 && out1 && !out2) {
+                    const m1 = (parseISO(out1).getTime() - parseISO(in1).getTime()) / (1000 * 60)
+                    workedMinutes = Math.max(0, m1)
+                } else if (in1 && out2 && out2 !== 'auto') {
+                    const mTotal = (parseISO(out2).getTime() - parseISO(in1).getTime()) / (1000 * 60)
+                    workedMinutes = Math.max(0, mTotal)
+                    lastInTime = null
+                }
+            }
+
             // If workedMinutes was calculated as full day without breaks and we have lunchDuration
             if (sorted.length === 2 && employeeSchedule?.lunchDuration && workedMinutes > 240) {
                 workedMinutes = Math.max(0, workedMinutes - employeeSchedule.lunchDuration)
@@ -415,6 +433,22 @@ export default function TimesheetPage() {
                 estimatedOut.setHours(endTime.hour, endTime.minute, 0, 0)
                 if (estimatedOut.getTime() > lastInTime) {
                     workedMinutes += (estimatedOut.getTime() - lastInTime) / (1000 * 60)
+                    lastInTime = null
+                }
+            }
+
+            if (workedMinutes === 0 && sorted.length >= 2) {
+                if (sorted.length >= 4) {
+                    const m1 = (parseISO(sorted[1].checktime).getTime() - parseISO(sorted[0].checktime).getTime()) / (1000 * 60)
+                    const m2 = (parseISO(sorted[sorted.length - 1].checktime).getTime() - parseISO(sorted[2].checktime).getTime()) / (1000 * 60)
+                    workedMinutes = Math.max(0, m1) + Math.max(0, m2)
+                    lastInTime = null
+                } else if (sorted.length === 3) {
+                    const m1 = (parseISO(sorted[1].checktime).getTime() - parseISO(sorted[0].checktime).getTime()) / (1000 * 60)
+                    workedMinutes = Math.max(0, m1)
+                } else if (sorted.length === 2) {
+                    const mTotal = (parseISO(sorted[1].checktime).getTime() - parseISO(sorted[0].checktime).getTime()) / (1000 * 60)
+                    workedMinutes = Math.max(0, mTotal)
                     lastInTime = null
                 }
             }
@@ -963,13 +997,15 @@ export default function TimesheetPage() {
                                                     <td className="px-3 py-2 text-center print:hidden">
                                                         <div className="flex items-center justify-center gap-1.5">
                                                             {getStatusBadge(day.status)}
-                                                            <Link
-                                                                href={`/corrections?employee=${selectedEmployeeObj?.id || selectedEmployee}&date=${day.dateStr}`}
-                                                                className="opacity-0 group-hover:opacity-100 p-1 text-neutral-400 hover:text-amber-600 hover:bg-amber-50 rounded transition-all"
-                                                                title={`Corrigir picagem de ${format(day.date, 'dd/MM')}`}
-                                                            >
-                                                                <FileEdit className="h-3.5 w-3.5" />
-                                                            </Link>
+                                                            {getDay(day.date) !== 0 && (
+                                                                <Link
+                                                                    href={`/corrections?employee=${selectedEmployeeObj?.id || selectedEmployee}&date=${day.dateStr}`}
+                                                                    className="opacity-0 group-hover:opacity-100 p-1 text-neutral-400 hover:text-amber-600 hover:bg-amber-50 rounded transition-all"
+                                                                    title={`Corrigir picagem de ${format(day.date, 'dd/MM')}`}
+                                                                >
+                                                                    <FileEdit className="h-3.5 w-3.5" />
+                                                                </Link>
+                                                            )}
                                                         </div>
                                                     </td>
                                                 </tr>
