@@ -20,6 +20,7 @@ import {
 } from "lucide-react"
 
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -58,7 +59,8 @@ type EmployeeStatus = {
 }
 
 export default function DashboardPage() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
+  const router = useRouter()
   const [records, setRecords] = React.useState<AttendanceRecord[]>([])
   const [schedules, setSchedules] = React.useState<Schedule[]>([])
   const [loading, setLoading] = React.useState(true)
@@ -113,9 +115,7 @@ export default function DashboardPage() {
 
       // If Unauthorized, force logout to clear "old/broken session"
       if (errorMsg.toLowerCase().includes("unauthorized") || errorMsg.includes("401")) {
-        setTimeout(() => {
-          signOut({ callbackUrl: '/login', redirect: true })
-        }, 2000)
+        signOut({ callbackUrl: '/login', redirect: true })
       }
     } finally {
       if (!isSilent) setLoading(false)
@@ -123,6 +123,10 @@ export default function DashboardPage() {
   }, [])
 
   React.useEffect(() => {
+    if (status === "unauthenticated") {
+      router.replace("/login")
+      return
+    }
     fetchData()
 
     // Para o cliente CMB (e On-Premise/Suprema sem limites de quota de API), auto-refresh automático a cada 10 minutos

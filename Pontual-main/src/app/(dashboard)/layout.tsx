@@ -1,11 +1,22 @@
 import { Sidebar, MobileNav } from "@/components/layout/sidebar";
-import { ExternalLink, Sparkles } from "lucide-react";
+import { ExternalLink } from "lucide-react";
+import { auth } from "@/auth";
+import { redirect } from "next/navigation";
 
-export default function DashboardLayout({
+// Force dynamic rendering so unauthenticated requests are never statically cached by Vercel CDN
+export const dynamic = "force-dynamic";
+
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const session = await auth();
+
+  if (!session?.user) {
+    redirect("/login");
+  }
+
   return (
     <div className="flex min-h-screen bg-neutral-50 dark:bg-neutral-950">
       {/* Desktop Sidebar */}
