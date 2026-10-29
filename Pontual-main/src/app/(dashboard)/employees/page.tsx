@@ -71,38 +71,38 @@ interface ScheduleOption {
     lunchDuration?: number
 }
 
-// Preset CMB schedules H01 to H30
+// Preset CMB schedules H1 to H30 (Official Colégio Manuel Bernardes Schedules)
 const CMB_SCHEDULES: ScheduleOption[] = [
-    { id: "H01", code: "H01", name: "H01 - 07:00 às 15:30 (Almoço 12:00-12:30)", startTime: "07:00", endTime: "15:30", lunchDuration: 30 },
-    { id: "H02", code: "H02", name: "H02 - 07:00 às 16:00 (Almoço 12:00-13:00)", startTime: "07:00", endTime: "16:00", lunchDuration: 60 },
-    { id: "H03", code: "H03", name: "H03 - 07:30 às 16:00 (Almoço 12:00-12:30)", startTime: "07:30", endTime: "16:00", lunchDuration: 30 },
-    { id: "H04", code: "H04", name: "H04 - 07:30 às 16:30 (Almoço 12:00-13:00)", startTime: "07:30", endTime: "16:30", lunchDuration: 60 },
-    { id: "H05", code: "H05", name: "H05 - 08:00 às 16:30 (Almoço 12:00-12:30)", startTime: "08:00", endTime: "16:30", lunchDuration: 30 },
-    { id: "H06", code: "H06", name: "H06 - 08:00 às 17:00 (Almoço 12:00-13:00)", startTime: "08:00", endTime: "17:00", lunchDuration: 60 },
-    { id: "H07", code: "H07", name: "H07 - 08:30 às 16:30 (Almoço 12:30-13:30)", startTime: "08:30", endTime: "16:30", lunchDuration: 60 },
-    { id: "H08", code: "H08", name: "H08 - 08:30 às 17:00 (Almoço 12:30-13:00)", startTime: "08:30", endTime: "17:00", lunchDuration: 30 },
-    { id: "H09", code: "H09", name: "H09 - 08:30 às 17:30 (Almoço 12:30-13:30)", startTime: "08:30", endTime: "17:30", lunchDuration: 60 },
-    { id: "H10", code: "H10", name: "H10 - 08:30 às 18:00 (Almoço 12:30-14:00)", startTime: "08:30", endTime: "18:00", lunchDuration: 90 },
-    { id: "H11", code: "H11", name: "H11 - 09:00 às 17:00 (Almoço 13:00-14:00)", startTime: "09:00", endTime: "17:00", lunchDuration: 60 },
-    { id: "H12", code: "H12", name: "H12 - 09:00 às 17:30 (Almoço 13:00-13:30)", startTime: "09:00", endTime: "17:30", lunchDuration: 30 },
-    { id: "H13", code: "H13", name: "H13 - 09:00 às 18:00 (Almoço 13:00-14:00)", startTime: "09:00", endTime: "18:00", lunchDuration: 60 },
-    { id: "H14", code: "H14", name: "H14 - 09:30 às 18:30 (Almoço 13:30-14:30)", startTime: "09:30", endTime: "18:30", lunchDuration: 60 },
-    { id: "H15", code: "H15", name: "H15 - 10:00 às 19:00 (Almoço 13:00-14:00)", startTime: "10:00", endTime: "19:00", lunchDuration: 60 },
-    { id: "H16", code: "H16", name: "H16 - 06:00 às 14:30 (Almoço 11:00-11:30)", startTime: "06:00", endTime: "14:30", lunchDuration: 30 },
-    { id: "H17", code: "H17", name: "H17 - 14:00 às 22:30 (Jantar 19:00-19:30)", startTime: "14:00", endTime: "22:30", lunchDuration: 30 },
-    { id: "H18", code: "H18", name: "H18 - 22:00 às 06:30 (Ceia 02:00-02:30)", startTime: "22:00", endTime: "06:30", lunchDuration: 30 },
-    { id: "H19", code: "H19", name: "H19 - 07:00 às 13:00 (Sem Paragem)", startTime: "07:00", endTime: "13:00", lunchDuration: 0 },
-    { id: "H20", code: "H20", name: "H20 - 08:00 às 14:00 (Sem Paragem)", startTime: "08:00", endTime: "14:00", lunchDuration: 0 },
-    { id: "H21", code: "H21", name: "H21 - 09:00 às 15:00 (Sem Paragem)", startTime: "09:00", endTime: "15:00", lunchDuration: 0 },
-    { id: "H22", code: "H22", name: "H22 - 13:00 às 19:00 (Sem Paragem)", startTime: "13:00", endTime: "19:00", lunchDuration: 0 },
-    { id: "H23", code: "H23", name: "H23 - 14:00 às 20:00 (Sem Paragem)", startTime: "14:00", endTime: "20:00", lunchDuration: 0 },
-    { id: "H24", code: "H24", name: "H24 - 08:00 às 12:00 / 13:00 às 17:00", startTime: "08:00", endTime: "17:00", lunchDuration: 60 },
-    { id: "H25", code: "H25", name: "H25 - 08:30 às 12:30 / 14:00 às 18:00", startTime: "08:30", endTime: "18:00", lunchDuration: 90 },
-    { id: "H26", code: "H26", name: "H26 - 09:00 às 13:00 / 14:00 às 18:00", startTime: "09:00", endTime: "18:00", lunchDuration: 60 },
-    { id: "H27", code: "H27", name: "H27 - 07:00 às 19:00 (Turno 12h Especial)", startTime: "07:00", endTime: "19:00", lunchDuration: 60 },
-    { id: "H28", code: "H28", name: "H28 - 19:00 às 07:00 (Turno Noite 12h)", startTime: "19:00", endTime: "07:00", lunchDuration: 60 },
-    { id: "H29", code: "H29", name: "H29 - Isenção de Horário (Flexível)", startTime: "09:00", endTime: "18:00", lunchDuration: 60 },
-    { id: "H30", code: "H30", name: "H30 - Horário Parcial 20h/semana", startTime: "09:00", endTime: "13:00", lunchDuration: 0 },
+    { id: "H1",  code: "H1",  name: "H1 - 07:00 às 16:00 (Almoço 1h)",    startTime: "07:00", endTime: "16:00", lunchDuration: 60 },
+    { id: "H2",  code: "H2",  name: "H2 - 07:00 às 16:00 (Almoço 1h)",    startTime: "07:00", endTime: "16:00", lunchDuration: 60 },
+    { id: "H3",  code: "H3",  name: "H3 - 07:30 às 16:30 (Almoço 1h)",    startTime: "07:30", endTime: "16:30", lunchDuration: 60 },
+    { id: "H4",  code: "H4",  name: "H4 - 07:30 às 16:30 (Almoço 1h)",    startTime: "07:30", endTime: "16:30", lunchDuration: 60 },
+    { id: "H5",  code: "H5",  name: "H5 - 07:30 às 16:30 (Almoço 1h)",    startTime: "07:30", endTime: "16:30", lunchDuration: 60 },
+    { id: "H6",  code: "H6",  name: "H6 - 07:30 às 17:00 (Almoço 1h30)",  startTime: "07:30", endTime: "17:00", lunchDuration: 90 },
+    { id: "H7",  code: "H7",  name: "H7 - 08:00 às 17:00 (Almoço 1h)",    startTime: "08:00", endTime: "17:00", lunchDuration: 60 },
+    { id: "H8",  code: "H8",  name: "H8 - 08:00 às 18:00 (Almoço 2h)",    startTime: "08:00", endTime: "18:00", lunchDuration: 120 },
+    { id: "H9",  code: "H9",  name: "H9 - 08:00 às 17:00 (Almoço 1h)",    startTime: "08:00", endTime: "17:00", lunchDuration: 60 },
+    { id: "H10", code: "H10", name: "H10 - 08:00 às 16:35 (Almoço 1h)",   startTime: "08:00", endTime: "16:35", lunchDuration: 60 },
+    { id: "H11", code: "H11", name: "H11 - 08:00 às 17:00 (Almoço 1h)",   startTime: "08:00", endTime: "17:00", lunchDuration: 60 },
+    { id: "H12", code: "H12", name: "H12 - 08:00 às 17:30 (Almoço 1h30)", startTime: "08:00", endTime: "17:30", lunchDuration: 90 },
+    { id: "H13", code: "H13", name: "H13 - 08:00 às 17:00 (Almoço 1h)",   startTime: "08:00", endTime: "17:00", lunchDuration: 60 },
+    { id: "H14", code: "H14", name: "H14 - 08:15 às 17:30 (Almoço 1h15)", startTime: "08:15", endTime: "17:30", lunchDuration: 75 },
+    { id: "H15", code: "H15", name: "H15 - 08:30 às 17:30 (Almoço 1h)",   startTime: "08:30", endTime: "17:30", lunchDuration: 60 },
+    { id: "H16", code: "H16", name: "H16 - 08:30 às 17:30 (Almoço 1h)",   startTime: "08:30", endTime: "17:30", lunchDuration: 60 },
+    { id: "H17", code: "H17", name: "H17 - 08:30 às 17:30 (Almoço 1h)",   startTime: "08:30", endTime: "17:30", lunchDuration: 60 },
+    { id: "H18", code: "H18", name: "H18 - 08:30 às 17:45 (Almoço 1h15)", startTime: "08:30", endTime: "17:45", lunchDuration: 75 },
+    { id: "H19", code: "H19", name: "H19 - 09:00 às 18:00 (Almoço 1h)",   startTime: "09:00", endTime: "18:00", lunchDuration: 60 },
+    { id: "H20", code: "H20", name: "H20 - 09:00 às 19:00 (Almoço 2h)",   startTime: "09:00", endTime: "19:00", lunchDuration: 120 },
+    { id: "H21", code: "H21", name: "H21 - 09:00 às 18:00 (Almoço 1h)",   startTime: "09:00", endTime: "18:00", lunchDuration: 60 },
+    { id: "H22", code: "H22", name: "H22 - 09:00 às 17:35 (Almoço 1h)",   startTime: "09:00", endTime: "17:35", lunchDuration: 60 },
+    { id: "H23", code: "H23", name: "H23 - 09:00 às 18:00 (Almoço 1h)",   startTime: "09:00", endTime: "18:00", lunchDuration: 60 },
+    { id: "H24", code: "H24", name: "H24 - 09:00 às 18:00 (Almoço 1h)",   startTime: "09:00", endTime: "18:00", lunchDuration: 60 },
+    { id: "H25", code: "H25", name: "H25 - 09:00 às 18:00 (Almoço 1h)",   startTime: "09:00", endTime: "18:00", lunchDuration: 60 },
+    { id: "H26", code: "H26", name: "H26 - 09:15 às 18:30 (Almoço 1h15)", startTime: "09:15", endTime: "18:30", lunchDuration: 75 },
+    { id: "H27", code: "H27", name: "H27 - 09:30 às 18:30 (Almoço 1h)",   startTime: "09:30", endTime: "18:30", lunchDuration: 60 },
+    { id: "H28", code: "H28", name: "H28 - 10:00 às 19:00 (Almoço 1h)",   startTime: "10:00", endTime: "19:00", lunchDuration: 60 },
+    { id: "H29", code: "H29", name: "H29 - 10:00 às 19:30 (Almoço 1h30)", startTime: "10:00", endTime: "19:30", lunchDuration: 90 },
+    { id: "H30", code: "H30", name: "H30 - 10:00 às 19:00 (Almoço 1h)",   startTime: "10:00", endTime: "19:00", lunchDuration: 60 },
 ]
 
 export default function EmployeesPage() {
@@ -123,7 +123,7 @@ export default function EmployeesPage() {
         companyName?.toLowerCase().includes("maristas") ||
         companyName?.toLowerCase().includes("cmb") ||
         username?.toUpperCase().startsWith("CMB") ||
-        ((session?.user as any)?.role === "ADMIN" && employees.some(e => /^H\d{2}$/.test(e.scheduleCode || "")))
+        ((session?.user as any)?.role === "ADMIN" && employees.some(e => /^H\d{1,2}$/.test(e.scheduleCode || "")))
 
     // Modal state
     const [modalOpen, setModalOpen] = useState(false)
@@ -136,7 +136,7 @@ export default function EmployeesPage() {
     const [formWorkno, setFormWorkno] = useState("")
     const [formName, setFormName] = useState("")
     const [formCardNumber, setFormCardNumber] = useState("")
-    const [formScheduleCode, setFormScheduleCode] = useState("H09")
+    const [formScheduleCode, setFormScheduleCode] = useState("H9")
     const [formActive, setFormActive] = useState(true)
     const [formFingerprint, setFormFingerprint] = useState<string | null>(null)
 
@@ -204,7 +204,7 @@ export default function EmployeesPage() {
         setFormWorkno(nextWorkno)
         setFormName("")
         setFormCardNumber("")
-        setFormScheduleCode("H09")
+        setFormScheduleCode("H9")
         setFormActive(true)
         setFormFingerprint(null)
         setScanSuccess(false)
@@ -222,7 +222,7 @@ export default function EmployeesPage() {
         setFormWorkno(emp.workno)
         setFormName(emp.name)
         setFormCardNumber(emp.cardNumber || "")
-        setFormScheduleCode(emp.scheduleCode || "H09")
+        setFormScheduleCode(emp.scheduleCode && /^H\d{1,2}$/.test(emp.scheduleCode) ? emp.scheduleCode.replace(/^H0([1-9])$/, "H$1") : "H9")
         setFormActive(emp.active)
         setFormFingerprint(emp.numFingerprints > 0 ? "EXISTS" : null)
         setScanSuccess(emp.numFingerprints > 0)
@@ -372,6 +372,30 @@ export default function EmployeesPage() {
             }, 800)
         } catch (err: any) {
             setErrorMsg(err.message || "Ocorreu um erro ao guardar.")
+        } finally {
+            setSaving(false)
+        }
+    }
+
+    // Delete employee (used to remove test/obsolete entries)
+    const handleDeleteEmployee = async (worknoToDelete: string, nameToDelete: string) => {
+        if (!window.confirm(`Tem a certeza que deseja eliminar o colaborador ${nameToDelete} (#${worknoToDelete})?`)) {
+            return
+        }
+        setSaving(true)
+        try {
+            const res = await fetch(`/api/employees?workno=${encodeURIComponent(worknoToDelete)}`, {
+                method: "DELETE"
+            })
+            if (res.ok) {
+                await fetchEmployees()
+                setModalOpen(false)
+            } else {
+                const data = await res.json().catch(() => ({}))
+                setErrorMsg(data.error || "Erro ao eliminar colaborador.")
+            }
+        } catch (e: any) {
+            setErrorMsg(e.message || "Erro ao eliminar colaborador.")
         } finally {
             setSaving(false)
         }
@@ -1009,14 +1033,28 @@ export default function EmployeesPage() {
 
                         {/* Modal Footer */}
                         <DialogFooter className="pt-2 border-t border-neutral-200 flex items-center justify-between">
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                onClick={() => setModalOpen(false)}
-                                className="text-neutral-500 hover:text-neutral-900"
-                            >
-                                Cancelar
-                            </Button>
+                            <div className="flex items-center gap-2">
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    onClick={() => setModalOpen(false)}
+                                    className="text-neutral-500 hover:text-neutral-900"
+                                >
+                                    Cancelar
+                                </Button>
+                                {modalMode === "edit" && (
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        disabled={saving}
+                                        onClick={() => handleDeleteEmployee(formWorkno, formName)}
+                                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                    >
+                                        <Trash2 className="h-4 w-4 mr-1.5" />
+                                        Eliminar
+                                    </Button>
+                                )}
+                            </div>
                             <Button
                                 type="submit"
                                 disabled={saving}

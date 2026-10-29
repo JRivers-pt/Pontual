@@ -1,8 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 
-export async function GET() {
-  return NextResponse.json({ status: 'active', service: 'Pontual Sync Agent' });
+export async function GET(request: NextRequest) {
+  const token = request.headers.get('x-school-token') || request.headers.get('authorization')?.replace('Bearer ', '');
+  if (!token) {
+    return NextResponse.json({ status: 'active', service: 'Pontual Sync Agent' });
+  }
+
+  const user = await prisma.user.findUnique({ where: { syncToken: token } });
+  if (!user) {
+    return NextResponse.json({ error: 'Invalid or unknown school token' }, { status: 403 });
+  }
+
+  const biometricEmployees = await prisma.employee.findMany({
+    where: {
+      userId: user.id,
+      active: true,
+      fingerprintTemplate: { not: null }
+    },
+    select: {
+      workno: true,
+      name: true,
+      cardNumber: true,
+      fingerprintTemplate: true,
+      updatedAt: true
+    }
+  });
+
+  return NextResponse.json({
+    status: 'active',
+    service: 'Pontual Sync Agent',
+    biometricEmployees
+  });
 }
 
 export async function POST(request: NextRequest) {

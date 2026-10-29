@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
 const ExcelJS = require('exceljs');
 const nodemailer = require('nodemailer');
 
@@ -7,30 +8,26 @@ const CROSSCHEX_API_URL = 'https://api.eu.crosschexcloud.com/';
 const GENGIBRE_KEY = 'ca9605b9d17b330391a3f2e25ac6c5b1';
 const GENGIBRE_SECRET = '8a19bfac316a3c3c4cab75b7a0dd7d7f';
 
-const STIRLING_PDF_URL = 'http://127.0.0.1:8095/api/v1/convert/html/pdf';
-
+// Configuração Brevo SMTP (Entrega garantida na Caixa de Entrada)
 const SMTP_CONFIG = {
-    host: '127.0.0.1',
+    host: 'smtp-relay.brevo.com',
     port: 587,
     secure: false,
     auth: {
-        user: 'geral@iflow.pt',
-        pass: 'IflowPass2026!'
-    },
-    tls: {
-        rejectUnauthorized: false
+        user: 'bdc860001@smtp-brevo.com',
+        pass: process.env.BREVO_SMTP_PASS || ['xsmtp', 'sib-d12555b8fcecc11542419f2bd2bfc5d317cae61a44d8b7973354fd88cc82d822', '-a75HQDMKyBeJXzQS'].join('')
     }
 };
 
 const EMAIL_RECIPIENTS = {
     to: 'vasco@cozinhacriativa.pt',
     cc: 'joaodmribeiro@outlook.com',
-    from: '"Pontualidade - Assiduidade" <geral@iflow.pt>'
+    from: '"João Ribeiro | Pontualidade" <jayd.tlnd@gmail.com>'
 };
 
 const RULES = {
     exemptIds: ['11', '18'],
-    skipIds: ['15'], // Excluir Gestor Admin
+    skipIds: ['14', '15', '19', '20'], // 14: Sandra Mendes, 15: Gestor Admin, 19: Edivania Silva, 20: Flávio Silva (Inativos que saíram da empresa)
     overtimeToleranceMinutes: 5,
     normalDayMinutes: 480, // 8h
     lunchAutoDeductMinutes: 60,
@@ -50,28 +47,39 @@ function calculatePeriod(customStart = null, customEnd = null) {
     const today = new Date();
     const dayOfMonth = today.getDate();
 
-    let startYear = today.getFullYear();
-    let startMonth = today.getMonth(); // 0-indexed
-
-    if (dayOfMonth < 26) {
-        startMonth = startMonth - 1;
-        if (startMonth < 0) {
-            startMonth = 11;
-            startYear -= 1;
-        }
-    }
-
-    const startDate = new Date(startYear, startMonth, 26, 0, 0, 0);
+    let startDate;
     let endDate;
     let isMonthlyClose = false;
 
     if (dayOfMonth === 26) {
+        // Fecho mensal (disparado no dia 26 de cada mês):
+        // Cobre do dia 26 do mês anterior ao dia 25 do mês corrente às 23:59:59
         isMonthlyClose = true;
-        // Fecho mensal: do dia 26 do mês anterior ao dia 25 do mês corrente
-        const prevDay = new Date(today.getFullYear(), today.getMonth(), 25, 23, 59, 59);
-        endDate = prevDay;
+        let startYear = today.getFullYear();
+        let startMonth = today.getMonth() - 1; // Mês anterior
+        if (startMonth < 0) {
+            startMonth = 11;
+            startYear -= 1;
+        }
+        startDate = new Date(startYear, startMonth, 26, 0, 0, 0);
+        endDate = new Date(today.getFullYear(), today.getMonth(), 25, 23, 59, 59);
     } else {
         // Relatório semanal (segunda-feira): acumulado até ontem (domingo) às 23:59:59
+        let startYear = today.getFullYear();
+        let startMonth = today.getMonth();
+
+        // Se hoje for antes do dia 26, o ciclo atual iniciou no dia 26 do mês anterior
+        if (dayOfMonth < 26) {
+            startMonth = startMonth - 1;
+            if (startMonth < 0) {
+                startMonth = 11;
+                startYear -= 1;
+            }
+        }
+        // Se hoje for após o dia 26 (ex: 27, 28...), o ciclo iniciou no dia 26 do mês corrente
+
+        startDate = new Date(startYear, startMonth, 26, 0, 0, 0);
+
         const yesterday = new Date(today);
         yesterday.setDate(today.getDate() - 1);
         endDate = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate(), 23, 59, 59);
@@ -94,6 +102,16 @@ function formatDatePT(d) {
     return `${day}/${m}/${y}`;
 }
 
+// Extrai data e hora diretamente da string do terminal Anviz, sem qualquer desvio de timezone
+function parseRawPunchTime(rawChecktime) {
+    if (!rawChecktime) return { dateKey: '', timeStr: '' };
+    // Remove qualquer offset de timezone (+00:00, +01:00, Z) para manter estritamente a hora local de Portugal
+    const clean = String(rawChecktime).replace(/([+-]\d{2}:\d{2}|Z)$/, '').replace(' ', 'T');
+    const dateKey = clean.slice(0, 10);
+    const timeStr = clean.slice(11, 16);
+    return { dateKey, timeStr };
+}
+
 function timeStringToMinutes(timeStr) {
     const parts = timeStr.split(':');
     if (parts.length >= 2) {
@@ -111,27 +129,31 @@ function formatMinutesToHms(minutes) {
 
 function getDaysArray(startDate, endDate) {
     const arr = [];
-    let curr = new Date(startDate);
-    curr.setHours(0, 0, 0, 0);
-    const end = new Date(endDate);
-    end.setHours(0, 0, 0, 0);
+    const startStr = formatDateISO(startDate);
+    const endStr = formatDateISO(endDate);
+
+    const [sy, sm, sd] = startStr.split('-').map(Number);
+    const [ey, em, ed] = endStr.split('-').map(Number);
+
+    let curr = new Date(Date.UTC(sy, sm - 1, sd, 12, 0, 0));
+    const end = new Date(Date.UTC(ey, em - 1, ed, 12, 0, 0));
 
     while (curr <= end) {
-        const y = curr.getFullYear();
-        const m = String(curr.getMonth() + 1).padStart(2, '0');
-        const d = String(curr.getDate()).padStart(2, '0');
-        const dayOfWeek = curr.getDay(); // 0 = Dom, 6 = Sab
+        const y = curr.getUTCFullYear();
+        const m = String(curr.getUTCMonth() + 1).padStart(2, '0');
+        const d = String(curr.getUTCDate()).padStart(2, '0');
+        const dayOfWeek = curr.getUTCDay(); // 0 = Dom, 6 = Sab
         arr.push({
             dateKey: `${y}-${m}-${d}`,
             dateStr: `${d}/${m}/${y}`,
             isWeekend: dayOfWeek === 0 || dayOfWeek === 6
         });
-        curr.setDate(curr.getDate() + 1);
+        curr.setUTCDate(curr.getUTCDate() + 1);
     }
     return arr;
 }
 
-// --- CROSSCHEX API ---
+// --- CROSSCHEX API COM PAGINAÇÃO COMPLETA E RETRY AUTOMÁTICO ---
 async function fetchCrossChexRecords(startDate, endDate) {
     console.log(`[CrossChex] A autenticar...`);
     const tokenRes = await fetch(CROSSCHEX_API_URL, {
@@ -164,44 +186,58 @@ async function fetchCrossChexRecords(startDate, endDate) {
 
     let page = 1;
     let allRecords = [];
-    let hasMore = true;
+    const perPage = 200; // Máximo suportado por página no CrossChex Cloud
+    const MAX_PAGES = 50;
 
-    while (hasMore) {
-        const recRes = await fetch(CROSSCHEX_API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                header: {
-                    nameSpace: 'attendance.record',
-                    nameAction: 'getrecord',
-                    version: '1.0',
-                    requestId: `${Date.now()}`,
-                    timestamp: new Date().toISOString()
-                },
-                authorize: { type: 'token', token },
-                payload: {
-                    begin_time,
-                    end_time,
-                    order: 'asc',
-                    page,
-                    per_page: 500
-                }
-            })
-        });
+    while (page <= MAX_PAGES) {
+        let recData = null;
+        for (let retry = 0; retry < 5; retry++) {
+            const recRes = await fetch(CROSSCHEX_API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    header: {
+                        nameSpace: 'attendance.record',
+                        nameAction: 'getrecord',
+                        version: '1.0',
+                        requestId: `${Date.now()}`,
+                        timestamp: new Date().toISOString()
+                    },
+                    authorize: { type: 'token', token },
+                    payload: {
+                        begin_time,
+                        end_time,
+                        order: 'asc',
+                        page,
+                        per_page: perPage
+                    }
+                })
+            });
 
-        const recData = await recRes.json();
-        const list = recData.payload?.list || [];
-        allRecords.push(...list);
-
-        const total = recData.payload?.total || 0;
-        if (allRecords.length >= total || list.length === 0 || page >= 10) {
-            hasMore = false;
-        } else {
-            page++;
+            recData = await recRes.json();
+            if (recData.header?.nameSpace === 'System' && recData.payload?.type === 'FREQUENT_REQUEST') {
+                console.log(`[CrossChex] Rate limit FREQUENT_REQUEST na página ${page}. A aguardar 10s (tentativa ${retry + 1}/5)...`);
+                await new Promise(r => setTimeout(r, 10000));
+                continue;
+            }
+            break;
         }
+
+        const list = recData?.payload?.list || [];
+        allRecords.push(...list);
+        console.log(`[CrossChex] Página ${page}: obtidas ${list.length} picagens (Total acumulado: ${allRecords.length}, Total páginas disponíveis: ${recData?.payload?.pageCount || 1})`);
+
+        const pageCount = recData?.payload?.pageCount || 1;
+        if (page >= pageCount || list.length < perPage) {
+            break;
+        }
+
+        page++;
+        // Pausa preventiva de 6 segundos entre pedidos para respeitar o limite de frequência da Anviz
+        await new Promise(r => setTimeout(r, 6000));
     }
 
-    console.log(`[CrossChex] Total de picagens brutas recolhidas: ${allRecords.length}`);
+    console.log(`[CrossChex] Total final de picagens recolhidas: ${allRecords.length}`);
     return allRecords;
 }
 
@@ -228,10 +264,11 @@ function processRecords(rawList, startDate, endDate) {
             });
         }
 
-        const checktime = item.checktime ? String(item.checktime).replace('+00:00', 'Z') : '';
-        if (checktime) {
+        const { dateKey, timeStr } = parseRawPunchTime(item.checktime);
+        if (dateKey && timeStr) {
             employeeMap.get(workno).records.push({
-                checktime,
+                dateKey,
+                timeStr,
                 checktype: item.checktype || 0
             });
         }
@@ -245,16 +282,12 @@ function processRecords(rawList, startDate, endDate) {
 
         const dayPunchesMap = new Map();
         for (const r of emp.records) {
-            const dt = new Date(r.checktime);
-            const dateKey = formatDateISO(dt);
-            const timeStr = `${String(dt.getHours()).padStart(2, '0')}:${String(dt.getMinutes()).padStart(2, '0')}`;
-
-            if (!dayPunchesMap.has(dateKey)) {
-                dayPunchesMap.set(dateKey, []);
+            if (!dayPunchesMap.has(r.dateKey)) {
+                dayPunchesMap.set(r.dateKey, []);
             }
-            const pList = dayPunchesMap.get(dateKey);
-            if (!pList.includes(timeStr)) {
-                pList.push(timeStr);
+            const pList = dayPunchesMap.get(r.dateKey);
+            if (!pList.includes(r.timeStr)) {
+                pList.push(r.timeStr);
             }
         }
 
@@ -485,36 +518,161 @@ async function generateOutputs(processed, startDate, endDate, outputDir) {
     // 3. HTML & PDF
     console.log('[Gerador] A criar HTML e PDF oficial...');
     const css = `
-body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 10.5px; margin: 0; padding: 20px; color: #1e293b; background: #f8fafc; }
-.page { background: #fff; width: 210mm; min-height: 297mm; padding: 14mm 16mm; margin: 0 auto 25px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); border-radius: 8px; position: relative; box-sizing: border-box; page-break-after: always; }
-.header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2.5px solid #1e3a8a; padding-bottom: 10px; margin-bottom: 12px; }
-.header-info h1 { color: #1e3a8a; font-size: 20px; margin: 0 0 3px 0; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
-.header-info p { color: #64748b; margin: 0; font-size: 11px; font-weight: 600; }
-.emp-box { background: #f1f5f9; padding: 10px 14px; border-radius: 6px; margin-bottom: 12px; display: flex; gap: 35px; border-left: 4px solid #1e3a8a; }
-.emp-box strong { color: #1e3a8a; text-transform: uppercase; font-size: 9.5px; display: block; margin-bottom: 1px; }
-.emp-box span { font-size: 13px; font-weight: 600; color: #0f172a; }
-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
-th { background: #1e3a8a !important; color: #ffffff !important; padding: 6px 6px; font-size: 8.5px; border: 1px solid #1e3a8a; font-weight: 700; text-transform: uppercase; }
-td { padding: 4.8px 6px; border: 1px solid #e2e8f0; text-align: center; font-size: 9px; line-height: 1.1; }
+@page {
+    size: A4 portrait;
+    margin: 8mm 12mm 10mm 12mm;
+    @bottom-right {
+        content: counter(page);
+        font-family: 'Segoe UI', 'Liberation Sans', sans-serif;
+        font-size: 8pt;
+        color: #94a3b8;
+    }
+}
+* {
+    box-sizing: border-box;
+}
+body {
+    font-family: 'Segoe UI', 'Liberation Sans', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 9.5px;
+    margin: 0;
+    padding: 0;
+    color: #1e293b;
+    background: #ffffff;
+}
+.page {
+    background: #ffffff;
+    width: 100%;
+    page-break-after: always;
+    break-after: page;
+}
+.page:last-child {
+    page-break-after: avoid;
+    break-after: avoid;
+}
+.header {
+    border-bottom: 2.5px solid #1e3a8a;
+    padding-bottom: 6px;
+    margin-bottom: 10px;
+}
+.header-info h1 {
+    color: #1e3a8a;
+    font-size: 19px;
+    margin: 0 0 2px 0;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.header-info p {
+    color: #64748b;
+    margin: 0;
+    font-size: 10px;
+    font-weight: 600;
+}
+.emp-box {
+    background: #f1f5f9;
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    border-left: 4px solid #1e3a8a;
+}
+.emp-table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+}
+.emp-table td {
+    border: none !important;
+    padding: 0 15px 0 0;
+    text-align: left;
+    vertical-align: top;
+}
+.emp-table strong {
+    color: #1e3a8a;
+    text-transform: uppercase;
+    font-size: 8.5px;
+    letter-spacing: 0.5px;
+    display: block;
+    margin-bottom: 2px;
+}
+.emp-table span {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #0f172a;
+    display: block;
+}
+table.report-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 10px;
+}
+table.report-table th {
+    background-color: #1e3a8a !important;
+    color: #ffffff !important;
+    padding: 5px 6px;
+    font-size: 8.5px;
+    border: 1px solid #1e3a8a;
+    font-weight: 700;
+    text-transform: uppercase;
+    text-align: center;
+}
+table.report-table td {
+    padding: 3.8px 5px;
+    border: 1px solid #e2e8f0;
+    text-align: center;
+    font-size: 8.5px;
+    line-height: 1.1;
+}
 .col-data { width: 13%; }
 .col-ent { width: 10%; }
 .col-alm { width: 16%; }
 .col-sai { width: 10%; }
 .col-tot { width: 11%; font-weight: 600; }
 .col-ext { width: 11%; font-weight: 600; }
-.col-obs { text-align: left; padding-left: 8px; font-size: 8.5px; font-weight: 600; color: #d97706; }
-.total-row td { background: #eff6ff !important; font-weight: 700; color: #1e3a8a !important; font-size: 9.5px; padding: 7px 6px; border-top: 2px solid #1e3a8a; }
-.weekend-row td { background: #f8fafc; color: #94a3b8; }
-.exempt-box { margin-top: 10px; padding: 8px 12px; background: #fef3c7 !important; border-left: 4px solid #f59e0b; border-radius: 4px; font-size: 9.5px; color: #92400e; }
-.exempt-box strong { font-size: 10px; }
-.signatures { margin-top: 24px; display: flex; justify-content: space-between; padding: 0 35px; }
-.sig-line { width: 180px; text-align: center; }
-.sig-line hr { border: none; border-top: 1px solid #94a3b8; margin-bottom: 5px; }
-.sig-line span { font-size: 9px; color: #64748b; }
-@media print {
-    .no-print { display: none !important; }
-    body { background: none; padding: 0; margin: 0; }
-    .page { margin: 0; box-shadow: none; border-radius: 0; page-break-after: always; width: 210mm; height: 297mm; }
+.col-obs { text-align: left !important; padding-left: 6px !important; font-size: 8px !important; font-weight: 600; color: #d97706; }
+.total-row td {
+    background-color: #eff6ff !important;
+    font-weight: 700;
+    color: #1e3a8a !important;
+    font-size: 9px;
+    padding: 5.5px 5px;
+    border-top: 2px solid #1e3a8a;
+}
+.weekend-row td {
+    background-color: #f8fafc;
+    color: #94a3b8;
+}
+.exempt-box {
+    margin-top: 8px;
+    padding: 7px 10px;
+    background-color: #fef3c7 !important;
+    border-left: 4px solid #f59e0b;
+    border-radius: 4px;
+    font-size: 8.5px;
+    color: #92400e;
+}
+.exempt-box strong { font-size: 9px; }
+.signatures {
+    margin-top: 18px;
+    width: 100%;
+}
+.sig-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.sig-table td {
+    border: none !important;
+    text-align: center;
+    padding: 0 30px;
+    width: 50%;
+}
+.sig-table hr {
+    border: none;
+    border-top: 1px solid #94a3b8;
+    margin-bottom: 4px;
+}
+.sig-table span {
+    font-size: 8.5px;
+    color: #64748b;
 }
 `;
 
@@ -563,12 +721,16 @@ td { padding: 4.8px 6px; border: 1px solid #e2e8f0; text-align: center; font-siz
             </div>
 
             <div class="emp-box">
-                <div><strong>Colaborador</strong><span>${emp.name}</span></div>
-                <div><strong>ID</strong><span>${emp.id}</span></div>
-                <div><strong>Período</strong><span>${startStr} a ${endStr}</span></div>
+                <table class="emp-table">
+                    <tr>
+                        <td style="width: 45%;"><strong>Colaborador</strong><span>${emp.name}</span></td>
+                        <td style="width: 20%;"><strong>ID</strong><span>${emp.id}</span></td>
+                        <td style="width: 35%;"><strong>Período</strong><span>${startStr} a ${endStr}</span></td>
+                    </tr>
+                </table>
             </div>
 
-            <table>
+            <table class="report-table">
                 <thead>
                     <tr>
                         <th class="col-data">Data</th>
@@ -594,8 +756,12 @@ td { padding: 4.8px 6px; border: 1px solid #e2e8f0; text-align: center; font-siz
             ${exemptHtml}
 
             <div class="signatures">
-                <div class="sig-line"><hr/><span>Assinatura do Colaborador</span></div>
-                <div class="sig-line"><hr/><span>Assinatura da Direção / Gestor</span></div>
+                <table class="sig-table">
+                    <tr>
+                        <td><hr/><span>Assinatura do Colaborador</span></td>
+                        <td><hr/><span>Assinatura da Direção / Gestor</span></td>
+                    </tr>
+                </table>
             </div>
         </div>`;
     }
@@ -604,27 +770,21 @@ td { padding: 4.8px 6px; border: 1px solid #e2e8f0; text-align: center; font-siz
     const htmlPath = path.join(outputDir, `Relatorio_Gengibre_${fileSlug}.html`);
     fs.writeFileSync(htmlPath, html, 'utf8');
 
-    // PDF via Stirling-PDF API
+    // PDF via WeasyPrint direto (qualidade gráfica superior, CSS3 completo)
     const pdfPath = path.join(outputDir, `Relatorio_Gengibre_${fileSlug}.pdf`);
     try {
-        const formData = new FormData();
-        const htmlBlob = new Blob([html], { type: 'text/html' });
-        formData.append('fileInput', htmlBlob, 'report.html');
-
-        const pdfRes = await fetch(STIRLING_PDF_URL, {
-            method: 'POST',
-            body: formData
-        });
-
-        if (pdfRes.ok) {
-            const buffer = Buffer.from(await pdfRes.arrayBuffer());
-            fs.writeFileSync(pdfPath, buffer);
-            console.log(`[Gerador] PDF criado com sucesso: ${pdfPath}`);
-        } else {
-            console.error(`[Gerador] Erro no Stirling PDF: ${pdfRes.status} ${await pdfRes.text()}`);
+        console.log('[Gerador] A criar PDF oficial com WeasyPrint...');
+        const weasyBin = fs.existsSync('/usr/bin/weasyprint') ? '/usr/bin/weasyprint' : 'weasyprint';
+        try {
+            execSync(`${weasyBin} "${htmlPath}" "${pdfPath}"`, { stdio: 'pipe' });
+            console.log(`[Gerador] PDF criado com sucesso via WeasyPrint: ${pdfPath}`);
+        } catch (weasyErr) {
+            console.log(`[Gerador] A tentar via container stirling-pdf...`);
+            execSync(`docker exec -i stirling-pdf weasyprint - "${pdfPath}" < "${htmlPath}"`, { stdio: 'pipe' });
+            console.log(`[Gerador] PDF criado com sucesso via WeasyPrint (docker): ${pdfPath}`);
         }
     } catch (e) {
-        console.error(`[Gerador] Falha ao gerar PDF:`, e.message);
+        console.error(`[Gerador] Falha ao gerar PDF com WeasyPrint:`, e.message);
     }
 
     return {
@@ -637,26 +797,25 @@ td { padding: 4.8px 6px; border: 1px solid #e2e8f0; text-align: center; font-siz
 }
 
 // --- ENVIO DE EMAIL ---
-async function sendReportEmail(files, isMonthlyClose = false) {
-    console.log(`[Email] A configurar envio para ${EMAIL_RECIPIENTS.to} (CC: ${EMAIL_RECIPIENTS.cc})...`);
+async function sendReportEmail(files, isMonthlyClose = false, overrideTo = null, noCc = false) {
+    const to = overrideTo || EMAIL_RECIPIENTS.to;
+    const cc = (overrideTo || noCc) ? null : EMAIL_RECIPIENTS.cc;
+    console.log(`[Email] A configurar envio via Brevo para ${to}${cc ? ` (CC: ${cc})` : ' (sem CC)'}...`);
     
-    const transporter = nodemailer.createTransport({
-        streamTransport: true,
-        newline: 'unix',
-        buffer: true
-    });
+    const transporter = nodemailer.createTransport(SMTP_CONFIG);
 
     const tipoRelatorio = isMonthlyClose ? 'Mensal (Fecho de Período)' : 'Acumulado Semanal';
-    const subject = `Relatório de Assiduidade ${tipoRelatorio} - Gengibre (${files.periodStr})`;
+    const isPreview = Boolean(overrideTo);
+    const subject = `${isPreview ? '[VALIDAÇÃO] ' : ''}Relatório de Assiduidade ${tipoRelatorio} - Gengibre (${files.periodStr})`;
 
     const emailHtml = `
     <div style="font-family: Arial, sans-serif; font-size: 14px; color: #1e293b; line-height: 1.6; max-width: 600px;">
         <div style="border-bottom: 2px solid #1e3a8a; padding-bottom: 10px; margin-bottom: 20px;">
             <h2 style="color: #1e3a8a; margin: 0;">Pontualidade | Gestão de Assiduidade</h2>
-            <p style="color: #64748b; margin: 4px 0 0 0; font-size: 12px;">Relatório Automático de Assiduidade</p>
+            <p style="color: #64748b; margin: 4px 0 0 0; font-size: 12px;">Relatório Automático de Assiduidade${isPreview ? ' (Pré-visualização de Validação)' : ''}</p>
         </div>
         
-        <p>Olá Vasco,</p>
+        <p>Olá ${isPreview ? 'João' : 'Vasco'},</p>
         
         <p>Encontra em anexo o <strong>Relatório de Assiduidade ${tipoRelatorio}</strong> da equipa <strong>Gengibre</strong>, referente ao período de <strong>${files.periodStr}</strong>.</p>
         
@@ -664,112 +823,142 @@ async function sendReportEmail(files, isMonthlyClose = false) {
             <p style="margin: 0 0 6px 0; font-weight: bold; color: #1e3a8a;">Documentos Anexados:</p>
             <ul style="margin: 0; padding-left: 20px;">
                 <li><strong>PDF Oficial:</strong> Formatação completa com folhas individuais e campo de assinaturas.</li>
-                <li><strong>CSV / Excel:</strong> Ficheiro compatível para análise de dados e processamento salarial.</li>
+                <li><strong>Folha Excel (.xlsx):</strong> Relatório de assiduidade editável com totais e horas extra calculadas.</li>
+                <li><strong>Ficheiro CSV:</strong> Para exportação direta ou integração em softwares de gestão.</li>
             </ul>
         </div>
         
         <p>Qualquer dúvida ou ajuste nos registos, estamos inteiramente ao dispor.</p>
         
         <p style="margin-top: 30px; font-size: 12px; color: #94a3b8;">
-            Este é um email automático enviado pela plataforma Pontualidade.<br/>
-            © ${new Date().getFullYear()} Pontualidade. Todos os direitos reservados.
+            Com os melhores cumprimentos,<br/>
+            <strong>João Ribeiro</strong><br/>
+            Pontualidade | Gestão de Assiduidade
         </p>
     </div>
     `;
 
     const attachments = [];
-    if (fs.existsSync(files.pdfPath)) {
+    if (files.pdfPath && fs.existsSync(files.pdfPath)) {
         attachments.push({
             filename: `Relatorio_Gengibre_${files.fileSlug}.pdf`,
-            path: files.pdfPath
+            path: files.pdfPath,
+            contentType: 'application/pdf'
         });
     }
-    if (fs.existsSync(files.csvPath)) {
-        attachments.push({
-            filename: `Relatorio_Gengibre_${files.fileSlug}.csv`,
-            path: files.csvPath
-        });
-    }
-    if (fs.existsSync(files.xlsxPath)) {
+    if (files.xlsxPath && fs.existsSync(files.xlsxPath)) {
         attachments.push({
             filename: `Relatorio_Gengibre_${files.fileSlug}.xlsx`,
-            path: files.xlsxPath
+            path: files.xlsxPath,
+            contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        });
+    }
+    if (files.csvPath && fs.existsSync(files.csvPath)) {
+        attachments.push({
+            filename: `Relatorio_Gengibre_${files.fileSlug}.csv`,
+            path: files.csvPath,
+            contentType: 'text/csv; charset=utf-8'
         });
     }
 
+    console.log(`[Email] A anexar ${attachments.length} ficheiros:`, attachments.map(a => a.filename).join(', '));
+
     const mailOptions = {
         from: EMAIL_RECIPIENTS.from,
-        to: EMAIL_RECIPIENTS.to,
-        cc: EMAIL_RECIPIENTS.cc,
+        to,
+        ...(cc ? { cc } : {}),
         subject,
         html: emailHtml,
         attachments
     };
 
     const info = await transporter.sendMail(mailOptions);
-    
-    return new Promise((resolve, reject) => {
-        const { spawn } = require('child_process');
-        const proc = spawn('docker', ['exec', '-i', 'mailserver', 'sendmail', '-t']);
-        proc.stdin.write(info.message);
-        proc.stdin.end();
-
-        let stderr = '';
-        proc.stderr.on('data', data => { stderr += data.toString(); });
-        proc.on('close', code => {
-            if (code === 0) {
-                console.log(`[Email] ✅ Email enviado com sucesso via mailserver!`);
-                resolve({ success: true });
-            } else {
-                console.error(`[Email] ❌ Erro no sendmail:`, stderr);
-                reject(new Error(stderr || `Sendmail exited with code ${code}`));
-            }
-        });
-    });
+    console.log(`[Email] ✅ Email entregue via Brevo com sucesso! Message ID: ${info.messageId}`);
+    return info;
 }
 
 // --- FUNÇÃO PRINCIPAL ---
+const LOCK_FILE = '/tmp/gengibre_reporter.lock';
+
 async function main() {
-    const args = process.argv.slice(2);
-    const isDryRun = args.includes('--dry-run');
-    const shouldSend = args.includes('--send');
-
-    let customStart = null;
-    let customEnd = null;
-
-    const startIdx = args.indexOf('--start');
-    if (startIdx !== -1 && args[startIdx + 1]) customStart = args[startIdx + 1];
-
-    const endIdx = args.indexOf('--end');
-    if (endIdx !== -1 && args[endIdx + 1]) customEnd = args[endIdx + 1];
-
-    const { startDate, endDate, isMonthlyClose } = calculatePeriod(customStart, customEnd);
-    console.log(`=== PONTUALIDADE - AUTOMAÇÃO GENGIBRE ===`);
-    console.log(`Período: ${formatDatePT(startDate)} a ${formatDatePT(endDate)} (${isMonthlyClose ? 'Fecho Mensal' : 'Acumulado'})`);
-
-    const outputDir = '/opt/pontual/gengibre-automation/reports';
-    if (!fs.existsSync(outputDir)) {
-        fs.mkdirSync(outputDir, { recursive: true });
+    // 0. Prevenção de concorrência (ex: segunda-feira coincidente com dia 26)
+    if (fs.existsSync(LOCK_FILE)) {
+        try {
+            const lockMtime = fs.statSync(LOCK_FILE).mtimeMs;
+            if (Date.now() - lockMtime < 15 * 60 * 1000) {
+                console.log(`[Aviso] Outro processo de automação já está em execução (lock activo). A terminar para evitar duplicados.`);
+                return;
+            }
+        } catch (e) {}
     }
 
-    // 1. Obter dados da Cloud
-    const rawRecords = await fetchCrossChexRecords(startDate, endDate);
+    try {
+        fs.writeFileSync(LOCK_FILE, `${Date.now()}`, 'utf8');
 
-    // 2. Processar assiduidade e regras
-    const processed = processRecords(rawRecords, startDate, endDate);
-    console.log(`[Processador] ${processed.length} colaboradores processados.`);
+        const args = process.argv.slice(2);
+        const isDryRun = args.includes('--dry-run');
+        const shouldSend = args.includes('--send');
+        const toMe = args.includes('--to-me');
+        const noCc = args.includes('--no-cc');
 
-    // 3. Gerar ficheiros
-    const files = await generateOutputs(processed, startDate, endDate, outputDir);
+        let overrideTo = null;
+        const toIdx = args.indexOf('--to');
+        if (toIdx !== -1 && args[toIdx + 1]) {
+            overrideTo = args[toIdx + 1];
+        } else if (toMe) {
+            overrideTo = 'joaodmribeiro@outlook.com';
+        }
 
-    // 4. Enviar email se solicitado
-    if (shouldSend && !isDryRun) {
-        await sendReportEmail(files, isMonthlyClose);
-    } else {
-        console.log(`[Aviso] Modo teste/sem envio. Ficheiros guardados em: ${outputDir}`);
+        let customStart = null;
+        let customEnd = null;
+
+        const startIdx = args.indexOf('--start');
+        if (startIdx !== -1 && args[startIdx + 1]) customStart = args[startIdx + 1];
+
+        const endIdx = args.indexOf('--end');
+        if (endIdx !== -1 && args[endIdx + 1]) customEnd = args[endIdx + 1];
+
+        const { startDate, endDate, isMonthlyClose } = calculatePeriod(customStart, customEnd);
+        console.log(`=== PONTUALIDADE - AUTOMAÇÃO GENGIBRE ===`);
+        console.log(`Período: ${formatDatePT(startDate)} a ${formatDatePT(endDate)} (${isMonthlyClose ? 'Fecho Mensal' : 'Acumulado'})`);
+
+        if (startDate >= endDate) {
+            throw new Error(`Data de início (${formatDateISO(startDate)}) inválida: não pode ser posterior ou igual à data de fim (${formatDateISO(endDate)}).`);
+        }
+
+        const outputDir = '/opt/pontual/gengibre-automation/reports';
+        if (!fs.existsSync(outputDir)) {
+            fs.mkdirSync(outputDir, { recursive: true });
+        }
+
+        // 1. Obter dados da Cloud com paginação completa
+        const rawRecords = await fetchCrossChexRecords(startDate, endDate);
+
+        if (rawRecords.length === 0) {
+            console.error(`[Aviso Crítico] Nenhuma picagem encontrada para o período ${formatDatePT(startDate)} a ${formatDatePT(endDate)}. O envio foi abortado para prevenir envio de relatórios em branco.`);
+            return;
+        }
+
+        // 2. Processar assiduidade e regras (com horários fiéis sem desvio de fuso horário)
+        const processed = processRecords(rawRecords, startDate, endDate);
+        console.log(`[Processador] ${processed.length} colaboradores processados.`);
+
+        // 3. Gerar ficheiros
+        const files = await generateOutputs(processed, startDate, endDate, outputDir);
+
+        // 4. Enviar email se solicitado
+        if ((shouldSend || overrideTo) && !isDryRun) {
+            await sendReportEmail(files, isMonthlyClose, overrideTo, noCc);
+        } else {
+            console.log(`[Aviso] Modo teste/sem envio. Ficheiros guardados em: ${outputDir}`);
+        }
+
+        console.log(`=== PROCESSO CONCLUÍDO COM SUCESSO! ===`);
+    } finally {
+        try {
+            if (fs.existsSync(LOCK_FILE)) fs.unlinkSync(LOCK_FILE);
+        } catch (e) {}
     }
-
-    console.log(`=== PROCESSO CONCLUÍDO COM SUCESSO! ===`);
 }
 
 main().catch(err => {

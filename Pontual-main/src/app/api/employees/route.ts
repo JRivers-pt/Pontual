@@ -250,7 +250,7 @@ export const POST = auth(async (req) => {
                 name: trimmedName,
                 cardNumber: cardNumber ? String(cardNumber).trim() : null,
                 active: true,
-                scheduleCode: scheduleCode ? String(scheduleCode).trim() : null,
+                scheduleCode: scheduleCode ? String(scheduleCode).trim().replace(/^H0(\d)$/, 'H$1') : null,
                 scheduleName: scheduleName ? String(scheduleName).trim() : null,
                 fingerprintTemplate: fingerprintTemplate || null,
                 numFingerprints: fingerprintTemplate ? 1 : 0
@@ -263,7 +263,7 @@ export const POST = auth(async (req) => {
             const sched = await prisma.schedule.findFirst({
                 where: {
                     userId,
-                    name: { startsWith: `${scheduleCode} -` }
+                    name: { startsWith: `${String(scheduleCode).trim().replace(/^H0(\d)$/, 'H$1')} -` }
                 }
             });
             if (sched) targetScheduleId = sched.id;
@@ -344,7 +344,7 @@ export const PUT = auth(async (req) => {
         if (name !== undefined) updateData.name = String(name).trim();
         if (cardNumber !== undefined) updateData.cardNumber = cardNumber ? String(cardNumber).trim() : null;
         if (active !== undefined) updateData.active = Boolean(active);
-        if (scheduleCode !== undefined) updateData.scheduleCode = scheduleCode ? String(scheduleCode).trim() : null;
+        if (scheduleCode !== undefined) updateData.scheduleCode = scheduleCode ? String(scheduleCode).trim().replace(/^H0(\d)$/, 'H$1') : null;
         if (scheduleName !== undefined) updateData.scheduleName = scheduleName ? String(scheduleName).trim() : null;
         if (fingerprintTemplate !== undefined) {
             updateData.fingerprintTemplate = fingerprintTemplate || null;
@@ -361,7 +361,7 @@ export const PUT = auth(async (req) => {
             let targetScheduleId = scheduleId;
             if (!targetScheduleId && scheduleCode) {
                 const sched = await prisma.schedule.findFirst({
-                    where: { userId, name: { startsWith: `${scheduleCode} -` } }
+                    where: { userId, name: { startsWith: `${String(scheduleCode).trim().replace(/^H0(\d)$/, 'H$1')} -` } }
                 });
                 if (sched) targetScheduleId = sched.id;
             }
@@ -369,7 +369,7 @@ export const PUT = auth(async (req) => {
             if (targetScheduleId) {
                 // Remove old schedules for this employee
                 await prisma.employeeSchedule.deleteMany({
-                    where: { workno: formattedWorkno }
+                    where: { workno: formattedWorkno, schedule: { userId } }
                 });
                 // Assign new
                 await prisma.employeeSchedule.create({
@@ -410,7 +410,7 @@ export const DELETE = auth(async (req) => {
         const formattedWorkno = String(workno).trim().padStart(4, '0');
 
         await prisma.employeeSchedule.deleteMany({
-            where: { workno: formattedWorkno }
+            where: { workno: formattedWorkno, schedule: { userId } }
         });
 
         await prisma.employee.delete({
