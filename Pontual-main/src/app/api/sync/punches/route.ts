@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { enrollmentTerminals } from '@/lib/enrollment-sync';
 
 export async function GET(request: NextRequest) {
   const token = request.headers.get('x-school-token') || request.headers.get('authorization')?.replace('Bearer ', '');
@@ -12,7 +13,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid or unknown school token' }, { status: 403 });
   }
 
-  const biometricEmployees = await prisma.employee.findMany({
+  // The attendance daemon can keep running, but only the new leased worker may write biometrics.
+  const biometricEmployees = enrollmentTerminals(user.id).length ? [] : await prisma.employee.findMany({
     where: {
       userId: user.id,
       active: true,

@@ -56,6 +56,8 @@ model User {
 
   // Permanent employee roster
   employees Employee[]
+  enrollmentTasks EnrollmentTask[]
+  enrollmentAgent EnrollmentAgent?
 }
 
 model Schedule {
@@ -157,4 +159,32 @@ model Employee {
 
   @@unique([userId, workno])
   @@index([userId, active])
+}
+
+// One desired revision per employee and terminal; survives employee deletion.
+model EnrollmentTask {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workno String
+  terminalId String
+  revision String
+  active Boolean
+  clearFingerprint Boolean @default(false)
+  status String @default("PENDING")
+  attempts Int @default(0)
+  leaseToken String?
+  leaseExpiresAt DateTime?
+  nextAttemptAt DateTime @default(now())
+  lastError String?
+  exportedAt DateTime?
+  updatedAt DateTime @updatedAt
+  @@unique([userId, workno, terminalId])
+  @@index([userId, status, nextAttemptAt])
+}
+
+model EnrollmentAgent {
+  userId String @id
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lastSeenAt DateTime @default(now())
 }

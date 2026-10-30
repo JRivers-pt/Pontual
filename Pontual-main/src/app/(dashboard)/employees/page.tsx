@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from "react"
 import Link from "next/link"
+import { findUsbScanner, captureUsbFingerprint } from "@/lib/usb-scanner"
 import {
     Users,
     UserPlus,
@@ -148,26 +149,39 @@ export default function EmployeesPage() {
     const [scanImage, setScanImage] = useState<string | null>(null)
     const [scannerDeviceName, setScannerDeviceName] = useState<string>("BioMini Plus 2")
 
-    // Check USB Agent connection
+    const [scannerDiagnostic, setScannerDiagnostic] = useState("")
+    const [syncStatus, setSyncStatus] = useState<{ enabled: boolean; online: boolean; terminalCount?: number; tasks: { workno: string; terminalId: string; status: string }[] } | null>(null)
+
     const checkUsbScanner = async () => {
-        const ports = [8082, 8081]
-        for (const port of ports) {
-            const proto = port === 8081 ? "https" : "http"
-            try {
-                const res = await fetch(`${proto}://localhost:${port}/api/devices?timestamp=${Date.now()}`, {
-                    signal: AbortSignal.timeout(1500)
-                })
-                if (res.ok) {
-                    const data = await res.json()
-                    if (data?.Devices && Array.isArray(data.Devices) && data.Devices.length > 0) {
-                        setScannerConnected(true)
-                        setScannerDeviceName(data.Devices[0].name || "BioMini Plus 2")
-                        return
-                    }
-                }
-            } catch {}
+        try {
+            const scanner = await findUsbScanner()
+            setScannerConnected(true)
+            setScannerDeviceName(scanner.name)
+            setScannerDiagnostic("")
+        } catch (error) {
+            setScannerConnected(false)
+            setScannerDiagnostic(error instanceof Error ? error.message : "Não foi possível verificar o leitor USB.")
         }
-        setScannerConnected(false)
+    }
+
+    const refreshSyncStatus = async () => {
+        try {
+            const response = await fetch("/api/employees/sync-status", { cache: "no-store" })
+            if (!response.ok) throw new Error("Estado indisponível")
+            setSyncStatus(await response.json())
+        } catch { setSyncStatus(null) }
+    }
+
+    const terminalStatus = (workno: string) => {
+        if (!syncStatus) return "Estado dos terminais indisponível"
+        if (!syncStatus.enabled) return "Terminais: sem confirmação"
+        const tasks = syncStatus.tasks.filter(task => task.workno === workno)
+        if (!tasks.length) return "Terminais: sem envio confirmado"
+        const exported = tasks.filter(task => task.status === "EXPORTED").length
+        if (tasks.some(task => task.status === "ERROR")) return `Envio com falha (${exported}/${syncStatus.terminalCount}); nova tentativa automática`
+        if (exported === syncStatus.terminalCount) return `BioStar aceitou ${exported}/${syncStatus.terminalCount} envios; validar passagem`
+        if (!syncStatus.online) return "A aguardar agente da escola (sem contacto recente)"
+        return `Envio pendente (${exported}/${syncStatus.terminalCount})`
     }
 
     // Fetch Employees
@@ -189,6 +203,9 @@ export default function EmployeesPage() {
     useEffect(() => {
         fetchEmployees()
         checkUsbScanner()
+        refreshSyncStatus()
+        const timer = window.setInterval(refreshSyncStatus, 15000)
+        return () => window.clearInterval(timer)
     }, [])
 
     // Open Modal for Create
@@ -226,102 +243,33 @@ export default function EmployeesPage() {
         setFormActive(emp.active)
         setFormFingerprint(emp.numFingerprints > 0 ? "EXISTS" : null)
         setScanSuccess(emp.numFingerprints > 0)
-        setScanQuality(emp.numFingerprints > 0 ? 98 : null)
+        setScanQuality(null)
         setErrorMsg(null)
         setSuccessMsg(null)
         setModalOpen(true)
         checkUsbScanner()
     }
 
-    // Biometric Enrollment via Suprema BioMini / USB Agent
+    // A successful capture is local until the user saves the employee.
     const handleCaptureFingerprint = async () => {
         setScanning(true)
         setErrorMsg(null)
         setSuccessMsg(null)
-
         try {
-            let capturedTemplate: string | null = null
-            let quality = 100
-            let capturedImg: string | null = null
-            let lastError = ""
-            let captureError = ""
-
-            // Suprema USB Device Agent runs on HTTP 8082 and HTTPS 8081
-            const endpoints = [
-                { url: "http://localhost:8082", port: 8082 },
-                { url: "https://localhost:8081", port: 8081 }
-            ]
-
-            for (const ep of endpoints) {
-                try {
-                    // 1. Verify reader availability
-                    try {
-                        const devRes = await fetch(`${ep.url}/api/devices?timestamp=${Date.now()}`, {
-                            signal: AbortSignal.timeout(2000)
-                        })
-                        if (devRes.ok) {
-                            const devData = await devRes.json()
-                            if (devData?.Devices && Array.isArray(devData.Devices) && devData.Devices.length > 0) {
-                                setScannerConnected(true)
-                                setScannerDeviceName(devData.Devices[0].name || "BioMini Plus 2")
-                            }
-                        }
-                    } catch {}
-
-                    // 2. Trigger Biometric Scan on BioMini Plus 2
-                    const scanRes = await fetch(`${ep.url}/api/scanbiomini`, {
-                        method: "POST",
-                        // The USB agent does not authorize the application/json CORS preflight.
-                        // Send the JSON body as text/plain so the browser can send the POST directly.
-                        headers: { "Content-Type": "text/plain;charset=UTF-8" },
-                        body: JSON.stringify({
-                            template_type: 0,
-                            enroll_quality: 80,
-                            hide_popup: true
-                        }),
-                        signal: AbortSignal.timeout(18000) // 18 seconds to place finger
-                    })
-
-                    if (scanRes.ok) {
-                        const scanData = await scanRes.json()
-                        if (scanData.template) {
-                            capturedTemplate = scanData.template
-                            quality = scanData.score || 100
-                            if (scanData.image?.data) {
-                                capturedImg = `data:image/jpeg;base64,${scanData.image.data}`
-                            }
-                            setScannerConnected(true)
-                            break
-                        } else {
-                            captureError = `O agente USB respondeu, mas não devolveu uma impressão digital (código ${scanData.retcode ?? "não indicado"}). Mantenha o dedo no leitor até a captura terminar e tente novamente.`
-                        }
-                    } else {
-                        captureError = `O agente USB respondeu com erro HTTP ${scanRes.status} ao pedido de captura.`
-                    }
-                } catch (epErr: any) {
-                    lastError = epErr.message
-                }
-            }
-
-            if (!capturedTemplate) {
-                throw new Error(
-                    captureError || (lastError.toLowerCase().includes("timeout") || lastError.toLowerCase().includes("abort")
-                        ? "Tempo limite esgotado. Coloque o dedo firmemente no leitor USB e tente novamente."
-                        : "Não foi possível comunicar com o leitor Suprema BioMini USB (portas 8081/8082). Verifique se o leitor está ligado e o agente a correr.")
-                )
-            }
-
-            setFormFingerprint(capturedTemplate)
-            setScanQuality(quality)
-            if (capturedImg) setScanImage(capturedImg)
+            const scanner = await findUsbScanner()
+            setScannerConnected(true)
+            setScannerDeviceName(scanner.name)
+            setScannerDiagnostic("")
+            const capture = await captureUsbFingerprint(scanner)
+            setFormFingerprint(capture.template)
+            setScanQuality(capture.quality)
+            setScanImage(capture.image)
             setScanSuccess(true)
-            setSuccessMsg(`Impressão digital capturada com sucesso! (Qualidade: ${quality}%)`)
-        } catch (err: any) {
-            setErrorMsg("Erro na captura biométrica: " + err.message)
+            setSuccessMsg("Impressão digital capturada. Clique em Guardar Colaborador para concluir o registo.")
+        } catch (error) {
+            setErrorMsg(error instanceof Error ? error.message : "Erro na captura biométrica.")
             setScanSuccess(false)
-        } finally {
-            setScanning(false)
-        }
+        } finally { setScanning(false) }
     }
 
     // Save Employee (POST or PUT)
@@ -371,6 +319,7 @@ export default function EmployeesPage() {
 
             // Refresh list
             await fetchEmployees()
+            await refreshSyncStatus()
 
             setTimeout(() => {
                 setModalOpen(false)
@@ -418,7 +367,8 @@ export default function EmployeesPage() {
                 })
             })
             if (res.ok) {
-                fetchEmployees()
+                await fetchEmployees()
+                await refreshSyncStatus()
             }
         } catch (e) {
             console.error("Error toggling active status:", e)
@@ -457,6 +407,11 @@ export default function EmployeesPage() {
 
     return (
         <div className="space-y-6">
+            <div role="status" className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">
+                {syncStatus?.enabled
+                    ? `Agente da escola: ${syncStatus.online ? "com contacto recente" : "sem contacto recente"}. Operações por concluir: ${syncStatus.tasks.filter(task => task.status !== "EXPORTED").length} (inclui desativações e remoções). Um envio aceite pelo BioStar exige validação de passagem no terminal.`
+                    : "Guardar um colaborador confirma o registo no Pontualidade. O estado de acesso nos terminais ainda não está confirmado nesta plataforma."}
+            </div>
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
@@ -691,7 +646,7 @@ export default function EmployeesPage() {
                                                 {emp.numFingerprints > 0 ? (
                                                     <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-medium">
                                                         <Fingerprint className="h-3.5 w-3.5 text-emerald-600" />
-                                                        <span>Registada ({emp.numFingerprints})</span>
+                                                        <span>Guardada ({emp.numFingerprints})</span>
                                                     </div>
                                                 ) : (
                                                     <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-amber-50 border border-amber-200 text-amber-700 text-xs">
@@ -699,6 +654,18 @@ export default function EmployeesPage() {
                                                         <span>Pendente</span>
                                                     </div>
                                                 )}
+                                                <p className="mt-1 max-w-64 text-xs text-neutral-500">{terminalStatus(emp.workno)}</p>
+                                                {syncStatus?.enabled && <button type="button" className="mt-1 text-xs text-blue-700 underline"
+                                                    onClick={async event => {
+                                                        const button = event.currentTarget
+                                                        button.disabled = true
+                                                        try {
+                                                            const response = await fetch("/api/employees/sync-status", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ workno: emp.workno }) })
+                                                            if (!response.ok) throw new Error("Não foi possível agendar o envio")
+                                                            await refreshSyncStatus()
+                                                        } catch { window.alert("Não foi possível agendar o envio. Tente novamente.") }
+                                                        finally { button.disabled = false }
+                                                    }}>Enviar novamente aos terminais</button>}
                                             </td>
 
                                             {/* Card Number (apenas para outros clientes que usam RFID) */}
@@ -993,6 +960,8 @@ export default function EmployeesPage() {
                                 )}
                             </div>
 
+                            {scannerDiagnostic && <p role="status" className="text-xs text-amber-700">{scannerDiagnostic}</p>}
+                            <p className="text-xs text-neutral-500">Após a captura, guarde o colaborador. O envio aos terminais é acompanhado na lista e depende do agente da escola.</p>
                             {/* Live Fingerprint Capture Action */}
                             <div className="flex items-center gap-3 pt-1">
                                 <Button
@@ -1023,7 +992,7 @@ export default function EmployeesPage() {
                                     <img src={scanImage} alt="Impressão Digital" className="w-10 h-12 object-cover rounded border border-neutral-300 shadow-sm bg-neutral-50" />
                                     <div className="text-xs">
                                         <p className="font-semibold text-emerald-700">Cristas Biométricas Válidas</p>
-                                        <p className="text-[11px] text-neutral-500">Qualidade: {scanQuality || 100}% • Suprema BioMini</p>
+                                        <p className="text-[11px] text-neutral-500">{scanQuality !== null ? `Qualidade: ${scanQuality}%` : "Qualidade não indicada pelo leitor"} • Suprema BioMini</p>
                                     </div>
                                 </div>
                             )}

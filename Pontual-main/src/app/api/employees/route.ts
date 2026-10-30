@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
+import { enqueueEnrollment, enqueueRemoval } from "@/lib/enrollment-sync";
 
 async function getEffectiveUserId(sessionUserId: string) {
     const user = await prisma.user.findUnique({
@@ -217,7 +218,8 @@ export const POST = auth(async (req) => {
             scheduleCode,
             scheduleName,
             scheduleId,
-            fingerprintTemplate
+            fingerprintTemplate,
+            active = true
         } = body;
 
         if (!workno || !name) {
@@ -225,6 +227,11 @@ export const POST = auth(async (req) => {
                 { error: "Número mecanográfico (ID) e Nome são obrigatórios" },
                 { status: 400 }
             );
+        }
+
+        if (!String(workno).trim() || !String(name).trim() || typeof active !== "boolean" ||
+            (fingerprintTemplate != null && (typeof fingerprintTemplate !== "string" || fingerprintTemplate === "EXISTS"))) {
+            return NextResponse.json({ error: "Dados do colaborador inválidos" }, { status: 400 });
         }
 
         const formattedWorkno = String(workno).trim().padStart(4, '0');
@@ -242,14 +249,15 @@ export const POST = auth(async (req) => {
             );
         }
 
-        // Create Employee
-        const employee = await prisma.employee.create({
+        const employee = await prisma.$transaction(async tx => {
+        // Employee, schedule and terminal queue commit together.
+        const employee = await tx.employee.create({
             data: {
                 userId,
                 workno: formattedWorkno,
                 name: trimmedName,
                 cardNumber: cardNumber ? String(cardNumber).trim() : null,
-                active: true,
+                active: Boolean(active),
                 scheduleCode: scheduleCode ? String(scheduleCode).trim().replace(/^H0(\d)$/, 'H$1') : null,
                 scheduleName: scheduleName ? String(scheduleName).trim() : null,
                 fingerprintTemplate: fingerprintTemplate || null,
@@ -260,7 +268,7 @@ export const POST = auth(async (req) => {
         // Link EmployeeSchedule if scheduleId or scheduleCode was provided
         let targetScheduleId = scheduleId;
         if (!targetScheduleId && scheduleCode) {
-            const sched = await prisma.schedule.findFirst({
+            const sched = await tx.schedule.findFirst({
                 where: {
                     userId,
                     name: { startsWith: `${String(scheduleCode).trim().replace(/^H0(\d)$/, 'H$1')} -` }
@@ -270,7 +278,9 @@ export const POST = auth(async (req) => {
         }
 
         if (targetScheduleId) {
-            await prisma.employeeSchedule.upsert({
+            const ownedSchedule = await tx.schedule.findFirst({ where: { id: targetScheduleId, userId } });
+            if (!ownedSchedule) throw new Error("Horário não pertence a este cliente");
+            await tx.employeeSchedule.upsert({
                 where: {
                     workno_scheduleId: {
                         workno: formattedWorkno,
@@ -284,6 +294,10 @@ export const POST = auth(async (req) => {
                 }
             });
         }
+
+        await enqueueEnrollment(tx, userId, employee);
+        return employee;
+        });
 
         // Audit Log
         await prisma.auditLog.create({
@@ -341,6 +355,11 @@ export const PUT = auth(async (req) => {
         const formattedWorkno = String(workno).trim().padStart(4, '0');
 
         const updateData: any = {};
+        if (!String(workno).trim() || (name !== undefined && !String(name).trim()) ||
+            (active !== undefined && typeof active !== "boolean") ||
+            (fingerprintTemplate != null && (typeof fingerprintTemplate !== "string" || fingerprintTemplate === "EXISTS"))) {
+            return NextResponse.json({ error: "Dados do colaborador inválidos" }, { status: 400 });
+        }
         if (name !== undefined) updateData.name = String(name).trim();
         if (cardNumber !== undefined) updateData.cardNumber = cardNumber ? String(cardNumber).trim() : null;
         if (active !== undefined) updateData.active = Boolean(active);
@@ -351,7 +370,8 @@ export const PUT = auth(async (req) => {
             updateData.numFingerprints = fingerprintTemplate ? 1 : 0;
         }
 
-        const updated = await prisma.employee.update({
+        const updated = await prisma.$transaction(async tx => {
+        const updated = await tx.employee.update({
             where: { userId_workno: { userId, workno: formattedWorkno } },
             data: updateData
         });
@@ -360,7 +380,7 @@ export const PUT = auth(async (req) => {
         if (scheduleId || scheduleCode) {
             let targetScheduleId = scheduleId;
             if (!targetScheduleId && scheduleCode) {
-                const sched = await prisma.schedule.findFirst({
+                const sched = await tx.schedule.findFirst({
                     where: { userId, name: { startsWith: `${String(scheduleCode).trim().replace(/^H0(\d)$/, 'H$1')} -` } }
                 });
                 if (sched) targetScheduleId = sched.id;
@@ -368,16 +388,21 @@ export const PUT = auth(async (req) => {
 
             if (targetScheduleId) {
                 // Remove old schedules for this employee
-                await prisma.employeeSchedule.deleteMany({
+                const ownedSchedule = await tx.schedule.findFirst({ where: { id: targetScheduleId, userId } });
+                if (!ownedSchedule) throw new Error("Horário não pertence a este cliente");
+                await tx.employeeSchedule.deleteMany({
                     where: { workno: formattedWorkno, schedule: { userId } }
                 });
                 // Assign new
-                await prisma.employeeSchedule.create({
+                await tx.employeeSchedule.create({
                     data: { workno: formattedWorkno, scheduleId: targetScheduleId }
                 });
             }
         }
 
+        await enqueueEnrollment(tx, userId, updated, fingerprintTemplate !== undefined && !fingerprintTemplate);
+        return updated;
+        });
         return NextResponse.json({ success: true, employee: updated });
 
     } catch (error: any) {
@@ -409,14 +434,17 @@ export const DELETE = auth(async (req) => {
     try {
         const formattedWorkno = String(workno).trim().padStart(4, '0');
 
-        await prisma.employeeSchedule.deleteMany({
+        await prisma.$transaction(async tx => {
+        await enqueueRemoval(tx, userId, formattedWorkno);
+        await tx.employeeSchedule.deleteMany({
             where: { workno: formattedWorkno, schedule: { userId } }
         });
 
-        await prisma.employee.delete({
+        await tx.employee.delete({
             where: { userId_workno: { userId, workno: formattedWorkno } }
         });
 
+        });
         return NextResponse.json({ success: true, message: "Colaborador removido com sucesso" });
     } catch (error: any) {
         console.error("Error deleting employee:", error);
