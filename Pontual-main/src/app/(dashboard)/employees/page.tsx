@@ -270,7 +270,9 @@ export default function EmployeesPage() {
                     // 2. Trigger Biometric Scan on BioMini Plus 2
                     const scanRes = await fetch(`${ep.url}/api/scanbiomini`, {
                         method: "POST",
-                        headers: { "Content-Type": "application/json" },
+                        // The USB agent does not authorize the application/json CORS preflight.
+                        // Send the JSON body as text/plain so the browser can send the POST directly.
+                        headers: { "Content-Type": "text/plain;charset=UTF-8" },
                         body: JSON.stringify({
                             template_type: 0,
                             enroll_quality: 80,
