@@ -244,6 +244,7 @@ export default function EmployeesPage() {
             let quality = 100
             let capturedImg: string | null = null
             let lastError = ""
+            let captureError = ""
 
             // Suprema USB Device Agent runs on HTTP 8082 and HTTPS 8081
             const endpoints = [
@@ -291,9 +292,11 @@ export default function EmployeesPage() {
                             }
                             setScannerConnected(true)
                             break
-                        } else if (scanData.retcode && scanData.retcode !== 1 && scanData.retcode !== "1") {
-                            lastError = `Código retcode: ${scanData.retcode}`
+                        } else {
+                            captureError = `O agente USB respondeu, mas não devolveu uma impressão digital (código ${scanData.retcode ?? "não indicado"}). Mantenha o dedo no leitor até a captura terminar e tente novamente.`
                         }
+                    } else {
+                        captureError = `O agente USB respondeu com erro HTTP ${scanRes.status} ao pedido de captura.`
                     }
                 } catch (epErr: any) {
                     lastError = epErr.message
@@ -302,9 +305,9 @@ export default function EmployeesPage() {
 
             if (!capturedTemplate) {
                 throw new Error(
-                    lastError.includes("timeout") || lastError.includes("abort")
+                    captureError || (lastError.toLowerCase().includes("timeout") || lastError.toLowerCase().includes("abort")
                         ? "Tempo limite esgotado. Coloque o dedo firmemente no leitor USB e tente novamente."
-                        : "Não foi possível comunicar com o leitor Suprema BioMini USB (portas 8081/8082). Verifique se o leitor está ligado e o agente a correr."
+                        : "Não foi possível comunicar com o leitor Suprema BioMini USB (portas 8081/8082). Verifique se o leitor está ligado e o agente a correr.")
                 )
             }
 
