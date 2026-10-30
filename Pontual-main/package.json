@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "test": "node --test tests/enrollment.test.mjs tests/reporting.test.mjs tests/project-contract.test.mjs",
+    "test": "node --test tests/enrollment.test.mjs tests/employees-flow.test.mjs tests/reporting.test.mjs tests/project-contract.test.mjs",
     "test:integration": "node tests/run-postgres.mjs",
     "typecheck": "tsc --noEmit --incremental false",
     "dev": "next dev",

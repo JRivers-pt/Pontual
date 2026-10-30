@@ -121,6 +121,13 @@ it('PostgreSQL: duplicate employee never duplicates tasks', async () => {
     assert.equal(await prisma.employee.count(), 1);
     assert.equal(await prisma.enrollmentTask.count(), 3);
 });
+it('PostgreSQL: concurrent creates return one success and conflicts without duplicate tasks', async () => {
+    const replies = await Promise.all(Array.from({ length: 6 }, () => employees.POST(request({ workno: '0908', name: 'Concurrent synthetic employee' }))));
+    assert.equal(replies.filter(r => r.status === 200).length, 1);
+    assert.equal(replies.filter(r => r.status === 409).length, 5);
+    assert.equal(await prisma.employee.count(), 1);
+    assert.equal(await prisma.enrollmentTask.count(), 3);
+});
 it('PostgreSQL: a single legacy sample is rejected before any write', async () => {
     const result = await employees.POST(request({ workno: '0908', name: 'Synthetic', fingerprintTemplate: 'single-sample' }));
     assert.equal(result.status, 400);

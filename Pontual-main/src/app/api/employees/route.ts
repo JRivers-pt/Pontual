@@ -323,6 +323,9 @@ export const POST = auth(async (req) => {
         return NextResponse.json({ success: true, employee });
 
     } catch (error: any) {
+        if (error?.code === "P2002") {
+            return NextResponse.json({ error: "Já existe um colaborador com este número mecanográfico" }, { status: 409 });
+        }
         if (error instanceof Error && ["Horário não pertence a este cliente", "Horário não encontrado para este cliente"].includes(error.message)) {
             return NextResponse.json({ error: error.message }, { status: 400 });
         }

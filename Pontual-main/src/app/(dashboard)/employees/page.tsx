@@ -132,6 +132,9 @@ export default function EmployeesPage() {
     const [modalOpen, setModalOpen] = useState(false)
     const [modalMode, setModalMode] = useState<"create" | "edit">("create")
     const [saving, setSaving] = useState(false)
+    const saveInFlight = useRef(false)
+    const [listError, setListError] = useState<string | null>(null)
+    const listRequest = useRef(0)
     const [errorMsg, setErrorMsg] = useState<string | null>(null)
     const [successMsg, setSuccessMsg] = useState<string | null>(null)
 
@@ -191,17 +194,20 @@ export default function EmployeesPage() {
 
     // Fetch Employees
     const fetchEmployees = async () => {
+        const request = ++listRequest.current
         setLoading(true)
         try {
             const res = await fetch("/api/employees")
-            if (res.ok) {
-                const data = await res.json()
-                setEmployees(data.employees || [])
-            }
-        } catch (e) {
-            console.error("Error fetching employees:", e)
+            if (!res.ok) throw new Error("EMPLOYEES_UNAVAILABLE")
+            const data = await res.json()
+            if (!Array.isArray(data.employees)) throw new Error("EMPLOYEES_INVALID")
+            if (request !== listRequest.current) return
+            setEmployees(data.employees)
+            setListError(null)
+        } catch {
+            if (request === listRequest.current) setListError("Não foi possível atualizar a lista. Os dados já guardados foram mantidos. Clique em Atualizar para tentar novamente.")
         } finally {
-            setLoading(false)
+            if (request === listRequest.current) setLoading(false)
         }
     }
 
@@ -299,6 +305,7 @@ export default function EmployeesPage() {
     // Save Employee (POST or PUT)
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault()
+        if (saveInFlight.current) return
         if (firstCapture || scanning) {
             setErrorMsg("Conclua a segunda leitura da impressão digital antes de guardar.")
             return
@@ -314,6 +321,7 @@ export default function EmployeesPage() {
         const selectedSchedule = CMB_SCHEDULES.find(s => s.code === formScheduleCode)
         const scheduleName = selectedSchedule ? selectedSchedule.name : `Horário ${formScheduleCode}`
 
+        saveInFlight.current = true
         setSaving(true)
         try {
             const payload = {
@@ -339,6 +347,12 @@ export default function EmployeesPage() {
                 throw new Error(data.error || "Erro ao guardar colaborador")
             }
 
+            // Keep the committed employee visible even if the follow-up GET fails.
+            if (data.employee) {
+                const committed = data.employee as EmployeeItem
+                setEmployees(current => [...current.filter(emp => emp.workno !== committed.workno), committed])
+            }
+
             setSuccessMsg(
                 modalMode === "create"
                     ? `Colaborador ${formName} adicionado com sucesso!`
@@ -355,6 +369,7 @@ export default function EmployeesPage() {
         } catch (err: any) {
             setErrorMsg(err.message || "Ocorreu um erro ao guardar.")
         } finally {
+            saveInFlight.current = false
             setSaving(false)
         }
     }
@@ -371,6 +386,7 @@ export default function EmployeesPage() {
             })
             if (res.ok) {
                 await fetchEmployees()
+                cancelCapture()
                 setModalOpen(false)
             } else {
                 const data = await res.json().catch(() => ({}))
@@ -435,6 +451,7 @@ export default function EmployeesPage() {
 
     return (
         <div className="space-y-6">
+            {listError && <p role="alert" className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">{listError}</p>}
             {savedEmployee && <p role="status" className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">
                 Colaborador {savedEmployee} guardado no Pontualidade. Consulte o estado do envio aos terminais na lista.
             </p>}
@@ -999,7 +1016,7 @@ export default function EmployeesPage() {
                                     type="button"
                                     variant="outline"
                                     onClick={handleCaptureFingerprint}
-                                    disabled={scanning}
+                                    disabled={scanning || saving}
                                     className={`w-full border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium ${
                                         scanning ? "border-amber-300 text-amber-700 bg-amber-50 animate-pulse" : ""
                                     }`}
