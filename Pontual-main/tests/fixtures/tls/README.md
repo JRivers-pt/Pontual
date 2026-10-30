@@ -1,0 +1,1 @@
+This certificate and private key are disposable synthetic test fixtures for a loopback-only HTTPS server. They are intentionally public test material, never credentials for BioStar, the VPS or any real service. Production configuration never loads this directory.

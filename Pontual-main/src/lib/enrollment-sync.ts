@@ -12,9 +12,27 @@ type DesiredEmployee = {
     fingerprintTemplate: string | null;
 };
 
+export async function lockEnrollment(tx: Prisma.TransactionClient, userId: string, workno: string) {
+    // Transaction-scoped lock also serializes different terminals of the same employee.
+    await tx.$queryRaw`SELECT 1 FROM pg_advisory_xact_lock(hashtextextended(${`enrollment:${userId}:${workno}`}, 0))`;
+}
+
+export async function bindRemoteIdentity(tx: Prisma.TransactionClient, userId: string, workno: string, remoteUserId: string) {
+    await lockEnrollment(tx, userId, workno);
+    await lockEnrollment(tx, userId, `remote:${remoteUserId}`);
+    const conflict = await tx.enrollmentTask.findFirst({ where: { userId, OR: [
+        { workno, remoteUserId: { not: remoteUserId } },
+        { remoteUserId, workno: { not: workno } },
+    ] }, select: { id: true } });
+    if (conflict) throw new Error("REMOTE_IDENTITY_CONFLICT");
+    // Persist the binding for all terminals, including pending revisions and removals.
+    await tx.enrollmentTask.updateMany({ where: { userId, workno }, data: { remoteUserId } });
+}
+
 export async function enqueueEnrollment(tx: Prisma.TransactionClient, userId: string, employee: DesiredEmployee, clearRequested = false) {
     const terminals = enrollmentTerminals(userId);
     if (!terminals.length) return;
+    await lockEnrollment(tx, userId, employee.workno);
     // Full content hash catches changes anywhere in a template, unlike prefix/length signatures.
     for (const terminalId of terminals) {
         const key = { userId, workno: employee.workno, terminalId };
@@ -36,6 +54,8 @@ export async function enqueueEnrollment(tx: Prisma.TransactionClient, userId: st
 }
 
 export async function enqueueRemoval(tx: Prisma.TransactionClient, userId: string, workno: string) {
+    if (!enrollmentTerminals(userId).length) return;
+    await lockEnrollment(tx, userId, workno);
     for (const terminalId of enrollmentTerminals(userId)) {
         const key = { userId, workno, terminalId };
         const current = await tx.enrollmentTask.findUnique({ where: { userId_workno_terminalId: key } });

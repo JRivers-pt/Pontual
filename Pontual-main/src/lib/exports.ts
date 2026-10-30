@@ -1,5 +1,5 @@
 import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import autoTable, { type CellDef } from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 
 // Tipos baseados nos dados da UI
@@ -58,7 +58,7 @@ export async function exportToPDF(data: AttendanceData[], period: string, header
     const isMatrix = type === 'matrix';
     
     // Header Colors
-    const PRIMARY_COLOR = [30, 58, 138]; // #1e3a8a
+    const PRIMARY_COLOR: [number, number, number] = [30, 58, 138]; // #1e3a8a
 
     if (isMatrix) {
         // Landscape Report
@@ -116,7 +116,7 @@ export async function exportToPDF(data: AttendanceData[], period: string, header
         const tableColumn = ["Nome", "Dep.", ...dayHeaders, "Total", "H.Extra"];
         const tableRows = sortedEmployees.map(empName => {
             const emp = employeesMap.get(empName)!;
-            const rowDays = daysToShow.map(day => {
+            const rowDays = daysToShow.map<CellDef>(day => {
                 const duration = emp.days.get(day) || "-";
                 const isAbsent = duration === "Falta";
                 return { 
@@ -135,8 +135,8 @@ export async function exportToPDF(data: AttendanceData[], period: string, header
             const h = Math.floor(totalMs / 3600000);
             const m = Math.floor((totalMs % 3600000) / 60000);
             return [
-                empName.length > 20 ? empName.substring(0, 18) + '..' : empName,
-                emp.dept.substring(0, 10),
+                empName,
+                emp.dept,
                 ...rowDays,
                 `${h}:${m.toString().padStart(2, '0')}`,
                 emp.ot || "00:00"
@@ -359,7 +359,7 @@ export async function exportToMensalPDF(
     logoUrl?: string
 ) {
     const doc = new jsPDF('p', 'mm', 'a4');
-    const PRIMARY_COLOR = [30, 58, 138];
+    const PRIMARY_COLOR: [number, number, number] = [30, 58, 138];
     
     // Aggregate data by employee
     const aggregated: Record<string, any> = {};

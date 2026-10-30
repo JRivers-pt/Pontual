@@ -1,3 +1,5 @@
+import { USB_SUPREMA_TEMPLATE_TYPE } from "@/lib/fingerprint-format";
+
 export type Scanner = { url: string; name: string };
 
 export async function findUsbScanner(): Promise<Scanner> {
@@ -21,7 +23,7 @@ export async function findUsbScanner(): Promise<Scanner> {
 
 export async function captureUsbFingerprint(scanner: Scanner) {
     // Match the installed BioStar UI: ScanBiomini uses a GET with query parameters.
-    const query = new URLSearchParams({ template_type: "0", enroll_quality: "80", hide_popup: "true", timestamp: String(Date.now()) });
+    const query = new URLSearchParams({ template_type: String(USB_SUPREMA_TEMPLATE_TYPE), enroll_quality: "80", hide_popup: "true", timestamp: String(Date.now()) });
     const response = await fetch(`${scanner.url}/api/ScanBiomini?${query}`, {
         method: "GET", cache: "no-store",
         signal: AbortSignal.timeout(20000),
@@ -39,7 +41,7 @@ export async function verifyUsbFingerprintPair(scanner: Scanner, template0: stri
     // Native USB Agent expects form-encoded fields, not a JSON document.
     const response = await fetch(`${scanner.url}/api/Verify`, {
         method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
-        body: new URLSearchParams({ template1: template0, template2: template1, template_type: "0", timestamp: String(Date.now()) }),
+        body: new URLSearchParams({ template1: template0, template2: template1, template_type: String(USB_SUPREMA_TEMPLATE_TYPE), timestamp: String(Date.now()) }),
         signal: AbortSignal.timeout(10000),
     });
     if (!response.ok) throw new Error(`O agente não conseguiu verificar as leituras (HTTP ${response.status}).`);

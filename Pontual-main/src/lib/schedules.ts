@@ -12,6 +12,7 @@ export interface Schedule {
     endTime: string | { hour: number; minute: number };    // "HH:mm" in DB, object in legacy
     lateToleranceMinutes?: number;                 // Legacy
     lateTolerance?: number;                        // DB
+    lunchDuration?: number;                        // DB, minutes
     earlyOutToleranceMinutes?: number;             // Legacy
     overtimeThresholdMinutes?: number;             // Legacy
     autoBreakDeduction?: {                         // Break automático descontado

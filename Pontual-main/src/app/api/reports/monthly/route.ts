@@ -6,6 +6,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { getCrossChexToken, generateRequestId, generateTimestamp } from "@/lib/api-server";
 import { calculateSmartWorkHours } from "@/lib/schedules";
+import { auth } from "@/auth";
 
 export const dynamic = 'force-dynamic';
 
@@ -14,9 +15,13 @@ export async function GET(request: Request) {
     const forceRun = searchParams.get("force") === "true";
     const authHeader = request.headers.get("authorization");
     
-    // Basic security check for cron (if not forced via query param)
-    if (!forceRun && process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-        return Response.json({ error: "Unauthorized" }, { status: 401 });
+    const cronAuthorized = !!process.env.CRON_SECRET && authHeader === `Bearer ${process.env.CRON_SECRET}`;
+    if (!cronAuthorized) {
+        // force is a scheduling option, never an authentication bypass.
+        const session = forceRun ? await auth() : null;
+        if (!session?.user || (session.user as { role?: string }).role !== "ADMIN") {
+            return Response.json({ error: "Unauthorized" }, { status: 401 });
+        }
     }
 
     try {
@@ -154,7 +159,7 @@ export async function GET(request: Request) {
                     let monthlyOvertimeMs = 0;
 
                     // Header Color (Dark Blue)
-                    const PRIMARY_COLOR = [30, 58, 138]; // #1e3a8a
+                    const PRIMARY_COLOR: [number, number, number] = [30, 58, 138]; // #1e3a8a
 
                     doc.setFontSize(20);
                     doc.setTextColor(PRIMARY_COLOR[0], PRIMARY_COLOR[1], PRIMARY_COLOR[2]);
@@ -294,7 +299,7 @@ export async function GET(request: Request) {
                     await resend.emails.send({
                         from: "Pontual <noreply@pontualidade.pt>",
                         to: reportEmail,
-                        reply_to: "comercial@techscire.pt",
+                        replyTo: "comercial@techscire.pt",
                         subject: `Relatório de Assiduidade - Período ${periodStr}`,
                         text: `Olá,\n\nSegue em anexo o relatório consolidado de assiduidade de todos os colaboradores para o período de ${periodStr}.\n\nEste relatório inclui os cálculos de horas extra (após 8h de trabalho) e as isenções configuradas.\n\nAtenciosamente,\nEquipa Pontual`,
                         attachments: [{

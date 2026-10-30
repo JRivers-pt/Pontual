@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { enqueueEnrollment, enqueueRemoval, enrollmentTerminals } from "@/lib/enrollment-sync";
 import { decodeFingerprintPair } from "@/lib/fingerprint-format";
+import { normalizeWorkno } from "@/lib/workno";
 
 async function getEffectiveUserId(sessionUserId: string) {
     const user = await prisma.user.findUnique({
@@ -230,12 +231,13 @@ export const POST = auth(async (req) => {
             );
         }
 
-        if (!String(workno).trim() || !String(name).trim() || typeof active !== "boolean" ||
+        if (!["string", "number"].includes(typeof workno) || typeof name !== "string" ||
+            !String(workno).trim() || !name.trim() || typeof active !== "boolean" ||
             (fingerprintTemplate != null && (typeof fingerprintTemplate !== "string" || fingerprintTemplate === "EXISTS"))) {
             return NextResponse.json({ error: "Dados do colaborador inválidos" }, { status: 400 });
         }
 
-        const formattedWorkno = String(workno).trim().padStart(4, '0');
+        const formattedWorkno = normalizeWorkno(workno);
         const trimmedName = String(name).trim();
         if (fingerprintTemplate && enrollmentTerminals(userId).length) {
             try { decodeFingerprintPair(fingerprintTemplate); }
@@ -281,6 +283,7 @@ export const POST = auth(async (req) => {
             });
             if (sched) targetScheduleId = sched.id;
         }
+        if (scheduleCode && !targetScheduleId && enrollmentTerminals(userId).length) throw new Error("Horário não encontrado para este cliente");
 
         if (targetScheduleId) {
             const ownedSchedule = await tx.schedule.findFirst({ where: { id: targetScheduleId, userId } });
@@ -320,6 +323,9 @@ export const POST = auth(async (req) => {
         return NextResponse.json({ success: true, employee });
 
     } catch (error: any) {
+        if (error instanceof Error && ["Horário não pertence a este cliente", "Horário não encontrado para este cliente"].includes(error.message)) {
+            return NextResponse.json({ error: error.message }, { status: 400 });
+        }
         console.error("Error creating employee:", error);
         return NextResponse.json(
             { error: "Erro ao criar colaborador", details: error.message },
@@ -357,14 +363,15 @@ export const PUT = auth(async (req) => {
             return NextResponse.json({ error: "Número mecanográfico obrigatório" }, { status: 400 });
         }
 
-        const formattedWorkno = String(workno).trim().padStart(4, '0');
+        const formattedWorkno = normalizeWorkno(workno);
 
         const updateData: any = {};
         if (fingerprintTemplate && enrollmentTerminals(userId).length) {
             try { decodeFingerprintPair(fingerprintTemplate); }
             catch { return NextResponse.json({ error: "Faça duas leituras verificadas do mesmo dedo antes de guardar a biometria." }, { status: 400 }); }
         }
-        if (!String(workno).trim() || (name !== undefined && !String(name).trim()) ||
+        if (!["string", "number"].includes(typeof workno) || !String(workno).trim() ||
+            (name !== undefined && (typeof name !== "string" || !name.trim())) ||
             (active !== undefined && typeof active !== "boolean") ||
             (fingerprintTemplate != null && (typeof fingerprintTemplate !== "string" || fingerprintTemplate === "EXISTS"))) {
             return NextResponse.json({ error: "Dados do colaborador inválidos" }, { status: 400 });
@@ -394,6 +401,7 @@ export const PUT = auth(async (req) => {
                 });
                 if (sched) targetScheduleId = sched.id;
             }
+            if (scheduleCode && !targetScheduleId && enrollmentTerminals(userId).length) throw new Error("Horário não encontrado para este cliente");
 
             if (targetScheduleId) {
                 // Remove old schedules for this employee
@@ -407,6 +415,8 @@ export const PUT = auth(async (req) => {
                     data: { workno: formattedWorkno, scheduleId: targetScheduleId }
                 });
             }
+        } else if (scheduleCode === null || scheduleCode === "" || scheduleId === null) {
+            await tx.employeeSchedule.deleteMany({ where: { workno: formattedWorkno, schedule: { userId } } });
         }
 
         await enqueueEnrollment(tx, userId, updated, fingerprintTemplate !== undefined && !fingerprintTemplate);
@@ -415,6 +425,9 @@ export const PUT = auth(async (req) => {
         return NextResponse.json({ success: true, employee: updated });
 
     } catch (error: any) {
+        if (error instanceof Error && ["Horário não pertence a este cliente", "Horário não encontrado para este cliente"].includes(error.message)) {
+            return NextResponse.json({ error: error.message }, { status: 400 });
+        }
         console.error("Error updating employee:", error);
         return NextResponse.json(
             { error: "Erro ao atualizar colaborador", details: error.message },
@@ -441,7 +454,7 @@ export const DELETE = auth(async (req) => {
     }
 
     try {
-        const formattedWorkno = String(workno).trim().padStart(4, '0');
+        const formattedWorkno = normalizeWorkno(workno);
 
         await prisma.$transaction(async tx => {
         await enqueueRemoval(tx, userId, formattedWorkno);

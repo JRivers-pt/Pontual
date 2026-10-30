@@ -26,10 +26,8 @@ export const GET = auth(async (req) => {
             return NextResponse.json({ error: "User not found" }, { status: 404 });
         }
 
-        // Remove sensitive info
-        const { password, ...safeUser } = user;
-
-        return NextResponse.json(safeUser);
+        // The select above is the allowlist; credentials are never fetched.
+        return NextResponse.json(user);
     } catch (error) {
         console.error("Error fetching user profile:", error);
         return NextResponse.json({ error: "Failed to fetch profile" }, { status: 500 });

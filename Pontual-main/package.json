@@ -3,9 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "test": "node --test tests/enrollment.test.mjs tests/reporting.test.mjs tests/project-contract.test.mjs",
+    "test:integration": "node tests/run-postgres.mjs",
+    "typecheck": "tsc --noEmit --incremental false",
     "dev": "next dev",
-    "build": "prisma generate && prisma db push --accept-data-loss && next build",
-    "start": "npx prisma db push --accept-data-loss && next start",
+    "build": "prisma generate && next build",
+    "start": "next start",
     "lint": "eslint",
     "postinstall": "prisma generate",
     "diagnostic": "tsx scripts/generate_monthly_report_local.ts"

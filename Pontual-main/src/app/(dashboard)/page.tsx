@@ -552,7 +552,7 @@ export default function DashboardPage() {
               <Button
                 variant="outline"
                 className="w-full justify-start"
-                onClick={fetchData}
+                onClick={() => fetchData()}
                 disabled={loading}
               >
                 <RefreshCw className={cn("h-4 w-4 mr-2", loading && "animate-spin")} />

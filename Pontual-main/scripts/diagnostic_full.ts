@@ -11,7 +11,7 @@
  */
 
 import { getAttendanceRecords, getEmployees } from '../src/lib/api'
-import { isLate, calculateOvertime, getScheduleInfo, SCHEDULES, EMPLOYEE_SCHEDULES } from '../src/lib/schedules'
+import { isLate, calculateOvertime, getEmployeeSchedule, getFormattedScheduleInfo, SCHEDULES, EMPLOYEE_SCHEDULES } from '../src/lib/schedules'
 import { format, parseISO, startOfDay, endOfDay } from 'date-fns'
 import { pt } from 'date-fns/locale'
 
@@ -35,7 +35,8 @@ async function runDiagnostic() {
         console.log('─'.repeat(60))
         Object.entries(SCHEDULES).forEach(([id, schedule]) => {
             console.log(`\n${schedule.name} (ID: ${id}):`)
-            console.log(`  ⏰ Horário: ${schedule.startTime.hour.toString().padStart(2, '0')}:${schedule.startTime.minute.toString().padStart(2, '0')} - ${schedule.endTime.hour.toString().padStart(2, '0')}:${schedule.endTime.minute.toString().padStart(2, '0')}`)
+            const info = getFormattedScheduleInfo(schedule)
+            console.log(`  ⏰ Horário: ${info.startTimeStr} - ${info.endTimeStr}`)
             console.log(`  ⏱️  Tolerância atraso: ${schedule.lateToleranceMinutes} min`)
             console.log(`  🚪 Tolerância saída antecipada: ${schedule.earlyOutToleranceMinutes} min`)
         })
@@ -102,7 +103,8 @@ async function runDiagnostic() {
             console.log(`\n╔═══ ${data.name} (ID: ${workno}) ═══`)
 
             // Horário do colaborador
-            const scheduleInfo = getScheduleInfo(workno)
+            const schedule = getEmployeeSchedule(workno)
+            const scheduleInfo = getFormattedScheduleInfo(schedule)
             console.log(`║ 📅 Horário: ${scheduleInfo.scheduleName}`)
             console.log(`║ ⏰ ${scheduleInfo.startTimeStr} - ${scheduleInfo.endTimeStr} (${scheduleInfo.regularHours})`)
 
@@ -175,13 +177,13 @@ async function runDiagnostic() {
             // Verificar atraso
             if (sorted.length > 0) {
                 const firstCheck = parseISO(sorted[0].time)
-                const late = isLate(workno, firstCheck)
+                const late = isLate(firstCheck, schedule)
                 console.log(`║ 🚦 Status: ${late ? '🔴 ATRASADO' : '🟢 PONTUAL'}`)
 
                 // Horas extra
                 const lastCheck = sorted[sorted.length - 1]
                 const lastCheckDate = lastCheck.type === 1 || lastCheck.type === 129 ? parseISO(lastCheck.time) : null
-                const overtime = calculateOvertime(workno, firstCheck, lastCheckDate)
+                const overtime = calculateOvertime(firstCheck, lastCheckDate, schedule)
 
                 if (overtime > 0) {
                     const otHours = Math.floor(overtime / 60)

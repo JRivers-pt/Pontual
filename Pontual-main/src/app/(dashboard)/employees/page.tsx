@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo, useRef } from "react"
 import Link from "next/link"
 import { findUsbScanner, captureUsbFingerprint, verifyUsbFingerprintPair } from "@/lib/usb-scanner"
 import { encodeFingerprintPair } from "@/lib/fingerprint-format"
+import { enrollmentStatusText, type EnrollmentStatus } from "@/lib/enrollment-status"
 import {
     Users,
     UserPlus,
@@ -164,7 +165,7 @@ export default function EmployeesPage() {
     }
 
     const [scannerDiagnostic, setScannerDiagnostic] = useState("")
-    const [syncStatus, setSyncStatus] = useState<{ enabled: boolean; online: boolean; terminalCount?: number; tasks: { workno: string; terminalId: string; status: string }[] } | null>(null)
+    const [syncStatus, setSyncStatus] = useState<EnrollmentStatus | null>(null)
 
     const checkUsbScanner = async () => {
         try {
@@ -186,17 +187,7 @@ export default function EmployeesPage() {
         } catch { setSyncStatus(null) }
     }
 
-    const terminalStatus = (workno: string) => {
-        if (!syncStatus) return "Estado dos terminais indisponível"
-        if (!syncStatus.enabled) return "Terminais: sem confirmação"
-        const tasks = syncStatus.tasks.filter(task => task.workno === workno)
-        if (!tasks.length) return "Terminais: sem envio confirmado"
-        const exported = tasks.filter(task => task.status === "EXPORTED").length
-        if (tasks.some(task => task.status === "ERROR")) return `Envio com falha (${exported}/${syncStatus.terminalCount}); nova tentativa automática`
-        if (exported === syncStatus.terminalCount) return `BioStar aceitou ${exported}/${syncStatus.terminalCount} envios; validar passagem`
-        if (!syncStatus.online) return "A aguardar agente da escola (sem contacto recente)"
-        return `Envio pendente (${exported}/${syncStatus.terminalCount})`
-    }
+    const terminalStatus = (workno: string) => enrollmentStatusText(syncStatus, workno)
 
     // Fetch Employees
     const fetchEmployees = async () => {

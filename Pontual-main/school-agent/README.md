@@ -67,6 +67,14 @@ Antes de desligar o opt-in, parar o novo agente e coordenar o escritor legado: d
 
 ## Validação local
 
-`node --test tests/enrollment.test.mjs` cobre falhas HTTP e funcionais, envio por terminal, reservas, confirmações antigas, repetição, remoção de templates e configuração USB invertida. Usam-se exclusivamente dados sintéticos e respostas simuladas.
+O formato Suprema tem código `0` na configuração do servidor BioStar e código `2001` no USB Agent. Captura e verificação usam `2001`; o worker verifica que o servidor continua configurado para Suprema antes de escrever biometria. Um par antigo identificado com o código errado exige recaptura. `GET /api/sync/enrollments?health=true` permite diagnosticar o serviço sem reservar tarefas nem renovar artificialmente o heartbeat.
 
-`prisma validate` passou. A verificação TypeScript global encontrou erros anteriores em relatórios, scripts e outras páginas; não acusou erros nos ficheiros alterados nesta execução. A configuração existente permite builds com erros de tipos: isso não substitui a validação do piloto.
+`npm test` cobre falhas HTTP e funcionais, envio por terminal, reservas, confirmações antigas, repetição, remoção de templates, configuração USB invertida, transporte TLS real em loopback e relatórios com dados sintéticos. O transporte de email é sempre simulado. Os certificados em `tests/fixtures/tls` são material sintético público, nunca credenciais de produção.
+
+`npm run typecheck` e `npm run build` verificam a aplicação inteira. Os 26 erros anteriores foram corrigidos e a opção que ignorava erros de tipos foi removida. Build e arranque já não executam `db push --accept-data-loss`: alterações de esquema são operações explícitas.
+
+`npm run test:integration` exige `PATCH_TEST_DATABASE_URL` com uma ligação PostgreSQL direta. Não carrega credenciais de produção por omissão. Cria um schema aleatório `pontual_patch_*`, copia apenas definições de tabelas, verifica o namespace real do SQL e usa dados sintéticos; o schema é removido no fim. Os testes incluem concorrência, rollback, retries, reserva de IDs, revogação e resolução de picagens.
+
+Uma identidade nova nasce como placeholder técnico **desativado**. Só é associada ao colaborador depois de confirmar a sua propriedade; uma resposta de criação perdida pode ser recuperada sem duplicar nem assumir que um nome igual pertence à mesma pessoa. A ligação ao ID remoto propaga-se aos três terminais. As datas explícitas seguem os valores padrão da interface BioStar instalada (2001–2037), configuráveis por `BIOSTAR_NEW_USER_START_DATETIME` / `BIOSTAR_NEW_USER_EXPIRY_DATETIME`.
+
+Tarefas do mesmo colaborador não podem ser processadas em paralelo, mesmo por dois workers; uma reserva perto do fim da validade não autoriza novas escritas no BioStar. O protocolo continua a ser de entrega pelo menos uma vez: uma operação já aceite pelo BioStar não pode ser cancelada atomicamente pela base cloud. A leitura de confirmação e o teste físico continuam necessários.

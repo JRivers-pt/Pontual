@@ -168,7 +168,10 @@ export async function getAttendanceRecords(
   };
 }
 
-export async function getEmployees() {
+export async function getEmployees(): Promise<{
+  workno: string; name: string; firstName: string; lastName: string; fullName: string;
+  scheduleCode?: string | null; scheduleName?: string | null;
+}[]> {
   try {
     const res = await fetch('/api/employees');
     if (!res.ok) throw new Error(`Failed to fetch employees: ${res.status}`);

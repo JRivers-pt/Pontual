@@ -3,6 +3,10 @@ import { pathToFileURL } from 'node:url';
 import { decodeFingerprintPair } from './fingerprint-format.mjs';
 import { pinnedBioStarRequest } from './pinned-transport.mjs';
 
+// Defaults extracted from the installed BioStar 2 user-creation UI.
+const DEFAULT_START_DATE = '2001-01-01T00:00:00.00Z';
+const DEFAULT_EXPIRY_DATE = '2037-12-31T23:59:59.00Z';
+
 export function requireSuccess(result, operation) {
     if (!result || result.status < 200 || result.status >= 300) throw new Error(`${operation}: HTTP_FAILURE`);
     if (!result.body?.Response || String(result.body.Response.code) !== '0') throw new Error(`${operation}: VENDOR_FAILURE`);
@@ -29,6 +33,8 @@ export function loadConfig(env = process.env) {
         allowNoAccessGroups: env.BIOSTAR_ALLOW_NO_ACCESS_GROUPS === 'true',
         newUserIdOffset: Number(env.BIOSTAR_NEW_USER_ID_OFFSET || 1000000),
         certificatePin: env.BIOSTAR_TLS_PIN_SHA256 || '',
+        newUserStartDate: env.BIOSTAR_NEW_USER_START_DATETIME || DEFAULT_START_DATE,
+        newUserExpiryDate: env.BIOSTAR_NEW_USER_EXPIRY_DATETIME || DEFAULT_EXPIRY_DATE,
     };
     if (!config.token || !config.biostarUrl || !config.login || !config.password || !config.terminals.length) {
         throw new Error('MISSING_CONFIGURATION');
@@ -36,6 +42,18 @@ export function loadConfig(env = process.env) {
     if (new URL(config.cloudUrl).protocol !== 'https:' || new URL(config.biostarUrl).protocol !== 'https:') {
         throw new Error('HTTPS_REQUIRED');
     }
+    for (const field of ['cloudUrl', 'biostarUrl']) {
+        const url = new URL(config[field]);
+        if (url.username || url.password || url.pathname !== '/' || url.search || url.hash) throw new Error('INVALID_BASE_URL');
+        config[field] = url.origin;
+    }
+    if (!Number.isSafeInteger(config.newUserIdOffset) || config.newUserIdOffset < 1000 || config.newUserIdOffset > 4294967295) throw new Error('INVALID_ID_OFFSET');
+    if (config.terminals.some(id => !/^[1-9]\d{0,9}$/.test(id) || Number(id) > 4294967295)) throw new Error('INVALID_TERMINAL_ID');
+    config.terminals = [...new Set(config.terminals)];
+    if (!config.userMap || typeof config.userMap !== 'object' || Array.isArray(config.userMap) || Object.values(config.userMap).some(id => !/^[1-9]\d{0,9}$/.test(String(id)) || Number(id) > 4294967295)) throw new Error('INVALID_USER_MAP');
+    if (config.certificatePin && !/^[a-f0-9]{64}$/i.test(config.certificatePin.replace(/:/g, ''))) throw new Error('INVALID_CERTIFICATE_PIN');
+    if (!Number.isFinite(Date.parse(config.newUserStartDate)) || !Number.isFinite(Date.parse(config.newUserExpiryDate)) ||
+        Date.parse(config.newUserExpiryDate) <= Math.max(Date.parse(config.newUserStartDate), Date.now())) throw new Error('INVALID_VALIDITY_PERIOD');
     return config;
 }
 
@@ -48,6 +66,10 @@ export async function request(url, { method = 'GET', headers = {}, body } = {}) 
 }
 
 export async function processJob(config, job, call = request) {
+    if (!job || typeof job !== 'object' || typeof job.workno !== 'string' || typeof job.active !== 'boolean' ||
+        (job.active && (typeof job.employee?.name !== 'string' || !job.employee.name.trim()))) throw new Error('INVALID_JOB');
+    // A stale in-memory attempt must never leak its resolved identity into another attempt.
+    delete job.resolvedUserId;
     if (!config.terminals.includes(job.terminalId)) throw new Error('UNCONFIGURED_TERMINAL');
     const explicitId = config.userMap[job.workno];
     const userId = job.remoteUserId || explicitId || (config.allowNumericIds && /^\d+$/.test(job.workno)
@@ -75,15 +97,20 @@ export async function processJob(config, job, call = request) {
         let found, offset = 0, total = 1;
         while (!found && offset < total && offset < 2000) {
             const response = requireSuccess(await call(`${config.biostarUrl}/api/devices/${job.terminalId}/users?limit=200&offset=${offset}`, { headers }), 'READ_DEVICE');
-            total = Number(response.UserCollection?.total || 0);
-            if (!response.UserCollection || !Array.isArray(response.UserCollection.rows)) throw new Error('DEVICE_READBACK_FAILED');
+            total = Number(response.UserCollection?.total);
+            if (!response.UserCollection || !Array.isArray(response.UserCollection.rows) || !Number.isSafeInteger(total) || total < 0 ||
+                (response.UserCollection.rows.length === 0 && offset < total)) throw new Error('DEVICE_READBACK_FAILED');
             found = response.UserCollection.rows.find(user => String(user.user_id) === String(userId));
-            offset += 200;
+            offset += response.UserCollection.rows.length;
         }
         if (!found && offset < total) throw new Error('DEVICE_ROSTER_LIMIT');
         return found;
     };
     try {
+        if (fingerprint) {
+            const setting = requireSuccess(await call(`${config.biostarUrl}/api/v2/fingerprintFormat`, { headers }), 'READ_FORMAT').Setting;
+            if (String(setting?.fingerprint_format) !== '0') throw new Error('TEMPLATE_FORMAT_MISMATCH');
+        }
         // Existing device credentials are a separate second-phase migration, never replace them blindly.
         if (explicitId && !job.remoteUserId && await deviceUser()) throw new Error('LEGACY_USER_IMPORT_REQUIRED');
         const url = `${config.biostarUrl}/api/users/${encodeURIComponent(userId)}`;
@@ -94,8 +121,9 @@ export async function processJob(config, job, call = request) {
             exists = String(body.User?.user_id) === String(userId);
             if (!exists) throw new Error('USER_RESPONSE_INVALID');
             if (body.User.login_id || String(body.User.permission?.id) === '1') throw new Error('PROTECTED_ACCOUNT');
-            // Numeric IDs can collide with unrelated existing users. Require an explicit mapping.
-            if (!explicitId && !job.remoteUserId && body.User.name !== job.employee?.name) throw new Error('USER_ID_COLLISION');
+            // A matching name alone does not establish ownership. Recover only our disabled placeholder
+            // after a lost create response; confirmed cloud bindings survive normal edits and renames.
+            if (!job.remoteUserId && (body.User.name !== job.managementTag || String(body.User.disabled) !== 'true')) throw new Error('USER_ID_COLLISION');
         } else if (existing.status !== 404 && !(existing.status === 400 && String(existing.body?.Response?.code) === '201')) {
             throw new Error('READ_USER_FAILED');
         }
@@ -103,12 +131,19 @@ export async function processJob(config, job, call = request) {
         await fence();
         if (exists) job.resolvedUserId = String(userId);
         if (!exists && job.active) {
+            if (!/^PTL-[a-f0-9]{24}$/.test(job.managementTag || '')) throw new Error('INVALID_MANAGEMENT_TAG');
             if (!config.accessGroups.length && !config.allowNoAccessGroups) throw new Error('ACCESS_GROUPS_REQUIRED');
             requireSuccess(await call(`${config.biostarUrl}/api/users`, { method: 'POST', headers,
-                body: { User: { user_id: String(userId), name: job.employee.name,
+                body: { User: { user_id: String(userId), name: job.managementTag,
                     user_group_id: { id: config.userGroup },
                     ...(config.accessGroups.length ? { access_groups: config.accessGroups.map(id => ({ id })) } : {}),
-                    disabled: 'false' } } }), 'CREATE_USER');
+                    start_datetime: config.newUserStartDate || DEFAULT_START_DATE,
+                    expiry_datetime: config.newUserExpiryDate || DEFAULT_EXPIRY_DATE,
+                    disabled: 'true' } } }), 'CREATE_USER');
+            const created = requireSuccess(await call(url, { headers }), 'READ_CREATED_USER').User;
+            if (String(created?.user_id) !== String(userId) || created.name !== job.managementTag || String(created.disabled) !== 'true' || created.login_id || String(created.permission?.id) === '1') {
+                throw new Error('USER_ID_COLLISION');
+            }
             exists = true;
             job.resolvedUserId = String(userId);
         }
@@ -122,7 +157,7 @@ export async function processJob(config, job, call = request) {
             // An explicit removal clears old templates rather than leaving a stale credential active.
             requireSuccess(await call(url, { method: 'PUT', headers, body: { User } }), 'UPDATE_USER');
             const updatedUser = requireSuccess(await call(url, { headers }), 'READ_USER').User;
-            if (updatedUser?.updated_count === undefined) throw new Error('USER_RESPONSE_INVALID');
+            if (!/^\d+$/.test(String(updatedUser?.updated_count))) throw new Error('USER_RESPONSE_INVALID');
             await fence();
             requireSuccess(await call(`${config.biostarUrl}/api/users/export?overwrite=true&id=${encodeURIComponent(userId)}`, {
                 method: 'POST', headers, body: { DeviceCollection: { rows: [{ id: job.terminalId }] } },
@@ -132,9 +167,9 @@ export async function processJob(config, job, call = request) {
             if (job.active) {
                 if (!actual || String(actual.disabled) !== 'false') throw new Error('DEVICE_READBACK_FAILED');
                 if (String(actual.updated_count) !== String(updatedUser.updated_count)) throw new Error('DEVICE_READBACK_FAILED');
-                if (fingerprint && Number(actual.fingerprint_templates_count) < 1) throw new Error('DEVICE_READBACK_FAILED');
+                if (fingerprint && (!Number.isSafeInteger(Number(actual.fingerprint_templates_count)) || Number(actual.fingerprint_templates_count) < 1)) throw new Error('DEVICE_READBACK_FAILED');
                 if (job.clearFingerprint && Number(actual.fingerprint_templates_count) !== 0) throw new Error('DEVICE_READBACK_FAILED');
-            } else if (actual && String(actual.disabled) !== 'true') throw new Error('DEVICE_READBACK_FAILED');
+            } else if (actual && (String(actual.disabled) !== 'true' || String(actual.updated_count) !== String(updatedUser.updated_count))) throw new Error('DEVICE_READBACK_FAILED');
         }
         // EXPORTED means BioStar accepted the operation, never proof of a physical passage.
         return 'EXPORTED';
@@ -154,9 +189,10 @@ export async function runOnce(config, call = request) {
         try { status = await processJob(config, job, call); }
         catch (error) {
             failed++;
-            errorCode = /^[A-Z_]+$/.test(error.message) ? error.message : 'REQUEST_FAILED';
+            const message = error instanceof Error ? error.message : '';
+            errorCode = /^[A-Z_]+$/.test(message) ? message : 'REQUEST_FAILED';
             // Only our fixed error codes are emitted; never emit vendor bodies or input values.
-            console.error('Enrollment attempt failed:', /^[A-Z_]+(?:: [A-Z_]+)?$/.test(error.message) ? error.message : 'REQUEST_FAILED');
+            console.error('Enrollment attempt failed:', /^[A-Z_]+(?:: [A-Z_]+)?$/.test(message) ? message : 'REQUEST_FAILED');
         }
         const receipt = await call(`${config.cloudUrl}/api/sync/enrollments`, { method: 'POST', headers,
             body: { id: job.id, revision: job.revision, leaseToken: job.leaseToken, status, errorCode,
