@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { enrollmentTerminals } from '@/lib/enrollment-sync';
+import { remoteIdentityMap } from '@/lib/sync-identity';
 
 export async function GET(request: NextRequest) {
   const token = request.headers.get('x-school-token') || request.headers.get('authorization')?.replace('Bearer ', '');
@@ -61,9 +62,14 @@ export async function POST(request: NextRequest) {
     }
 
     let inserted = 0;
+    const bindings = enrollmentTerminals(user.id).length
+      ? await prisma.enrollmentTask.findMany({ where: { userId: user.id, remoteUserId: { not: null } }, select: { remoteUserId: true, workno: true } }) : [];
+    const identities = remoteIdentityMap(bindings);
 
     for (const p of punches) {
       if (!p.checktime || !p.workno) continue;
+      // The unchanged legacy daemon falls back to raw BioStar IDs for newly enrolled staff.
+      const workno = identities.get(String(p.workno).replace(/^0+/, '') || '0') || String(p.workno);
 
       const punchDate = new Date(p.checktime);
       if (isNaN(punchDate.getTime()) || punchDate.getUTCDay() === 0) {
@@ -84,7 +90,7 @@ export async function POST(request: NextRequest) {
           update: {}, // Do nothing if already exists
           create: {
             userId: user.id,
-            workno: String(p.workno),
+            workno,
             employeeName: p.employeeName || null,
             checktime: new Date(p.checktime),
             checktype: Number(p.checktype) || 1,

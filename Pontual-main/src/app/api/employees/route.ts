@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
-import { enqueueEnrollment, enqueueRemoval } from "@/lib/enrollment-sync";
+import { enqueueEnrollment, enqueueRemoval, enrollmentTerminals } from "@/lib/enrollment-sync";
+import { decodeFingerprintPair } from "@/lib/fingerprint-format";
 
 async function getEffectiveUserId(sessionUserId: string) {
     const user = await prisma.user.findUnique({
@@ -236,6 +237,10 @@ export const POST = auth(async (req) => {
 
         const formattedWorkno = String(workno).trim().padStart(4, '0');
         const trimmedName = String(name).trim();
+        if (fingerprintTemplate && enrollmentTerminals(userId).length) {
+            try { decodeFingerprintPair(fingerprintTemplate); }
+            catch { return NextResponse.json({ error: "Faça duas leituras verificadas do mesmo dedo antes de guardar a biometria." }, { status: 400 }); }
+        }
 
         // Check if workno already exists for this client
         const existing = await prisma.employee.findUnique({
@@ -355,6 +360,10 @@ export const PUT = auth(async (req) => {
         const formattedWorkno = String(workno).trim().padStart(4, '0');
 
         const updateData: any = {};
+        if (fingerprintTemplate && enrollmentTerminals(userId).length) {
+            try { decodeFingerprintPair(fingerprintTemplate); }
+            catch { return NextResponse.json({ error: "Faça duas leituras verificadas do mesmo dedo antes de guardar a biometria." }, { status: 400 }); }
+        }
         if (!String(workno).trim() || (name !== undefined && !String(name).trim()) ||
             (active !== undefined && typeof active !== "boolean") ||
             (fingerprintTemplate != null && (typeof fingerprintTemplate !== "string" || fingerprintTemplate === "EXISTS"))) {

@@ -1,8 +1,9 @@
 "use client"
 
-import React, { useState, useEffect, useMemo } from "react"
+import React, { useState, useEffect, useMemo, useRef } from "react"
 import Link from "next/link"
-import { findUsbScanner, captureUsbFingerprint } from "@/lib/usb-scanner"
+import { findUsbScanner, captureUsbFingerprint, verifyUsbFingerprintPair } from "@/lib/usb-scanner"
+import { encodeFingerprintPair } from "@/lib/fingerprint-format"
 import {
     Users,
     UserPlus,
@@ -148,6 +149,19 @@ export default function EmployeesPage() {
     const [scannerConnected, setScannerConnected] = useState<boolean | null>(null)
     const [scanImage, setScanImage] = useState<string | null>(null)
     const [scannerDeviceName, setScannerDeviceName] = useState<string>("BioMini Plus 2")
+    const [firstCapture, setFirstCapture] = useState<{ template: string; quality: number | null; url: string } | null>(null)
+    const captureEpoch = useRef(0)
+    const [savedEmployee, setSavedEmployee] = useState("")
+    const cancelCapture = () => {
+        captureEpoch.current++
+        setFirstCapture(null)
+        setScanning(false)
+    }
+    const handleModalChange = (open: boolean) => {
+        if (saving) return
+        if (!open) cancelCapture()
+        setModalOpen(open)
+    }
 
     const [scannerDiagnostic, setScannerDiagnostic] = useState("")
     const [syncStatus, setSyncStatus] = useState<{ enabled: boolean; online: boolean; terminalCount?: number; tasks: { workno: string; terminalId: string; status: string }[] } | null>(null)
@@ -210,6 +224,8 @@ export default function EmployeesPage() {
 
     // Open Modal for Create
     const handleOpenCreate = () => {
+        cancelCapture()
+        setFirstCapture(null)
         setModalMode("create")
         // Generate next suggested workno
         const existingNums = employees
@@ -235,6 +251,8 @@ export default function EmployeesPage() {
 
     // Open Modal for Edit
     const handleOpenEdit = (emp: EmployeeItem) => {
+        cancelCapture()
+        setFirstCapture(null)
         setModalMode("edit")
         setFormWorkno(emp.workno)
         setFormName(emp.name)
@@ -252,29 +270,48 @@ export default function EmployeesPage() {
 
     // A successful capture is local until the user saves the employee.
     const handleCaptureFingerprint = async () => {
+        const epoch = ++captureEpoch.current
         setScanning(true)
         setErrorMsg(null)
         setSuccessMsg(null)
         try {
             const scanner = await findUsbScanner()
+            if (epoch !== captureEpoch.current) return
             setScannerConnected(true)
             setScannerDeviceName(scanner.name)
             setScannerDiagnostic("")
             const capture = await captureUsbFingerprint(scanner)
-            setFormFingerprint(capture.template)
-            setScanQuality(capture.quality)
+            if (epoch !== captureEpoch.current) return
+            if (!firstCapture) {
+                setFirstCapture({ template: capture.template, quality: capture.quality, url: scanner.url })
+                setScanSuccess(false)
+                setSuccessMsg("Primeira leitura concluída. Retire o dedo, volte a colocá-lo e clique em Capturar para a segunda leitura.")
+                return
+            }
+            if (firstCapture.url !== scanner.url) throw new Error("A ligação ao agente mudou. Reinicie a captura para obter duas leituras no mesmo agente.")
+            await verifyUsbFingerprintPair(scanner, firstCapture.template, capture.template)
+            if (epoch !== captureEpoch.current) return
+            setFormFingerprint(encodeFingerprintPair(firstCapture.template, capture.template))
+            setScanQuality(firstCapture.quality !== null && capture.quality !== null ? Math.min(firstCapture.quality, capture.quality) : null)
             setScanImage(capture.image)
             setScanSuccess(true)
-            setSuccessMsg("Impressão digital capturada. Clique em Guardar Colaborador para concluir o registo.")
+            setFirstCapture(null)
+            setSuccessMsg("Duas leituras verificadas. Clique em Guardar Colaborador para concluir o registo.")
         } catch (error) {
+            if (epoch !== captureEpoch.current) return
             setErrorMsg(error instanceof Error ? error.message : "Erro na captura biométrica.")
             setScanSuccess(false)
-        } finally { setScanning(false) }
+            setFirstCapture(null)
+        } finally { if (epoch === captureEpoch.current) setScanning(false) }
     }
 
     // Save Employee (POST or PUT)
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault()
+        if (firstCapture || scanning) {
+            setErrorMsg("Conclua a segunda leitura da impressão digital antes de guardar.")
+            return
+        }
         setErrorMsg(null)
         setSuccessMsg(null)
 
@@ -321,9 +358,9 @@ export default function EmployeesPage() {
             await fetchEmployees()
             await refreshSyncStatus()
 
-            setTimeout(() => {
-                setModalOpen(false)
-            }, 800)
+            setSavedEmployee(`${formName} (#${formWorkno})`)
+            cancelCapture()
+            setModalOpen(false)
         } catch (err: any) {
             setErrorMsg(err.message || "Ocorreu um erro ao guardar.")
         } finally {
@@ -407,6 +444,9 @@ export default function EmployeesPage() {
 
     return (
         <div className="space-y-6">
+            {savedEmployee && <p role="status" className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">
+                Colaborador {savedEmployee} guardado no Pontualidade. Consulte o estado do envio aos terminais na lista.
+            </p>}
             <div role="status" className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">
                 {syncStatus?.enabled
                     ? `Agente da escola: ${syncStatus.online ? "com contacto recente" : "sem contacto recente"}. Operações por concluir: ${syncStatus.tasks.filter(task => task.status !== "EXPORTED").length} (inclui desativações e remoções). Um envio aceite pelo BioStar exige validação de passagem no terminal.`
@@ -761,7 +801,7 @@ export default function EmployeesPage() {
             </Card>
 
             {/* Modal: Adicionar / Editar Colaborador */}
-            <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+            <Dialog open={modalOpen} onOpenChange={handleModalChange}>
                 <DialogContent className="bg-white border-neutral-200 text-neutral-900 max-w-xl max-h-[90vh] overflow-y-auto shadow-xl">
                     <DialogHeader>
                         <DialogTitle className="text-xl font-bold flex items-center gap-2 text-neutral-900">
@@ -961,7 +1001,7 @@ export default function EmployeesPage() {
                             </div>
 
                             {scannerDiagnostic && <p role="status" className="text-xs text-amber-700">{scannerDiagnostic}</p>}
-                            <p className="text-xs text-neutral-500">Após a captura, guarde o colaborador. O envio aos terminais é acompanhado na lista e depende do agente da escola.</p>
+                            <p className="text-xs text-neutral-500">Faça duas leituras do mesmo dedo e guarde o colaborador. O envio aos terminais é acompanhado na lista pelo serviço central.</p>
                             {/* Live Fingerprint Capture Action */}
                             <div className="flex items-center gap-3 pt-1">
                                 <Button
@@ -981,7 +1021,7 @@ export default function EmployeesPage() {
                                     ) : (
                                         <>
                                             <Fingerprint className="h-4 w-4 mr-2 text-blue-600" />
-                                            {formFingerprint ? "Recapturar Impressão Digital" : "Capturar Impressão Digital via USB"}
+                                            {firstCapture ? "Capturar segunda leitura do mesmo dedo" : formFingerprint ? "Recapturar Impressão Digital" : "Capturar Impressão Digital via USB"}
                                         </>
                                     )}
                                 </Button>
@@ -1011,7 +1051,7 @@ export default function EmployeesPage() {
                                 <Button
                                     type="button"
                                     variant="ghost"
-                                    onClick={() => setModalOpen(false)}
+                                    onClick={() => handleModalChange(false)}
                                     className="text-neutral-500 hover:text-neutral-900"
                                 >
                                     Cancelar
@@ -1031,7 +1071,7 @@ export default function EmployeesPage() {
                             </div>
                             <Button
                                 type="submit"
-                                disabled={saving}
+                                disabled={saving || scanning || !!firstCapture}
                                 className="bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-xs"
                             >
                                 {saving ? (

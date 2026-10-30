@@ -1,0 +1,24 @@
+[Unit]
+Description=Pontualidade enrollment queue worker (BioStar)
+After=network-online.target tailscaled.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+DynamicUser=yes
+WorkingDirectory=/opt/pontual-enrollment
+LoadCredential=agent.json:/etc/pontual-enrollment/config.local.json
+Environment=PONTUAL_AGENT_CONFIG_FILE=%d/agent.json
+ExecStart=/usr/bin/node /opt/pontual-enrollment/enrollment-agent.mjs
+Restart=always
+RestartSec=15
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

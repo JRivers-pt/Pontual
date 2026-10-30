@@ -9,6 +9,7 @@ CREATE TABLE "EnrollmentTask" (
   "revision" TEXT NOT NULL,
   "active" BOOLEAN NOT NULL,
   "clearFingerprint" BOOLEAN NOT NULL DEFAULT false,
+  "remoteUserId" TEXT,
   "status" TEXT NOT NULL DEFAULT 'PENDING',
   "attempts" INTEGER NOT NULL DEFAULT 0,
   "leaseToken" TEXT,

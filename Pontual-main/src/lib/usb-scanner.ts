@@ -20,9 +20,10 @@ export async function findUsbScanner(): Promise<Scanner> {
 }
 
 export async function captureUsbFingerprint(scanner: Scanner) {
-    const response = await fetch(`${scanner.url}/api/scanbiomini`, {
-        method: "POST", headers: { "Content-Type": "text/plain;charset=UTF-8" },
-        body: JSON.stringify({ template_type: 0, enroll_quality: 80, hide_popup: true }),
+    // Match the installed BioStar UI: ScanBiomini uses a GET with query parameters.
+    const query = new URLSearchParams({ template_type: "0", enroll_quality: "80", hide_popup: "true", timestamp: String(Date.now()) });
+    const response = await fetch(`${scanner.url}/api/ScanBiomini?${query}`, {
+        method: "GET", cache: "no-store",
         signal: AbortSignal.timeout(20000),
     });
     if (!response.ok) throw new Error(`O agente USB respondeu com erro HTTP ${response.status}.`);
@@ -32,4 +33,16 @@ export async function captureUsbFingerprint(scanner: Scanner) {
     }
     return { template: data.template, quality: typeof data.score === "number" ? data.score : null,
         image: typeof data.image?.data === "string" ? `data:image/jpeg;base64,${data.image.data}` : null };
+}
+
+export async function verifyUsbFingerprintPair(scanner: Scanner, template0: string, template1: string) {
+    // Native USB Agent expects form-encoded fields, not a JSON document.
+    const response = await fetch(`${scanner.url}/api/Verify`, {
+        method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+        body: new URLSearchParams({ template1: template0, template2: template1, template_type: "0", timestamp: String(Date.now()) }),
+        signal: AbortSignal.timeout(10000),
+    });
+    if (!response.ok) throw new Error(`O agente não conseguiu verificar as leituras (HTTP ${response.status}).`);
+    const result = await response.json();
+    if (String(result.retcode) !== "1") throw new Error("As duas leituras não foram confirmadas como sendo do mesmo dedo. Reinicie a captura e tente novamente.");
 }

@@ -1,20 +1,20 @@
 # Registo e sincronização de colaboradores — preparação de 30/10/2026
 
-Estado: implementado e testado com respostas simuladas; NÃO instalado nem ativado na escola.
-A captura USB existente foi validada presencialmente. A distribuição aos terminais não foi validada.
+Estado de preparação: testes locais e ensaio real com conta técnica desativada concluídos. A operação normal ainda exige um teste final com duas leituras reais e uma passagem física.
+A instalação destina-se à VPS central, não ao PC da secretaria. O PC necessita apenas do browser e USB Agent.
 
 ## Fluxo e critérios de sucesso
 
-1. O browser fala com o USB Agent **no mesmo PC**. Deteção suporta HTTP 8082 / HTTPS 8081 e a configuração inversa.
+1. O browser fala com o USB Agent **no mesmo PC**. Deteção suporta HTTP 8082 / HTTPS 8081 e a configuração inversa. São feitas duas leituras do mesmo dedo e verificação nativa `/api/Verify`, de acordo com o BioStar instalado. Isto não é a funcionalidade de adicionar um segundo dedo.
 2. Capturar não guarda. O utilizador clica em Guardar Colaborador.
 3. Colaborador, associação ao horário existente e tarefas por terminal são gravados numa transação.
 4. O colaborador aparece na lista. A página distingue biometria guardada de envio pendente, erro ou aceite pelo BioStar.
-5. Um agente Node separado, no servidor com acesso ao BioStar, pede uma tarefa de cada vez, envia e devolve uma confirmação.
+5. Um worker Node na VPS, junto do daemon de picagens existente, pede uma tarefa de cada vez, envia e devolve uma confirmação. O daemon de picagens continua intacto.
 6. Cada terminal tem o seu resultado. Falhas têm novas tentativas com espera progressiva; tarefas abandonadas expiram após 180 s.
-7. EXPORTED significa apenas que a API BioStar aceitou o envio para esse terminal. Não comprova que o leitor autoriza uma passagem.
+7. EXPORTED exige sucesso funcional da API, ausência de falha por dispositivo e leitura de confirmação do utilizador no terminal. Para registos ativos, o contador de versão tem de corresponder ao do BioStar. Não comprova uma passagem física.
 8. A conclusão operacional exige passagem real em cada terminal e confirmação do evento de presença no Pontualidade.
 
-O PC USB/browser não precisa de ser o servidor BioStar. O segundo agente necessita de HTTPS de saída para Pontualidade e acesso local ao BioStar; não expõe portas novas à Internet.
+O PC USB/browser não precisa de ser o servidor BioStar. A VPS utiliza HTTPS de saída para o Pontualidade e a ligação Tailscale já existente ao BioStar; não expõe portas novas à Internet.
 
 ## Preparação no servidor e na base de dados
 
@@ -30,22 +30,26 @@ O PC USB/browser não precisa de ser o servidor BioStar. O segundo agente necess
 
 Requer Node.js 22 ou superior. Copiar esta pasta para o servidor e criar `config.local.json` a partir do exemplo. Guardar token e senha só nesse servidor, protegidos por permissões de ficheiro. Nunca enviar credenciais por chat nem incluí-las no Git.
 
-O mapa `BIOSTAR_USER_MAP_JSON` é um objeto JSON em texto que associa número mecanográfico a ID BioStar, por exemplo `{"0908":"908"}`. Para colaboradores existentes, obter o mapa real do sincronizador atual e verificar colisões. O modo numérico automático vem desligado: ativá-lo exige validar que a numeração de novos colaboradores corresponde à numeração BioStar. Uma colisão de nome diferente é recusada. Uma alteração de nome ou remoção de um utilizador com ID calculado pode exigir acrescentar o mapeamento explícito; o mapa validado é a opção recomendada.
+O mapa `BIOSTAR_USER_MAP_JSON` associa número mecanográfico a ID BioStar. Para os colaboradores originais, reutiliza-se o mapa validado do daemon. Registos que já existem nos equipamentos ficam protegidos contra substituição cega de credenciais e exigem reconciliação antes de alterações biométricas; adicionar outro dedo fica para a fase seguinte. Contas com login ou permissão administrativa são sempre protegidas.
 
-Se o BioStar usar certificado privado, confiar na CA da escola através de `NODE_EXTRA_CA_CERTS` definido **antes** de iniciar o Node. Não desativar a validação TLS.
+Para novos colaboradores, `BIOSTAR_ALLOW_NUMERIC_IDS=true` permite IDs numa gama separada, com `BIOSTAR_NEW_USER_ID_OFFSET=1000000`; por exemplo, 0908 torna-se 1000908, sem usar a gama original 1–85. A correspondência efetiva é persistida na fila e usada pela API de picagens para converter o ID remoto de volta ao número mecanográfico. Alterações posteriores de nome não perdem essa correspondência.
+
+Na instalação auditada não existem grupos de acesso no servidor. `BIOSTAR_ALLOW_NO_ACCESS_GROUPS=true` admite explicitamente essa política; não cria nem inventa grupos. Noutras instalações deve usar-se a política validada e os grupos reais.
+
+Se o BioStar usar certificado privado, configurar `BIOSTAR_TLS_PIN_SHA256` com o SHA-256 do certificado verificado através da infraestrutura confiável. O transporte confirma o certificado antes de enviar credenciais HTTP. Uma troca de certificado requer verificação e atualização desse valor. Sem pin, usa-se a validação TLS normal e, se necessário, a CA por `NODE_EXTRA_CA_CERTS` definido antes de iniciar o Node.
 
 ```powershell
 $env:PONTUAL_AGENT_CONFIG_FILE = 'C:\PontualAgent\config.local.json'
 node C:\PontualAgent\enrollment-agent.mjs --once
 ```
 
-Depois do teste supervisionado, executar continuamente sem `--once`, através do gestor de serviços/tarefas já utilizado na escola, com reinício em falha e arranque automático. Instalar apenas uma instância do agente de inscrições.
+Na VPS Linux, usar `pontual-enrollment.service`: ficheiros de código em `/opt/pontual-enrollment`, configuração root 0600 em `/etc/pontual-enrollment/config.local.json`, entregue ao serviço por `LoadCredential`. O processo usa utilizador dinâmico, sem privilégios, com reinício e arranque automáticos. Instalar apenas uma instância. O daemon original `pontual-biostar-sync.service` não precisa de ser parado.
 
 O agente antigo pode continuar a recolher presenças: com o opt-in ativo, `/api/sync/punches` deixa de lhe entregar biometria, para evitar dois escritores. Verificar se a instalação real usa esta rota; qualquer outro sincronizador que escreva utilizadores deve ser coordenado antes da ativação.
 
 ## Piloto obrigatório no local
 
-1. Confirmar versão BioStar e documentação local da API. Validar login, `Response.code`, formato dos templates, criação, `disabled`, grupos e resposta de exportação. Os testes locais não provam compatibilidade com o firmware instalado.
+1. A API foi confrontada com o JavaScript do BioStar instalado. Um registo técnico desativado e sem biometria foi criado, exportado e conferido nos três equipamentos; depois foi removido e os registos originais ficaram inalterados. Falta validar duas amostras reais e uma passagem.
 2. Preparar um colaborador de teste autorizado e um número sem colisão. Capturar, guardar e atualizar a página: nome, horário e biometria devem persistir.
 3. Usar o botão Enviar novamente aos terminais para colocar um colaborador anterior na fila. A ativação não envia automaticamente toda a lista antiga.
 4. Confirmar que cada tarefa passa por PENDING → PROCESSING → EXPORTED; em falha, ERROR com nova tentativa. O diagnóstico local mostra códigos fixos, não corpos de resposta com dados biométricos.

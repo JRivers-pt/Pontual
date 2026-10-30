@@ -171,6 +171,7 @@ model EnrollmentTask {
   revision String
   active Boolean
   clearFingerprint Boolean @default(false)
+  remoteUserId String?
   status String @default("PENDING")
   attempts Int @default(0)
   leaseToken String?
