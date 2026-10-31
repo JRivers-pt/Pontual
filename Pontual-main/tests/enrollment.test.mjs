@@ -312,6 +312,31 @@ test('new remote IDs resolve to employee numbers without modifying legacy mappin
     assert.equal(map.has('0700'), false);
     assert.throws(() => api.remoteIdentityMap([{ remoteUserId: '1000908', workno: '0908' }, { remoteUserId: '1000908', workno: '0909' }]), /Conflicting/);
 });
+
+test('punch API preserves Check-In type 0, maps the remote UID, and deduplicates redelivery', async () => {
+    const rows = new Map();
+    const { api } = loadTs('../src/app/api/sync/punches/route.ts', {
+        process: { env: { ENROLLMENT_SYNC_USER_ID: 'school', ENROLLMENT_TERMINAL_IDS: '1,2,3' } },
+        require: name => {
+            if (name === '@/lib/db') return { prisma: {
+                user: { findUnique: async () => ({ id: 'school', company: 'Sandbox' }) },
+                enrollmentTask: { findMany: async () => [{ remoteUserId: '1000908', workno: '0908' }] },
+                attendanceLog: { upsert: async args => { const key = args.where.userId_rawEventId.rawEventId; if (!rows.has(key)) rows.set(key, args.create); } },
+            } };
+            if (name === '@/lib/enrollment-sync') return { enrollmentTerminals: () => ['1','2','3'] };
+            if (name === '@/lib/sync-identity') return loadTs('../src/lib/sync-identity.ts').api;
+            if (name === 'next/server') return { NextResponse: { json: body => ({ body, status: 200 }) } };
+            return require(name);
+        },
+    });
+    const punch = { workno: '1000908', employeeName: 'Synthetic', checktime: '2026-10-29T08:00:00.000Z', checktype: 0, rawEventId: 'synthetic-punch-1' };
+    const request = () => ({ headers: new Headers({ 'x-school-token': 'synthetic' }), json: async () => ({ punches: [punch] }) });
+    await api.POST(request()); await api.POST(request());
+    assert.equal(rows.size, 1);
+    assert.equal([...rows.values()][0].workno, '0908');
+    assert.equal([...rows.values()][0].checktype, 0);
+    assert.equal([...rows.values()][0].rawEventId, 'synthetic-punch-1');
+});
 test('certificate pin is exact and malformed pins are rejected', () => {
     const raw = Buffer.from('synthetic certificate');
     const pin = createHash('sha256').update(raw).digest('hex');

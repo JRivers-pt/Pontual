@@ -93,7 +93,9 @@ export async function POST(request: NextRequest) {
             workno,
             employeeName: p.employeeName || null,
             checktime: new Date(p.checktime),
-            checktype: Number(p.checktype) || 1,
+            // Check-In is code 0; preserve it instead of treating it as a missing value.
+            checktype: p.checktype === undefined || p.checktype === null || p.checktype === '' || !Number.isFinite(Number(p.checktype))
+              ? 1 : Number(p.checktype),
             deviceName: p.deviceName || 'BioEntry W2',
             deviceSn: p.deviceSn || null,
             rawEventId: rawEventId

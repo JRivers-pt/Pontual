@@ -227,6 +227,18 @@ it('PostgreSQL: an original attendance-daemon fallback ID resolves to the new em
     assert.equal(result.status, 200);
     assert.equal((await prisma.attendanceLog.findFirst()).workno, '0908');
 });
+it('PostgreSQL: check type zero survives UID mapping and duplicate delivery', async () => {
+    await add();
+    await prisma.$transaction(tx => sync.bindRemoteIdentity(tx, schoolId, '0908', '1000908'));
+    const punch = { workno: '1000908', employeeName: 'Synthetic 0908', checktime: '2026-10-29T08:00:00Z', checktype: 0, rawEventId: 'synthetic-entry-0908' };
+    assert.equal((await punches.POST(request({ punches: [punch] }))).status, 200);
+    assert.equal((await punches.POST(request({ punches: [punch] }))).status, 200);
+    assert.equal(await prisma.attendanceLog.count(), 1);
+    const stored = await prisma.attendanceLog.findFirst();
+    assert.equal(stored.workno, '0908');
+    assert.equal(stored.checktype, 0);
+    assert.equal(stored.rawEventId, 'synthetic-entry-0908');
+});
 
 it('PostgreSQL: leading zeros do not create a second identity for the same employee', async () => {
     assert.equal((await employees.POST(request({ workno: '0908', name: 'Synthetic' }))).status, 200);
