@@ -20,6 +20,22 @@ export function requireSuccess(result, operation) {
     return result.body;
 }
 
+async function ensureFingerprintAvailable(call, biostarUrl, headers, template, userId) {
+    const result = await call(`${biostarUrl}/api/server_matching/identify_finger`, {
+        method: 'POST', headers, body: { ServerMatching: { template } },
+    });
+    const message = String(result?.body?.Response?.message || '').trim().replace(/[.]+$/, '');
+    if (result?.status === 500 && String(result.body?.Response?.code) === '1201' &&
+        message === 'Failed to identify fingerprint') return;
+    if (result?.status !== 200 || String(result.body?.Response?.code) !== '0') throw new Error('DUPLICATE_CHECK_FAILED');
+    const owner = [result.body.User?.user_id, result.body.User?.id,
+        result.body.ServerMatching?.user_id, result.body.ServerMatching?.User?.user_id,
+        result.body.UserCollection?.rows?.length === 1 ? result.body.UserCollection.rows[0]?.user_id : null]
+        .filter(value => value !== undefined && value !== null).map(String);
+    if (!owner.length || new Set(owner).size !== 1) throw new Error('DUPLICATE_CHECK_RESPONSE_INVALID');
+    if (owner[0] !== String(userId)) throw new Error('FINGERPRINT_ALREADY_ENROLLED');
+}
+
 export function loadConfig(env = process.env) {
     const config = {
         cloudUrl: env.PONTUAL_URL || 'https://www.pontualidade.pt',
@@ -129,6 +145,9 @@ export async function processJob(config, job, call = request) {
         }
 
         await fence();
+        if (job.active && fingerprint) {
+            await ensureFingerprintAvailable(call, config.biostarUrl, headers, fingerprint.template0, userId);
+        }
         if (exists) job.resolvedUserId = String(userId);
         if (!exists && job.active) {
             if (!/^PTL-[a-f0-9]{24}$/.test(job.managementTag || '')) throw new Error('INVALID_MANAGEMENT_TAG');

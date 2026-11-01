@@ -27,7 +27,7 @@ const employee = { workno: '0908', name: 'Example', active: true, cardNumber: nu
 const config = { cloudUrl: 'https://cloud.invalid', token: 'synthetic', biostarUrl: 'https://biostar.invalid',
     login: 'service', password: 'synthetic', terminals: ['1', '2'], userMap: { '0908': '908' }, accessGroups: ['7'], userGroup: '1' };
 const job = { id: 'job', workno: '0908', terminalId: '1', revision: 'revision', leaseToken: 'lease', remoteUserId: '908', managementTag: 'PTL-' + 'a'.repeat(24), active: true, employee };
-function transport({ failure, missing = false, stale = false, missingCode = 404, protectedAccount = false, deviceFailure = false, devicePresent = !missing } = {}) {
+function transport({ failure, missing = false, stale = false, missingCode = 404, protectedAccount = false, deviceFailure = false, devicePresent = !missing, duplicateOwner, duplicateFailure, duplicateMalformed = false } = {}) {
     const calls = [];
     let exists = !missing, disabled = 'false', fingerprintCount = 1, name = 'Example', uid = '908', version = 2;
     const call = async (url, options = {}) => {
@@ -39,8 +39,17 @@ function transport({ failure, missing = false, stale = false, missingCode = 404,
         }
         const operation = url.endsWith('/api/login') ? 'LOGIN'
             : url.includes('/export?') ? 'EXPORT' : options.method === 'PUT' ? 'UPDATE'
+            : url.endsWith('/api/server_matching/identify_finger') ? 'DUPLICATE_CHECK'
             : url.endsWith('/api/users') ? 'CREATE' : url.includes('/api/devices/') ? 'READ_DEVICE' : 'READ';
         if (operation === failure) return { status: 200, body: { Response: { code: '999' } } };
+        if (operation === 'DUPLICATE_CHECK') {
+            assert.deepEqual(options.body, { ServerMatching: { template: 'synthetic-first' } });
+            if (duplicateFailure) return { status: duplicateFailure.status, body: duplicateFailure.body };
+            const owner = duplicateOwner ?? (exists && fingerprintCount > 0 ? uid : null);
+            if (!owner) return { status: 500, body: { Response: { code: '1201', message: 'Failed to identify fingerprint.' } } };
+            return { status: 200, body: duplicateMalformed ? { Response: { code: '0' } }
+                : { Response: { code: '0' }, User: { user_id: String(owner) } } };
+        }
         if (operation === 'READ' && !exists && !url.endsWith('/api/logout') && !url.endsWith('/api/v2/fingerprintFormat')) return { status: missingCode, body: { Response: { code: '201' } } };
         if (operation === 'CREATE') {
             assert.ok(Number.isFinite(Date.parse(options.body.User.start_datetime)), 'Installed BioStar requires an explicit validity start');
@@ -69,8 +78,41 @@ test('HTTP 200 with vendor failure is rejected', () => {
 test('each task exports only to its own terminal', async () => {
     const t = transport();
     assert.equal(await processJob(config, job, t.call), 'EXPORTED');
+    const duplicateCall = t.calls.find(c => c.url.endsWith('/api/server_matching/identify_finger'));
+    assert.equal(duplicateCall.method, 'POST');
+    assert.deepEqual(duplicateCall.body, { ServerMatching: { template: 'synthetic-first' } });
     const exportCall = t.calls.find(c => c.url.includes('/export?'));
     assert.deepEqual(exportCall.body.DeviceCollection.rows, [{ id: '1' }]);
+});
+test('an unregistered fingerprint is accepted only for the exact BioStar no-match response', async () => {
+    const t = transport({ missing: true, missingCode: 400 });
+    assert.equal(await processJob(config, job, t.call), 'EXPORTED');
+    assert.equal(t.calls.filter(c => c.url.endsWith('/api/server_matching/identify_finger')).length, 1);
+});
+test('duplicate lookup does not treat a matching message with a different BioStar code as available', async () => {
+    const t = transport({ missing: true, missingCode: 400, duplicateFailure: { status: 500, body: { Response: { code: '9999', message: 'Failed to identify fingerprint.' } } } });
+    await assert.rejects(processJob(config, { ...job, remoteUserId: null }, t.call), /DUPLICATE_CHECK_FAILED/);
+    assert.equal(t.calls.some(c => c.method === 'PUT' || c.url.includes('/export?')), false);
+});
+test('a fingerprint owned by a different BioStar user blocks all user and terminal writes', async () => {
+    const t = transport({ missing: true, missingCode: 400, duplicateOwner: '771' });
+    await assert.rejects(processJob(config, { ...job, remoteUserId: null }, t.call), /FINGERPRINT_ALREADY_ENROLLED/);
+    assert.equal(t.calls.some(c => c.method === 'PUT' || c.method === 'POST' && c.url.endsWith('/api/users') || c.url.includes('/export?')), false);
+});
+for (const duplicateFailure of [
+    { status: 500, body: { Response: { message: 'Internal server error' } } },
+    { status: 503, body: { Response: { message: 'Service unavailable' } } },
+]) {
+    test(`duplicate lookup fails closed for HTTP ${duplicateFailure.status} unrelated to the documented no-match`, async () => {
+        const t = transport({ missing: true, missingCode: 400, duplicateFailure });
+        await assert.rejects(processJob(config, { ...job, remoteUserId: null }, t.call), /DUPLICATE_CHECK_FAILED/);
+        assert.equal(t.calls.some(c => c.method === 'PUT' || c.url.includes('/export?')), false);
+    });
+}
+test('duplicate lookup fails closed when BioStar reports a match without its owner identity', async () => {
+    const t = transport({ duplicateMalformed: true });
+    await assert.rejects(processJob(config, job, t.call), /DUPLICATE_CHECK_RESPONSE_INVALID/);
+    assert.equal(t.calls.some(c => c.method === 'PUT' || c.url.includes('/export?')), false);
 });
 for (const stage of ['LOGIN', 'UPDATE', 'EXPORT', 'CREATE']) {
     test(`${stage} failure never yields EXPORTED receipt`, async () => {

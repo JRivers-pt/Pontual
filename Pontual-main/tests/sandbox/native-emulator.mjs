@@ -11,6 +11,11 @@ export function nativeEmulator() {
         const method=options.method||'GET',p=u.pathname;calls.push({path:p,method});
         if(p==='/api/login'||p==='/api/logout')return ok({});
         if(p==='/api/v2/fingerprintFormat')return ok({Setting:{fingerprint_format:'0'}});
+        if(p==='/api/server_matching/identify_finger'&&method==='POST'){
+            const template=options.body?.ServerMatching?.template;
+            const match=[...users.values()].find(user=>user.fingerprint_templates?.some(pair=>pair.template0===template||pair.template1===template));
+            return match?ok({Response:{code:'0'},User:{user_id:match.user_id}}):{status:500,body:{Response:{code:'1201',message:'Failed to identify fingerprint.'}}};
+        }
         const device=/^\/api\/devices\/([123])\/users$/.exec(p);
         if(device){
             const rows=[...devices.get(device[1]).values()].map(user=>({...user,fingerprint_templates_count:user.fingerprint_templates?.length||0}));

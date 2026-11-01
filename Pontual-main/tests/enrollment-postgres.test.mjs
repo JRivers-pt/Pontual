@@ -41,6 +41,23 @@ const request = (body, token = 'isolated-token', user = schoolId) => ({
     auth: user ? { user: { id: user, name: 'Synthetic test operator' } } : null,
     json: async () => body,
 });
+async function runLegacyCardPassAgent(syntheticRows) {
+    const agentSource = fs.readFileSync(new URL('../../vps/agent/pontual-agent.js', import.meta.url), 'utf8');
+    const config = { mysqlHost: '127.0.0.1', mysqlPort: 3306, mysqlUser: 'synthetic', mysqlPassword: 'synthetic', mysqlDatabase: 'synthetic',
+        pontualUrl: 'https://pontual.invalid/api/sync/punches', schoolToken: 'synthetic-only-token', pollIntervalSeconds: 30 };
+    let submitted, savedState, queryText, queryCursor, finish;
+    const finished = new Promise(resolve => { finish = resolve; });
+    const modules = {
+        fs: { existsSync: file => String(file).endsWith('config.json'), readFileSync: () => JSON.stringify(config), writeFileSync: (_file, text) => { savedState = JSON.parse(text); finish(); } },
+        path: { join: (...parts) => parts.join('/') },
+        'mysql2/promise': { createPool: options => { assert.equal(options.host, '127.0.0.1'); return { execute: async (sql, params) => { queryText = sql; queryCursor = params[0]; return [syntheticRows]; } }; } },
+        'node-fetch': async (url, options) => { assert.equal(url, config.pontualUrl); assert.equal(options.headers['x-school-token'], config.schoolToken); submitted = JSON.parse(options.body); return { ok: true, text: async () => JSON.stringify({ success: true, inserted: syntheticRows.length }) }; },
+    };
+    vm.runInNewContext(agentSource, { require: name => { if (!(name in modules)) throw new Error('Unexpected legacy dependency: ' + name); return modules[name]; },
+        __dirname: 'C:/synthetic/cardpass3-agent', process: { env: {} }, console: { log() {}, error() {} }, setInterval() { return 1; }, Date, Math, JSON });
+    await Promise.race([finished, new Promise((_, reject) => setTimeout(() => reject(new Error('Synthetic CardPass3 agent did not finish')), 3000))]);
+    return { submitted, savedState, queryText, queryCursor };
+}
 const pair = fingerprintFormat.encodeFingerprintPair('synthetic-first', 'synthetic-second');
 async function add(workno = '0908') {
     const employee = await prisma.employee.create({ data: { userId: schoolId, workno, name: 'Synthetic ' + workno, fingerprintTemplate: pair, numFingerprints: 1 } });
@@ -226,6 +243,19 @@ it('PostgreSQL: an original attendance-daemon fallback ID resolves to the new em
     const result = await punches.POST(request({ punches: [{ workno: '1000908', checktime: '2026-10-30T12:00:00Z', rawEventId: 'synthetic-event' }] }));
     assert.equal(result.status, 200);
     assert.equal((await prisma.attendanceLog.findFirst()).workno, '0908');
+});
+it('PostgreSQL: legacy CardPass3 agent output resolves a fallback UID and deduplicates delivery', async () => {
+    await add();
+    await prisma.$transaction(tx => sync.bindRemoteIdentity(tx, schoolId, '0908', '1000908'));
+    const legacy = await runLegacyCardPassAgent([{ id_event: 51, datetime_local: '2026-10-29T08:00:00.000Z', users_id_user: '1000908', reg_number: null,
+        user_name: 'Pessoa', surname: 'Sandbox', reader_name: 'BioEntry W2 synthetic' }]);
+    assert.match(legacy.queryText, /FROM events/);assert.equal(legacy.queryCursor, 0);assert.equal(legacy.savedState.lastEventId, 51);
+    assert.deepEqual(JSON.parse(JSON.stringify(legacy.submitted.punches[0])), { rawEventId: '51', workno: '1000908', employeeName: 'Pessoa Sandbox',
+        checktime: '2026-10-29T08:00:00.000Z', checktype: 1, deviceName: 'BioEntry W2 synthetic', deviceSn: null });
+    for (let attempt = 0; attempt < 2; attempt++) assert.equal((await punches.POST(request({ punches: legacy.submitted.punches }))).status, 200);
+    assert.equal(await prisma.attendanceLog.count(), 1);
+    const stored = await prisma.attendanceLog.findFirst();
+    assert.equal(stored.workno, '0908');assert.equal(stored.checktype, 1);assert.equal(stored.rawEventId, '51');
 });
 it('PostgreSQL: check type zero survives UID mapping and duplicate delivery', async () => {
     await add();

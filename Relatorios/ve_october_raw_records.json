@@ -1,0 +1,5204 @@
+[
+  {
+    "uuid": "3842e6b15c04ac3daca56f1d707b4e87a0dc120343ef6029984c52f910f691df",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-01T08:30:48+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cristiana ",
+      "last_name": "Machado",
+      "workno": "7",
+      "department": "VE",
+      "job_title": "Administrativa"
+    }
+  },
+  {
+    "uuid": "75270125aaf8eb8a478ab0e14ff60d50e39bdc1d7199e2cd802e2a1ff78d40e3",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-01T08:31:29+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Humberto ",
+      "last_name": "Silva",
+      "workno": "5",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "fcddda6c038224a0047eecb71318e96a65b0cc837617c0ed35ce5fa781c301df",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-01T08:33:42+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cláudia ",
+      "last_name": "Fernandes",
+      "workno": "4",
+      "department": "VE",
+      "job_title": "Administrador"
+    }
+  },
+  {
+    "uuid": "02376dbbe5f3cfacaa1db22325e80cd4689060befc00b6bd4d8d7808630fdb56",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-01T08:33:54+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Mauro ",
+      "last_name": "Baião",
+      "workno": "8",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "85a146eed288a2e4194f31037a5c9981f0f0c9907e2863b9b73ef56d36838233",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-01T08:34:13+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Michael ",
+      "last_name": "Sales",
+      "workno": "9",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "8abceaa500a5a652478a5cb86e4f8609697e270337bdcdde0161f98c787c3d1c",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-01T09:21:28+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Duarte ",
+      "last_name": "Pestana",
+      "workno": "6",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "453cd9f48a134cca7e7a29259ac4bf3d0403635d29efabf1c67d9d0e348b2678",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-01T09:21:40+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Isabel ",
+      "last_name": "Vaz",
+      "workno": "3",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "123b924e196fff83098628154d54a2e9cbeb14c7333a32bb39cf89dc7f9fc8c0",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-01T17:33:40+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cristiana ",
+      "last_name": "Machado",
+      "workno": "7",
+      "department": "VE",
+      "job_title": "Administrativa"
+    }
+  },
+  {
+    "uuid": "7a1bd3297530cf3d5929a486f7de5822f31586d3c11ce2da46e68053c953a449",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-01T17:33:56+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Humberto ",
+      "last_name": "Silva",
+      "workno": "5",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "a0d9160aad88129828a60f5521a7f132ee2c53646f14b58f95e826b35081a0e5",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-01T17:34:06+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Michael ",
+      "last_name": "Sales",
+      "workno": "9",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "0a2c90ded4c5d6aece7585706a91b529ca96880d77b5c84dd424089c07ef24f4",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-01T17:35:14+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Duarte ",
+      "last_name": "Pestana",
+      "workno": "6",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "9585818394a6870777b3b38bc1df50c1b05336f132532e2dba4133074290ac29",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-01T17:36:16+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Mauro ",
+      "last_name": "Baião",
+      "workno": "8",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "e6ab591cf3178c02875e1b7a3792334ddf5b06e563ee74ef5878c2b4e7b0cfd4",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-01T18:14:50+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cláudia ",
+      "last_name": "Fernandes",
+      "workno": "4",
+      "department": "VE",
+      "job_title": "Administrador"
+    }
+  },
+  {
+    "uuid": "83f868ec18a16ecec78e5ad0f868bedb989090c20bdc51bab4d0b521a07f15a0",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-01T18:14:56+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Isabel ",
+      "last_name": "Vaz",
+      "workno": "3",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "3ffccc7411a11d027c1a5f5d93936c7c4fbe1edc2ebd7a4e21192474119f3db6",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-02T07:52:39+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Bruno",
+      "last_name": "Lourenco",
+      "workno": "10",
+      "department": "VE",
+      "job_title": "Coordenador Manutenção"
+    }
+  },
+  {
+    "uuid": "4e1e2a5baabdda4df9568a75c50fbf2c757c4cfd1a9bab17361075d321412fd4",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-02T08:23:21+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Mauro ",
+      "last_name": "Baião",
+      "workno": "8",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "527a2ef8f3861dde16639ca4ae3d57a9190a2efa6f097c4eecbe56707d93a7c6",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-02T08:26:22+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cláudia ",
+      "last_name": "Fernandes",
+      "workno": "4",
+      "department": "VE",
+      "job_title": "Administrador"
+    }
+  },
+  {
+    "uuid": "14f22aa400384812e22df0cd13d175a3af76f37817585c69cb15c2585a388bff",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-02T08:29:08+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cristiana ",
+      "last_name": "Machado",
+      "workno": "7",
+      "department": "VE",
+      "job_title": "Administrativa"
+    }
+  },
+  {
+    "uuid": "bd5826651947872a61691f361ea151a3a20dcc1eeaf740d6ffbb6d2a10424542",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-02T08:30:19+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Michael ",
+      "last_name": "Sales",
+      "workno": "9",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "62658a77ab6c90991a4027cc871dea4fb17f6e5c161a19483cafbcbd2a110159",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-02T08:31:37+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Duarte ",
+      "last_name": "Pestana",
+      "workno": "6",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "666c94e8f08294bd5bf514b542b2280781664b50b38d124d13444aa0af1f7b3a",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-02T08:39:04+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Humberto ",
+      "last_name": "Silva",
+      "workno": "5",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "b97ce3de743c659db8b849664b22b5d84654db1b49bb62bb412cbf5387f110b8",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-02T09:01:29+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Isabel ",
+      "last_name": "Vaz",
+      "workno": "3",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "7ec1a55955cf0b3fcd76bcee1ebbe191552c4fe4e35850a7aa93b5df9b3db597",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-02T13:11:05+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cláudia ",
+      "last_name": "Fernandes",
+      "workno": "4",
+      "department": "VE",
+      "job_title": "Administrador"
+    }
+  },
+  {
+    "uuid": "b31640c698780409fa72bc8b41df641ee7a93ddf9e41f46d9a5bfceda97e760f",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-02T14:59:39+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cláudia ",
+      "last_name": "Fernandes",
+      "workno": "4",
+      "department": "VE",
+      "job_title": "Administrador"
+    }
+  },
+  {
+    "uuid": "2381ce4b6409644f74329f8d5198a38f445365cbecd5354a9799e381762a4a4b",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-02T16:07:56+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Humberto ",
+      "last_name": "Silva",
+      "workno": "5",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "b134ba260dcb3f64013117f73b4b49de9fcaac06e140fe51fb3f2834bfb18da1",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-02T17:30:31+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Duarte ",
+      "last_name": "Pestana",
+      "workno": "6",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "1ac4572f8ade7634a2697f0203e4c6e96e320089be40a747192e1c8b0954a4ce",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-02T17:31:11+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Mauro ",
+      "last_name": "Baião",
+      "workno": "8",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "aae53b58dbc3a423cdf39bb54294270f0acd70e84d5b65ec27bb0d50670f373f",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-02T17:31:19+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Michael ",
+      "last_name": "Sales",
+      "workno": "9",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "b36071417d8b59d9d8e7555594c180ee06841352fea65090fe391c7a8da593ff",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-02T17:36:46+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cláudia ",
+      "last_name": "Fernandes",
+      "workno": "4",
+      "department": "VE",
+      "job_title": "Administrador"
+    }
+  },
+  {
+    "uuid": "304b62e88ff38f4e99aec97901d5f6ee89e8021b34d08874160a09febd86206d",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-02T17:44:16+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Bruno",
+      "last_name": "Lourenco",
+      "workno": "10",
+      "department": "VE",
+      "job_title": "Coordenador Manutenção"
+    }
+  },
+  {
+    "uuid": "bcd19437474cb8320c5679490f910580854bf32757faca6313efa682fbfd6682",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-02T17:45:24+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Isabel ",
+      "last_name": "Vaz",
+      "workno": "3",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "9f99461d06af1616e610757d9e17d9838791bdd2f8026f28a9f9879fbaa9a447",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-06T08:28:24+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Duarte ",
+      "last_name": "Pestana",
+      "workno": "6",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "04a2819bdc2ca01ff1b914ddf43cc8ca7007b143c4daf92be6fe01bbd66db475",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-06T08:30:25+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Humberto ",
+      "last_name": "Silva",
+      "workno": "5",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "ff5f4f9dca80c4a2eba9854b6f69dc011abcf388f6c7aed43fd3c2a6a66b414e",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-06T08:31:35+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Michael ",
+      "last_name": "Sales",
+      "workno": "9",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "3fda5edfc25c56e45e7c70df44c8c5459b87c29d9446051b92cc9a73ad0ede8a",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-06T08:33:22+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cristiana ",
+      "last_name": "Machado",
+      "workno": "7",
+      "department": "VE",
+      "job_title": "Administrativa"
+    }
+  },
+  {
+    "uuid": "ead27a96b35bf636155b4830c1c1969706573dc81e5cfa09c1711b619596faf1",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-06T08:36:03+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Mauro ",
+      "last_name": "Baião",
+      "workno": "8",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "308a969cb4bb4f035580d010d9b240b696df9689d11f05f8979442e70b5cb05b",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-06T09:01:36+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Isabel ",
+      "last_name": "Vaz",
+      "workno": "3",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "0fede4711aadaeb02f7f8b1781d203834e891b938fbca8911eb25fe6d0aadeec",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-06T15:01:47+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Bruno",
+      "last_name": "Lourenco",
+      "workno": "10",
+      "department": "VE",
+      "job_title": "Coordenador Manutenção"
+    }
+  },
+  {
+    "uuid": "0c58293049df7f139a64dd917cfa7591885abfef5a4e9dcd286e487df9f9949c",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-06T17:31:30+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Duarte ",
+      "last_name": "Pestana",
+      "workno": "6",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "ace8549ba72a4b2bda7f067b4f05a66a9919de5f7323b0cc8f3650f412df1fd4",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-06T17:32:09+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Humberto ",
+      "last_name": "Silva",
+      "workno": "5",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "53f026f1497e97e77f4fe65718060b693e5ef39380531be1c2867eae33bef8ee",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-06T17:32:59+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cristiana ",
+      "last_name": "Machado",
+      "workno": "7",
+      "department": "VE",
+      "job_title": "Administrativa"
+    }
+  },
+  {
+    "uuid": "d71a1ac208bc8c3bdf318e7e115a632035d35c549e83846132dd9f644ffe68bc",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-06T17:33:18+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Michael ",
+      "last_name": "Sales",
+      "workno": "9",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "b638dff615daa02c44cc82e6158aeeda63cdc9d01e1833e0adca78cad3ba8e4e",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-06T17:35:02+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Mauro ",
+      "last_name": "Baião",
+      "workno": "8",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "bb89ec700f67e77c297cb347edfec769a82b15353314718e8155cc4966ca0734",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-06T17:39:08+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Bruno",
+      "last_name": "Lourenco",
+      "workno": "10",
+      "department": "VE",
+      "job_title": "Coordenador Manutenção"
+    }
+  },
+  {
+    "uuid": "0eba40f2ade17bb7a938449778c2cf305eb7164f10575bb61d3e9d5c3f3a68f1",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-07T07:57:33+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Bruno",
+      "last_name": "Lourenco",
+      "workno": "10",
+      "department": "VE",
+      "job_title": "Coordenador Manutenção"
+    }
+  },
+  {
+    "uuid": "7ed819a4c45f3d2253fb4c2738ccdb5ef02ee5de737f5e2ce55a1e3f8c9b0f12",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-07T08:26:03+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cristiana ",
+      "last_name": "Machado",
+      "workno": "7",
+      "department": "VE",
+      "job_title": "Administrativa"
+    }
+  },
+  {
+    "uuid": "3226d32b3b1d835e710629a3d7bba0ed24d8b7cf69a02890c9d6a3e53715c80a",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-07T08:26:17+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Humberto ",
+      "last_name": "Silva",
+      "workno": "5",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "085f31f696413ecfe75b6084b25165687c4843ecb158eebe8ff3f73da6f1f59e",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-07T08:28:30+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Duarte ",
+      "last_name": "Pestana",
+      "workno": "6",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "f770fe8fc14e7263b5c48f715804c960437090b383744d654754fdab9c5ba57f",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-07T08:34:25+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cláudia ",
+      "last_name": "Fernandes",
+      "workno": "4",
+      "department": "VE",
+      "job_title": "Administrador"
+    }
+  },
+  {
+    "uuid": "2c327ebe5e6bb20db7cd78fde53eb83e1bcebc3c54c9c3ca311d76f78a3f20e0",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-07T08:34:40+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Michael ",
+      "last_name": "Sales",
+      "workno": "9",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "63bee58d7626ca439925d6182afcd3ca3c98bb28ca4f3053a6722e6cfc865b16",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-07T08:45:14+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Mauro ",
+      "last_name": "Baião",
+      "workno": "8",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "c46e345db8365a7480e137c0e7f10d86848bb44f5b62eaee3667fb84843de7c9",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-07T09:05:30+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Isabel ",
+      "last_name": "Vaz",
+      "workno": "3",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "912cadd27628f0aaeda900cdfedc8311fecc53da6e62d65ef0f363332b264d3e",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-07T17:35:58+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Michael ",
+      "last_name": "Sales",
+      "workno": "9",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "75157a99a071892f32d8ae0a4141af2faf5d17ce8afefb47c72c114f263c5325",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-07T17:36:36+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Duarte ",
+      "last_name": "Pestana",
+      "workno": "6",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "53831e9467bd8db5f7830aed4a696b508ff9b8bfbe639e7128212541a419f49f",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-07T17:37:46+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Mauro ",
+      "last_name": "Baião",
+      "workno": "8",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "0f19fe34509a9cd825fb7a716e59fafe5caa75e68f7692f92b15efe077a6c842",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-07T17:37:55+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Humberto ",
+      "last_name": "Silva",
+      "workno": "5",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "d42692a2cbbd594c527e5453caf4add3da14c50591868963d2ee6674b9e86933",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-07T17:41:39+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Bruno",
+      "last_name": "Lourenco",
+      "workno": "10",
+      "department": "VE",
+      "job_title": "Coordenador Manutenção"
+    }
+  },
+  {
+    "uuid": "54ce2ae85f340475e63c5a1324489119f93303e28af7f5509a142883b505edc6",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-07T18:07:34+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Isabel ",
+      "last_name": "Vaz",
+      "workno": "3",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "53de5ec52fdca005859d5eb7f2121297a7d2740d896939acb0fb640d62b8d609",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-07T18:07:50+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cláudia ",
+      "last_name": "Fernandes",
+      "workno": "4",
+      "department": "VE",
+      "job_title": "Administrador"
+    }
+  },
+  {
+    "uuid": "7637e86cd0cf3d1c5dfd76ef18281e424aaf75e7eba6c8821cee4d3a5eb0d4f9",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-08T08:20:36+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Mauro ",
+      "last_name": "Baião",
+      "workno": "8",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "50feb9ea8e8d996e71e346e9038d3c1e01664fa1f21cab9936d1ff86ae512c9a",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-08T08:22:12+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cristiana ",
+      "last_name": "Machado",
+      "workno": "7",
+      "department": "VE",
+      "job_title": "Administrativa"
+    }
+  },
+  {
+    "uuid": "8d62e711e5fdfc48f6875ab6acfbbfd9337ecf227dd4e6d3a90fbbfade68df60",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-08T08:29:19+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cláudia ",
+      "last_name": "Fernandes",
+      "workno": "4",
+      "department": "VE",
+      "job_title": "Administrador"
+    }
+  },
+  {
+    "uuid": "98696c4f1b023e57a48ca8f6b7a4f62371484cf2504c175c5c27ff65039972d8",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-08T08:31:58+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Humberto ",
+      "last_name": "Silva",
+      "workno": "5",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "76d3a40bce89cf9918be8a255e7d0a84ace8909198efd70cb20630f9025793e4",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-08T08:32:39+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Michael ",
+      "last_name": "Sales",
+      "workno": "9",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "2f6821dbee0d7fadf9cc8cc38e354cc2e66bcff01c3975d5423df9b6336c85e2",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-08T17:30:08+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Humberto ",
+      "last_name": "Silva",
+      "workno": "5",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "a21f3dfac683d3f749317ea761e6ebaba6735e18b84a0976714223e09f456cb7",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-08T17:31:26+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cristiana ",
+      "last_name": "Machado",
+      "workno": "7",
+      "department": "VE",
+      "job_title": "Administrativa"
+    }
+  },
+  {
+    "uuid": "a13f27cdf52e39e1538c92c33157425b51bdcf3e6f5ad1982dbe78caba91e36c",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-08T17:35:37+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Mauro ",
+      "last_name": "Baião",
+      "workno": "8",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "cacd15440680a9731eb7744f18513ba5be3570d45686c1d953a26c18bcbe28ff",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-08T17:35:46+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Michael ",
+      "last_name": "Sales",
+      "workno": "9",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "be38c457312b6d4e0801ff16308caa1a7061594ac64de0161801aba1e73812a7",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-08T17:53:10+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cláudia ",
+      "last_name": "Fernandes",
+      "workno": "4",
+      "department": "VE",
+      "job_title": "Administrador"
+    }
+  },
+  {
+    "uuid": "ac2969255eecd9f09edf57038c10a9ee6f91a72348816dc83c2b60280456471e",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-09T08:14:59+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cristiana ",
+      "last_name": "Machado",
+      "workno": "7",
+      "department": "VE",
+      "job_title": "Administrativa"
+    }
+  },
+  {
+    "uuid": "9fb85df721092682fa79c57f8ff460a3e814d9ad05abc6f84a77fb0776b306c1",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-09T08:26:41+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Humberto ",
+      "last_name": "Silva",
+      "workno": "5",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "fc2452707ce358a4322fd51c5f64cd2c62c39af0ac13188db38bd235611a55e3",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-09T08:32:03+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Michael ",
+      "last_name": "Sales",
+      "workno": "9",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "9e402520d61557a600cdbe44539857f373d6a3b7f4d410fd532d00d6aa4b05df",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-09T08:35:50+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cláudia ",
+      "last_name": "Fernandes",
+      "workno": "4",
+      "department": "VE",
+      "job_title": "Administrador"
+    }
+  },
+  {
+    "uuid": "d4c53a6707f34dc33e39c963a784e8a926f15532400f84e5fed11c67a94aa29f",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-09T08:41:50+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Mauro ",
+      "last_name": "Baião",
+      "workno": "8",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "21a577245d980d29376186f38fd707f9e11936c1c4d89df409482d879cb07533",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-09T09:27:44+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Isabel ",
+      "last_name": "Vaz",
+      "workno": "3",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "66ad8975d7efed4b1e87cdfa9247bf5d902fba73fd8eeec870f63a8fb128f5aa",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-09T17:30:59+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Humberto ",
+      "last_name": "Silva",
+      "workno": "5",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "7376c47cad735278ba6c975ede0cfe1dd59bc4abeda99908002b12fe9062f72e",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-09T17:33:21+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cristiana ",
+      "last_name": "Machado",
+      "workno": "7",
+      "department": "VE",
+      "job_title": "Administrativa"
+    }
+  },
+  {
+    "uuid": "eebb1e5fcd4cb6fc132e58ac8bd1fbbf71e3b001a2a09324ac9d3365147798ab",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-09T17:33:33+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Michael ",
+      "last_name": "Sales",
+      "workno": "9",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "6d9a5a5b79223daf3361c278ac017ec576a4243dac43168dc0f96b733b78715c",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-09T17:33:43+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Mauro ",
+      "last_name": "Baião",
+      "workno": "8",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "42e632041eb165055a0281cd72594744bb98a8bc5dacceaddd4d4ea44254742c",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-09T17:35:40+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cláudia ",
+      "last_name": "Fernandes",
+      "workno": "4",
+      "department": "VE",
+      "job_title": "Administrador"
+    }
+  },
+  {
+    "uuid": "64a3880e419bdf1c8e365886d37688462687cc7b3d2cd5782bbd8efdf3b84655",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-12T08:11:51+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Bruno",
+      "last_name": "Lourenco",
+      "workno": "10",
+      "department": "VE",
+      "job_title": "Coordenador Manutenção"
+    }
+  },
+  {
+    "uuid": "646d76bcd90c1d22f569932d37ff535dde0959fd8c397ab0116ae7e6cc6918cb",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-12T08:32:59+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cláudia ",
+      "last_name": "Fernandes",
+      "workno": "4",
+      "department": "VE",
+      "job_title": "Administrador"
+    }
+  },
+  {
+    "uuid": "bbfddfbb7811c8732089804e28c7db9052cf6c70c0fecfe1fba35b52e64fbeff",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-12T08:33:10+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Humberto ",
+      "last_name": "Silva",
+      "workno": "5",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "1487451d2dd1dc8277166fdeea7ebf6c8da42065a05aaff2d401bc1923574118",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-12T08:33:27+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Duarte ",
+      "last_name": "Pestana",
+      "workno": "6",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "fcf13da237c5e33c2a49fccb3b9d9f0372a2c136951ae348803400b766576665",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-12T08:34:13+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cristiana ",
+      "last_name": "Machado",
+      "workno": "7",
+      "department": "VE",
+      "job_title": "Administrativa"
+    }
+  },
+  {
+    "uuid": "7ed70715f7b8041af785a80b4ba6083c5d557e6e9fc5222d2188f1cd8287c93e",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-12T08:35:00+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Michael ",
+      "last_name": "Sales",
+      "workno": "9",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "445edde77e1f9671383c26b1f2f2d53ef3994d91fedd665dc9525735a7b903bb",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-12T08:58:31+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Mauro ",
+      "last_name": "Baião",
+      "workno": "8",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "ab1b8e171a1809e219dfad3fa03a928911ad78cd2624bd44d719564fe743c897",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-12T09:08:28+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Isabel ",
+      "last_name": "Vaz",
+      "workno": "3",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "a91bd75d3c551418f64192aa744541ee0c8318dcc22adfad7786efb173a915ff",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-12T17:31:24+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Duarte ",
+      "last_name": "Pestana",
+      "workno": "6",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "ac44796bc63c56896672a3576fa500914525403f8c8c51f692300a0f90fc5d7a",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-12T17:31:30+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Duarte ",
+      "last_name": "Pestana",
+      "workno": "6",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "4c6cb8c06b6f4de220b04241ad9f5c61744d4f4eee2edc958ae74df1b79defa1",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-12T17:31:36+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Mauro ",
+      "last_name": "Baião",
+      "workno": "8",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "abdf371e19c4e724e03daf90de16e8169c71e6ac292eced358ab639e7c037ab2",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-12T17:31:44+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cristiana ",
+      "last_name": "Machado",
+      "workno": "7",
+      "department": "VE",
+      "job_title": "Administrativa"
+    }
+  },
+  {
+    "uuid": "28e55544c053f8070b0ac4718ff704b738bcc9722557f162785dc47652aef1cf",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-12T17:31:51+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Humberto ",
+      "last_name": "Silva",
+      "workno": "5",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "098c3a8da79b537bb47a706892cb51861e8ff32513f8361397e7ecf9fcb8af0b",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-12T17:31:55+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Michael ",
+      "last_name": "Sales",
+      "workno": "9",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "b3819a5b119eda2086bfb89717f8a9f282f955b0fddd1f71618dae15d62b1401",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-12T17:32:48+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cláudia ",
+      "last_name": "Fernandes",
+      "workno": "4",
+      "department": "VE",
+      "job_title": "Administrador"
+    }
+  },
+  {
+    "uuid": "327d2b49e53f7203c7874e5b73675d21b22923cbff97cfec49d9e27f04198d99",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-12T17:37:37+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Bruno",
+      "last_name": "Lourenco",
+      "workno": "10",
+      "department": "VE",
+      "job_title": "Coordenador Manutenção"
+    }
+  },
+  {
+    "uuid": "dcca4c19825c099d27884bf76876590275b97119fb96300c94cd0c060d4ca1f4",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-13T08:07:42+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Bruno",
+      "last_name": "Lourenco",
+      "workno": "10",
+      "department": "VE",
+      "job_title": "Coordenador Manutenção"
+    }
+  },
+  {
+    "uuid": "f30c7adfb9ace3a04d0cdb328c2ae85b5cb374e302234953388ed630eabce6e7",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-13T08:22:37+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cristiana ",
+      "last_name": "Machado",
+      "workno": "7",
+      "department": "VE",
+      "job_title": "Administrativa"
+    }
+  },
+  {
+    "uuid": "64e1451a14252d408af4a7dc9e27efa26b3c66708f5dcbf0a048e0ec240f6dd2",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-13T08:28:08+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Humberto ",
+      "last_name": "Silva",
+      "workno": "5",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "cba052ea76f0b720338d19cd382bb04cd8334c9d6302a394a7814f830e6e82f8",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-13T08:33:05+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Duarte ",
+      "last_name": "Pestana",
+      "workno": "6",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "d338bd87c096744a82c8b0ed49f71d708ee5e231d722397d36685bd817ea3210",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-13T08:33:32+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Michael ",
+      "last_name": "Sales",
+      "workno": "9",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "5b41c07ca17565de230447f4793293a930eb28562d10a559138664e46cf26960",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-13T08:39:00+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cláudia ",
+      "last_name": "Fernandes",
+      "workno": "4",
+      "department": "VE",
+      "job_title": "Administrador"
+    }
+  },
+  {
+    "uuid": "4070db812fd9db750bd059a822525450cee783603e87dfa8713458c507598a6e",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-13T08:53:24+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Mauro ",
+      "last_name": "Baião",
+      "workno": "8",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "d00f49333cfd8daed060e9523a7c302b7a166f542f33bdb051cd347a5d4ba445",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-13T09:17:00+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Isabel ",
+      "last_name": "Vaz",
+      "workno": "3",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "72613f724fdd5fbd9ea1ea26db67517e166098f10d822c3dbccd949018c76421",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-13T17:31:41+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cristiana ",
+      "last_name": "Machado",
+      "workno": "7",
+      "department": "VE",
+      "job_title": "Administrativa"
+    }
+  },
+  {
+    "uuid": "6d7d5e6922ae1426862ccfa8d19f3abf4671727d0c3b834cd020c26117be540a",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-13T17:34:10+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cláudia ",
+      "last_name": "Fernandes",
+      "workno": "4",
+      "department": "VE",
+      "job_title": "Administrador"
+    }
+  },
+  {
+    "uuid": "fbc1058e1d321973749365b264a53e880c1515db54c974f6a94830bad1556d18",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-13T17:35:19+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Mauro ",
+      "last_name": "Baião",
+      "workno": "8",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "64384a3ad8d1f7201547b15f2fddd1fdbfb82f58b0d6b2e9a757c42ee31b2738",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-13T17:38:12+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Humberto ",
+      "last_name": "Silva",
+      "workno": "5",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "6da68b5b13023bc27816a20ccd9cc33f689c318e215408b4c4eba7b7524795cf",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-13T17:38:49+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Michael ",
+      "last_name": "Sales",
+      "workno": "9",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "c04a6d18a2ec02905461588575f232346e6f9aafab8e80e632965b76ce7a1a41",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-14T08:22:42+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Bruno",
+      "last_name": "Lourenco",
+      "workno": "10",
+      "department": "VE",
+      "job_title": "Coordenador Manutenção"
+    }
+  },
+  {
+    "uuid": "257fded716b0459e26d3682c9cf07d5ad6158fa45cfc6a2525a4338c9348d6b6",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-14T08:30:01+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cristiana ",
+      "last_name": "Machado",
+      "workno": "7",
+      "department": "VE",
+      "job_title": "Administrativa"
+    }
+  },
+  {
+    "uuid": "c4846427832a21ae6770f8730f99edf70b677d0fe06bddc1fccb2fb550772bb0",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-14T08:30:05+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Duarte ",
+      "last_name": "Pestana",
+      "workno": "6",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "190fb2290f8cbe9fccf58f0a2c70cbab1a7adf9f2dcff127a452b60dd7af5160",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-14T08:32:11+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Michael ",
+      "last_name": "Sales",
+      "workno": "9",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "55dc346c9689624264b3f3634ef92da337c9ac01654e59e5c3a10c0ac9356e8e",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-14T08:32:18+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Humberto ",
+      "last_name": "Silva",
+      "workno": "5",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "68e271aa6dd30cf774e24d5fd9a1acadc6cbcb68d49ab7bd532bd6b821b532a0",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-14T08:41:27+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Mauro ",
+      "last_name": "Baião",
+      "workno": "8",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "544dc265f00eb31f98f4dcd5c52d13c0f1324ad3a9d19c210904e5b8930c6141",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-14T09:02:07+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cláudia ",
+      "last_name": "Fernandes",
+      "workno": "4",
+      "department": "VE",
+      "job_title": "Administrador"
+    }
+  },
+  {
+    "uuid": "2e04d4128ed68b12ac8ba213189faa09a7cea830906fd3228d8ab538fd72d02f",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-14T09:43:23+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Isabel ",
+      "last_name": "Vaz",
+      "workno": "3",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "87b24915ba3c698ec936500c5fa9b56c598dc6086e25b4c39c77e02e84c4f81d",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-14T17:30:28+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Humberto ",
+      "last_name": "Silva",
+      "workno": "5",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "bcee6f6f7d4964f910e5b32b505022cfb3f959e4966787365f4bf2e210127f56",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-14T17:30:57+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Duarte ",
+      "last_name": "Pestana",
+      "workno": "6",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "6fe79d5d4de805de38ac9173f712e17ddba4a43871fb65ad96abd1f74eefdacc",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-14T17:34:08+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Michael ",
+      "last_name": "Sales",
+      "workno": "9",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "cec2c6af0957be13982273e06b34a9d90963cdf0cc4852e3bbcf24af46e5ff29",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-14T17:34:22+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Bruno",
+      "last_name": "Lourenco",
+      "workno": "10",
+      "department": "VE",
+      "job_title": "Coordenador Manutenção"
+    }
+  },
+  {
+    "uuid": "52ba3445a5975120be316cdacafa33941345860aa91981041adca208a472eb38",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-14T17:34:35+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Mauro ",
+      "last_name": "Baião",
+      "workno": "8",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "550bf71f964a5f0ac0c2c623f52c53696ce410fef5bcf94f99f3a6f67279f4e2",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-14T18:08:29+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cláudia ",
+      "last_name": "Fernandes",
+      "workno": "4",
+      "department": "VE",
+      "job_title": "Administrador"
+    }
+  },
+  {
+    "uuid": "3b4c5427767f13338f52a74964ccdb2d6af3353dbd7bce0ee88d562e705fc4c0",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-14T18:10:09+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Isabel ",
+      "last_name": "Vaz",
+      "workno": "3",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "02d0c129219cbac3e1536687d7f5c2b310bb40d99f094aa5b10e08060265734d",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-15T08:31:46+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Humberto ",
+      "last_name": "Silva",
+      "workno": "5",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "74b681e2ac9ee78068014a65dc98d0aa8a8213d6f0409a6005387e510863ea77",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-15T08:34:17+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cláudia ",
+      "last_name": "Fernandes",
+      "workno": "4",
+      "department": "VE",
+      "job_title": "Administrador"
+    }
+  },
+  {
+    "uuid": "2e0844c0d492e73ce04526493472f49aff6efba1b1c12120e4b62182da47e60f",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-15T08:38:04+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Duarte ",
+      "last_name": "Pestana",
+      "workno": "6",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "f171591af726fc398f2b9228dbfc72d5135a08899f0d10c334c5bd5a2e5f6be4",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-15T08:38:18+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Michael ",
+      "last_name": "Sales",
+      "workno": "9",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "8f91e548b8d7cc67b0a2d7d64e34d5d66d04f3b33768e9ae70d5f12d6552bb8e",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-15T09:19:06+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Isabel ",
+      "last_name": "Vaz",
+      "workno": "3",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "647ff512ad23baa7a4ff277d87000e85ef13c76774bc0001ed8183c801128798",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-15T16:53:50+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Humberto ",
+      "last_name": "Silva",
+      "workno": "5",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "12e32d770ec403eb56b0f2e765e9445c3d204a5053d70a90fe248ef971db8184",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-15T17:30:38+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Duarte ",
+      "last_name": "Pestana",
+      "workno": "6",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "7ce9601b5bea74925b2f66e5c42826639f57a11ac2a9bcfa21eea567a36241cc",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-15T17:33:45+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Mauro ",
+      "last_name": "Baião",
+      "workno": "8",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "7abc62949a8a247cad3e853db80612973cc076361a35e667548914d70684b9a0",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-15T17:33:52+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Michael ",
+      "last_name": "Sales",
+      "workno": "9",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "53532c07f2b7af6562551fb0a599590a9569441fc7cc3bc17446177db1ce0efa",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-15T17:35:27+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Isabel ",
+      "last_name": "Vaz",
+      "workno": "3",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "4a0b6e822c4e9b6b8b2a1064df687e76657828a39f42585fb37616da24a6a3b7",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-15T17:39:03+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cláudia ",
+      "last_name": "Fernandes",
+      "workno": "4",
+      "department": "VE",
+      "job_title": "Administrador"
+    }
+  },
+  {
+    "uuid": "baa9fc036ed9e3ede63d2bd85003e1952fa4bf5c418be5964d89feb3051ef45a",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-16T08:05:26+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Bruno",
+      "last_name": "Lourenco",
+      "workno": "10",
+      "department": "VE",
+      "job_title": "Coordenador Manutenção"
+    }
+  },
+  {
+    "uuid": "f76475c71f3f68d35267c5c8f292fe87d69c47305e9f276ee9de148648d2fec1",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-16T08:30:53+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cláudia ",
+      "last_name": "Fernandes",
+      "workno": "4",
+      "department": "VE",
+      "job_title": "Administrador"
+    }
+  },
+  {
+    "uuid": "b3f75b7204b0a86492c98b758fc7de9064f1aa1830dc872797f5366fdf3c103b",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-16T08:34:01+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Humberto ",
+      "last_name": "Silva",
+      "workno": "5",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "a051f1431268c255bc16c92d88967c18a3e66fc5ba2813c9edddbe0545443ce2",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-16T08:34:09+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Michael ",
+      "last_name": "Sales",
+      "workno": "9",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "5ced909fc52e8968656d7bffe3c325bffe16f9cbc1c0f89e3a4ee015dc44a630",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-16T08:37:20+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Mauro ",
+      "last_name": "Baião",
+      "workno": "8",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "ff9338620fb6942c3f7dfeb4c2bcb2fa9d506538c6a637decdde27f830070008",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-16T08:37:25+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Duarte ",
+      "last_name": "Pestana",
+      "workno": "6",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "8db1eeb0918f100152d343021a68078faf8904679ef3eed18c301bd670149b39",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-16T08:55:40+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Isabel ",
+      "last_name": "Vaz",
+      "workno": "3",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "7fdb2a8c061f2237fb3708d49813248c3dacd7de3e434427ac5c8a09a4b9e1f9",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-16T17:34:23+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Humberto ",
+      "last_name": "Silva",
+      "workno": "5",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "aead4db27e9d1e2978753d03607b544ad30278d90478275a7c42bae6358dda10",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-16T17:36:38+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Michael ",
+      "last_name": "Sales",
+      "workno": "9",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "b985a56a1bd1032319fcbd9e06d4d6edef71c93f1d1f8f83a7e3cf5ebec422e8",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-16T17:37:18+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Mauro ",
+      "last_name": "Baião",
+      "workno": "8",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "7f1ff96db807b780814100f9a9dd2d5a8bb19cc933eda8acae3dbb9040979919",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-16T17:40:17+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cláudia ",
+      "last_name": "Fernandes",
+      "workno": "4",
+      "department": "VE",
+      "job_title": "Administrador"
+    }
+  },
+  {
+    "uuid": "19f874ef48b153b5ebf813c96f72db9e9c6c5f5dc743b7198f3b1b89d4c8fb55",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-16T17:42:39+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Bruno",
+      "last_name": "Lourenco",
+      "workno": "10",
+      "department": "VE",
+      "job_title": "Coordenador Manutenção"
+    }
+  },
+  {
+    "uuid": "96a90185a9f90ae1068081a68dbb3a56df4b7b32a205f498c7e62c7aa1ad6ff3",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-16T17:55:03+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Duarte ",
+      "last_name": "Pestana",
+      "workno": "6",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "7e0088ad51444caeda1e9c5e46044846ff86cf1c68193a998d2343cfdc4a45fe",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-16T17:55:13+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Isabel ",
+      "last_name": "Vaz",
+      "workno": "3",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "8f53309325dc24bf6491888a3d026903a3afd6c4376a9dc500f5b1fb6f2eb72d",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-19T08:10:57+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Bruno",
+      "last_name": "Lourenco",
+      "workno": "10",
+      "department": "VE",
+      "job_title": "Coordenador Manutenção"
+    }
+  },
+  {
+    "uuid": "5b6322f8b4670c265df203f623e8059cff54b003ba8019e1e5748228f04ce258",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-19T08:20:45+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cristiana ",
+      "last_name": "Machado",
+      "workno": "7",
+      "department": "VE",
+      "job_title": "Administrativa"
+    }
+  },
+  {
+    "uuid": "70cc3138a8760c333dbc1c448515178410024ac530efe64d66d61cb75318e17c",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-19T08:29:31+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Humberto ",
+      "last_name": "Silva",
+      "workno": "5",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "46dc121450b7f398f427f986b1b06ff63505d1498b557e62ef7d6374816307fc",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-19T08:31:21+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Mauro ",
+      "last_name": "Baião",
+      "workno": "8",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "5440df87e0fae01447766c9621a668001240d1d40d30b607f587ac314bdb05fc",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-19T08:32:07+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Michael ",
+      "last_name": "Sales",
+      "workno": "9",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "1ad5085e8101e7fe20b71b6d243090afea9e7ce7609b9ba2ce7827219f7c2e02",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-19T08:32:50+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Duarte ",
+      "last_name": "Pestana",
+      "workno": "6",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "814379e2f034a43d618df95410b030635b91242a57d3aef6af8c086de9b47785",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-19T08:33:00+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cláudia ",
+      "last_name": "Fernandes",
+      "workno": "4",
+      "department": "VE",
+      "job_title": "Administrador"
+    }
+  },
+  {
+    "uuid": "5a5df471f398d19371d30d7fd5d4f2c443a340dcdfac4dd9a9c79f4c229edee0",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-19T09:20:39+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Isabel ",
+      "last_name": "Vaz",
+      "workno": "3",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "fc825f6925ec6a83ef905f3a5293cad8963b190a97a9df0054d9567d409764b0",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-19T17:30:29+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Humberto ",
+      "last_name": "Silva",
+      "workno": "5",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "cf51c66596c9bd1647027454ae779b02bfbf93c5dfcfe0aa49a7ffd515a703c1",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-19T17:31:50+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Mauro ",
+      "last_name": "Baião",
+      "workno": "8",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "0d27bf2a9461a0290fc1c367bde05a021e37db6c6db8d883acc7bf38bb38bc67",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-19T17:35:19+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Duarte ",
+      "last_name": "Pestana",
+      "workno": "6",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "6739390f0e05702f88a9da5734f6fd9c821c67feb519feddbe54b82ee8dfac7b",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-19T17:35:45+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Michael ",
+      "last_name": "Sales",
+      "workno": "9",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "54a526c527f4e126e87965138f7a874587820607a686d67eaf902aa9836f6e80",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-19T17:37:47+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Bruno",
+      "last_name": "Lourenco",
+      "workno": "10",
+      "department": "VE",
+      "job_title": "Coordenador Manutenção"
+    }
+  },
+  {
+    "uuid": "3152f20af96391e7c68c3a55d8e93ee41d41b2e0c301754c297ce16e3dca7d0d",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-19T17:46:59+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cristiana ",
+      "last_name": "Machado",
+      "workno": "7",
+      "department": "VE",
+      "job_title": "Administrativa"
+    }
+  },
+  {
+    "uuid": "60d6ff6db66c2352ce6b29192b1c2d9707545c6c67c70cb69023aaaa934c0c38",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-20T08:10:41+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Bruno",
+      "last_name": "Lourenco",
+      "workno": "10",
+      "department": "VE",
+      "job_title": "Coordenador Manutenção"
+    }
+  },
+  {
+    "uuid": "0427045d623bf3811c372e92a7806c7c0d239ea61d8fde2b4d7375d1ac1ebac4",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-20T08:22:08+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cristiana ",
+      "last_name": "Machado",
+      "workno": "7",
+      "department": "VE",
+      "job_title": "Administrativa"
+    }
+  },
+  {
+    "uuid": "a0770de333f3248a32c2fe1a1b7a5bc0be996a2fac3b26d0c4ab7d8b2c04fadd",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-20T08:31:03+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Humberto ",
+      "last_name": "Silva",
+      "workno": "5",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "b665cdbd5cc677dccccb43c1755f1763af2945ee32ca1f451d0ee922c5e74e58",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-20T08:31:16+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Michael ",
+      "last_name": "Sales",
+      "workno": "9",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "6fa9a916c3218a1219c758a9e40ec673f93fd53640d7535886715ba0578b8c0f",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-20T08:33:25+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Mauro ",
+      "last_name": "Baião",
+      "workno": "8",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "72beda17dccefc720c9623878e7b1e56cf5af86028738bde2a576f12fc35af9b",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-20T08:33:29+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cláudia ",
+      "last_name": "Fernandes",
+      "workno": "4",
+      "department": "VE",
+      "job_title": "Administrador"
+    }
+  },
+  {
+    "uuid": "19f5643b65ac813fdc617f1e31ede049a2ddeab7d6be452764e94de0ac6d33ca",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-20T17:30:14+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Michael ",
+      "last_name": "Sales",
+      "workno": "9",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "fa4af71dff64b0211086f04e0ea3fe652077fab5a0ad9e61154ee429648d7d65",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-20T17:31:38+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Humberto ",
+      "last_name": "Silva",
+      "workno": "5",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "0e9776d3c04157b1fb6dfe1830b606bdebe0e701dd0069bd7a0b3ad6657db3b0",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-20T17:31:47+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Duarte ",
+      "last_name": "Pestana",
+      "workno": "6",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "330fb1258aca932a53d0842e3372d6e0d4f3e3279745034b2ee4b6eaed933d53",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-20T17:31:54+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Mauro ",
+      "last_name": "Baião",
+      "workno": "8",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "8d689668f32241b7aa91e8024b8c5572a791e710e0cfb6bfcfb0350e44b152b2",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-20T17:31:57+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Isabel ",
+      "last_name": "Vaz",
+      "workno": "3",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "aae9acadcf72bdb72e674bc71b698e36f6d81f1deb011051f9611b4241065d69",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-20T17:33:04+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cristiana ",
+      "last_name": "Machado",
+      "workno": "7",
+      "department": "VE",
+      "job_title": "Administrativa"
+    }
+  },
+  {
+    "uuid": "95b9883e47d2e891c50dd1bbe49b3f3f332918273111b23b3fdfd3038f6dce77",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-20T17:35:44+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cláudia ",
+      "last_name": "Fernandes",
+      "workno": "4",
+      "department": "VE",
+      "job_title": "Administrador"
+    }
+  },
+  {
+    "uuid": "12d25ede4e33e1628a27e0d28d3be06bb21d388a87492a842368e5b6acf41e7a",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-20T17:37:56+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Bruno",
+      "last_name": "Lourenco",
+      "workno": "10",
+      "department": "VE",
+      "job_title": "Coordenador Manutenção"
+    }
+  },
+  {
+    "uuid": "dc6659d4350aa576d7740ce7f8391359e9bc9c94fc5662416ed505d1d16f8e28",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-21T08:12:28+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Bruno",
+      "last_name": "Lourenco",
+      "workno": "10",
+      "department": "VE",
+      "job_title": "Coordenador Manutenção"
+    }
+  },
+  {
+    "uuid": "1a73d61d3cfd478e01534831441f2e8fc0d63c553515474984b9665da5ebb768",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-21T08:27:50+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cláudia ",
+      "last_name": "Fernandes",
+      "workno": "4",
+      "department": "VE",
+      "job_title": "Administrador"
+    }
+  },
+  {
+    "uuid": "b5acd33b5b345b3ee433ddc7def82164d53ced948ec4302c26d51975c0adcc2e",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-21T08:32:25+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Duarte ",
+      "last_name": "Pestana",
+      "workno": "6",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "b82ecefb476e7da735371ca5110c92def76a1c453847339cafa17be3cda44372",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-21T08:32:32+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cristiana ",
+      "last_name": "Machado",
+      "workno": "7",
+      "department": "VE",
+      "job_title": "Administrativa"
+    }
+  },
+  {
+    "uuid": "9d11838e6fb7e97974dd5c889b4f6aa680bf5d4692806a6690d645699b943c6c",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-21T08:32:40+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Michael ",
+      "last_name": "Sales",
+      "workno": "9",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "86085fee3a0dc2bd54107e24b58a089c63e9b3fd18536e6a45f0a93f30ef03f4",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-21T08:39:28+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Humberto ",
+      "last_name": "Silva",
+      "workno": "5",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "1c66e0362006a2a67d08b755163e77bdd52bcd2ed95e7f3cb38d98a333b1c2b2",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-21T08:45:43+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Mauro ",
+      "last_name": "Baião",
+      "workno": "8",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "c4cec4a916c90ca7f309f9921223e28a63112b5b09cb58c8338b4ab8b87530a3",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-21T09:33:57+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Isabel ",
+      "last_name": "Vaz",
+      "workno": "3",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "36d67cbff8d678d03f710b1a0d387cdf82a3f63cccf70c950c22b4026c1de3f4",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-21T17:30:18+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Mauro ",
+      "last_name": "Baião",
+      "workno": "8",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "a3f39ade6187c411239a38ea3381bd243dbce1000b4db1d7de868965f456daf9",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-21T17:30:25+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Mauro ",
+      "last_name": "Baião",
+      "workno": "8",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "3d8810dab35b4f842a4d1e8406d9d20786bce8c69d72bc75adc96b96fef64f51",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-21T17:30:29+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Duarte ",
+      "last_name": "Pestana",
+      "workno": "6",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "7c1d05d8904575d40af408751bfe6211b207a3230be0398c9dfb13eabde1173d",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-21T17:30:36+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Michael ",
+      "last_name": "Sales",
+      "workno": "9",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "4fe24b6806216d90b1bc1017d7038351e8ecb1aa3d28523c59ebd24b65c71e17",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-21T17:31:52+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Humberto ",
+      "last_name": "Silva",
+      "workno": "5",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "6514480ba3f678cffe356fa47af62114f62f43ea96f47c31fe28511f07ca3184",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-21T17:32:21+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Bruno",
+      "last_name": "Lourenco",
+      "workno": "10",
+      "department": "VE",
+      "job_title": "Coordenador Manutenção"
+    }
+  },
+  {
+    "uuid": "d6a7fa6d785af7670b418e09b3f8f6decaf4b25eaf461261ecce37a197c5d498",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-21T17:42:01+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cristiana ",
+      "last_name": "Machado",
+      "workno": "7",
+      "department": "VE",
+      "job_title": "Administrativa"
+    }
+  },
+  {
+    "uuid": "bf9bdf927d31457d1694fb6500ed04273c68acfa8488241ddb2494770eb0cd57",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-21T18:06:20+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cláudia ",
+      "last_name": "Fernandes",
+      "workno": "4",
+      "department": "VE",
+      "job_title": "Administrador"
+    }
+  },
+  {
+    "uuid": "91da1e077829df3af80885ff7c6b04207ce7fb56a96a17acc8a49abe4c8c74c0",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-22T08:09:59+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Bruno",
+      "last_name": "Lourenco",
+      "workno": "10",
+      "department": "VE",
+      "job_title": "Coordenador Manutenção"
+    }
+  },
+  {
+    "uuid": "86ff4ba808eabeef5e0d1e5e139cd79c482d06c83a663a283d9b9e7e5aadd7c6",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-22T08:10:07+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Bruno",
+      "last_name": "Lourenco",
+      "workno": "10",
+      "department": "VE",
+      "job_title": "Coordenador Manutenção"
+    }
+  },
+  {
+    "uuid": "1bca8ecdfa40683ddac39ed8ee5309a57928da8571148b1320212edd66166fb0",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-22T08:30:05+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cristiana ",
+      "last_name": "Machado",
+      "workno": "7",
+      "department": "VE",
+      "job_title": "Administrativa"
+    }
+  },
+  {
+    "uuid": "4dbcb7ead2032a3c0c50bf0c1d7bd663927cc8fdf58e3d364cdadf6786c17408",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-22T08:35:05+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Michael ",
+      "last_name": "Sales",
+      "workno": "9",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "0d1c183b53a102d79faf715b4315d2c7bd5cb2848cbc50915ff446d38f693730",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-22T08:35:42+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cláudia ",
+      "last_name": "Fernandes",
+      "workno": "4",
+      "department": "VE",
+      "job_title": "Administrador"
+    }
+  },
+  {
+    "uuid": "34879064c36214bfba7e991cd379241ca49631d82cda7227de89d939386c3c03",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-22T08:35:49+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Humberto ",
+      "last_name": "Silva",
+      "workno": "5",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "a37bfb057295c4c5181670153273bb40c9bc1b264ccc6cc53e4f856a40651e70",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-22T08:36:06+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Duarte ",
+      "last_name": "Pestana",
+      "workno": "6",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "8cd87e986ef855199e158b11eca735b1b0d6601afade41db868beea34435fbfd",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-22T08:46:11+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Mauro ",
+      "last_name": "Baião",
+      "workno": "8",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "e964498a12a477789811c4a6b54819975daaca6e6472a5ea4a275ff27e7cc752",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-22T09:07:01+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Isabel ",
+      "last_name": "Vaz",
+      "workno": "3",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "3356afd7f791012f5e0915815682155cdadf7f352ccd47887abf11068619fe6e",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-22T17:32:01+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Humberto ",
+      "last_name": "Silva",
+      "workno": "5",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "142d8bf23985ff6676477a9f3b678471a9194d0b7f7e666db90c11b0019c2fdc",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-22T17:32:16+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Mauro ",
+      "last_name": "Baião",
+      "workno": "8",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "7fe0dc4adcab6d3739192ef495bdcb26e3905671360d02b5aac62ef2f1a3d59c",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-22T17:32:23+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Michael ",
+      "last_name": "Sales",
+      "workno": "9",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "e5ea84fafca92363bde44eeedb23681c02296259ab6e6a4e794543556fbf14b9",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-22T17:32:45+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Bruno",
+      "last_name": "Lourenco",
+      "workno": "10",
+      "department": "VE",
+      "job_title": "Coordenador Manutenção"
+    }
+  },
+  {
+    "uuid": "81a784908f33983c4941265509cce3d2146b7a40b5612c0eca497bcef3d01c59",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-22T17:35:40+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cristiana ",
+      "last_name": "Machado",
+      "workno": "7",
+      "department": "VE",
+      "job_title": "Administrativa"
+    }
+  },
+  {
+    "uuid": "b84ff516af78f45dff1c17b3c06110df480aa0e8ace20b36fdb766c3edf4f6fd",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-22T17:46:59+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Duarte ",
+      "last_name": "Pestana",
+      "workno": "6",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "22266e0fade1e4cda06b8538f4853063065a0de1381f15f3007308c97c115d52",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-22T17:47:01+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cláudia ",
+      "last_name": "Fernandes",
+      "workno": "4",
+      "department": "VE",
+      "job_title": "Administrador"
+    }
+  },
+  {
+    "uuid": "022348af6dee626a493c7cce23b0ffd72530d3cad6941fbe4c42c2a17bdc03ef",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-23T08:11:17+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cristiana ",
+      "last_name": "Machado",
+      "workno": "7",
+      "department": "VE",
+      "job_title": "Administrativa"
+    }
+  },
+  {
+    "uuid": "348eff39a651e6312fc22d8fe3e0ca6a3f37b1fef3334203fcb4238daa4df207",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-23T08:26:57+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cláudia ",
+      "last_name": "Fernandes",
+      "workno": "4",
+      "department": "VE",
+      "job_title": "Administrador"
+    }
+  },
+  {
+    "uuid": "95706a9841292026e72a1c3a582e0bdca33bffa844d0701713cad6316e0a3e65",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-23T08:27:03+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Humberto ",
+      "last_name": "Silva",
+      "workno": "5",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "7b9f9699e1f8d12374115b3edfc3c15a558e835c62acceb9ac5bfd02a6b9d0bc",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-23T08:29:35+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Mauro ",
+      "last_name": "Baião",
+      "workno": "8",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "8ba70c91d8cc067e33689fd16ccaa3e7400102c4a8c3ca2abf7476910722d778",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-23T08:31:36+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Michael ",
+      "last_name": "Sales",
+      "workno": "9",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "60f663839fba86e58edcc533ff4e25b9285434740ae744c3ff3ce1b51e21314e",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-23T08:42:15+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Duarte ",
+      "last_name": "Pestana",
+      "workno": "6",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "8964cd53e3be172783363bb99aad1d3f9d0911f045c855c49f494f091fb3647c",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-23T17:30:43+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Mauro ",
+      "last_name": "Baião",
+      "workno": "8",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "8cecb79d5860be9f30dc070a726b2404d432e08b4b3a19f19fac9bca2913d0d6",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-23T17:30:45+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Michael ",
+      "last_name": "Sales",
+      "workno": "9",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "534ed17bf541c06f6032460aff65b313edbab79d866103045f8596e3ef1597a5",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-23T17:32:51+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cristiana ",
+      "last_name": "Machado",
+      "workno": "7",
+      "department": "VE",
+      "job_title": "Administrativa"
+    }
+  },
+  {
+    "uuid": "cb879f324c5a52c3097067a4894118d520a8bcc44c0a9e2b57bb1f1e409e123e",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-23T17:37:24+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cláudia ",
+      "last_name": "Fernandes",
+      "workno": "4",
+      "department": "VE",
+      "job_title": "Administrador"
+    }
+  },
+  {
+    "uuid": "dcd976f1926c2c6cd09aba37e7d9eb91f1a33dd911c1ffe8e1d07606e76847d3",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-26T09:04:36+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cristiana ",
+      "last_name": "Machado",
+      "workno": "7",
+      "department": "VE",
+      "job_title": "Administrativa"
+    }
+  },
+  {
+    "uuid": "ac76aebd11047162c38ff2e74db191897da7f32fafd3b04c38e98f588314f957",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-26T09:09:38+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Mauro ",
+      "last_name": "Baião",
+      "workno": "8",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "2e3e168d1a5b32c82d7685d01cc693f61676474ce1096640e807a6dcd341ae40",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-26T09:21:54+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Bruno",
+      "last_name": "Lourenco",
+      "workno": "10",
+      "department": "VE",
+      "job_title": "Coordenador Manutenção"
+    }
+  },
+  {
+    "uuid": "9c73765953e6e8b13c5ad1b538c73c6767b3aa082c860e3d9c78f1d57724ea8c",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-26T09:25:57+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Humberto ",
+      "last_name": "Silva",
+      "workno": "5",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "48c2bb5828076297f7447a7f752749d3fa334896d01a3bfc1c1562e6ef4f6944",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-26T09:30:08+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cláudia ",
+      "last_name": "Fernandes",
+      "workno": "4",
+      "department": "VE",
+      "job_title": "Administrador"
+    }
+  },
+  {
+    "uuid": "a08fb37c93db144d2792f6e34b9dfa7a496d6df72628445569fecfc574edb43a",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-26T09:31:04+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Duarte ",
+      "last_name": "Pestana",
+      "workno": "6",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "e1f5c3e01c708ef7cfe16804d3c397c7a98b600278bd9c2446197da6d9f3145e",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-26T09:32:29+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Michael ",
+      "last_name": "Sales",
+      "workno": "9",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "ef2a4b26a7d3d25606c7ee5aaacbfc9642c7a18c5c2fa3a6c77a241627d763cd",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-26T09:57:55+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Isabel ",
+      "last_name": "Vaz",
+      "workno": "3",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "53dfe5a875030a1790191f344c23a882aa1fe534ca800a3bda8be69207a0a630",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-26T10:14:52+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cristiana ",
+      "last_name": "Machado",
+      "workno": "7",
+      "department": "VE",
+      "job_title": "Administrativa"
+    }
+  },
+  {
+    "uuid": "fe4109c22db0be880be850b7e6f2393049110fc3c13e9fd9af35859dffc211a8",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-26T18:31:18+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Duarte ",
+      "last_name": "Pestana",
+      "workno": "6",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "68ec3a4b26498f7c8a0810ac1a083808b69fe9b18afb7da95e87ec3b27fba041",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-26T18:31:25+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Mauro ",
+      "last_name": "Baião",
+      "workno": "8",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "91dcddfde3f4b6bd98c2f62743e75aa1f4f08471d4638dff6c7a149d7d4b1c53",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-26T18:34:26+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Michael ",
+      "last_name": "Sales",
+      "workno": "9",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "62c369358e2531cca8d7f2973b76858b01c80571baec62fb6e13af0f0311ed05",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-26T18:34:28+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Humberto ",
+      "last_name": "Silva",
+      "workno": "5",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "00c4b3b8f18e0eed54ade3f65a71f49a7fcebd596b9d3524e966af6965b3febf",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-26T18:34:59+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cristiana ",
+      "last_name": "Machado",
+      "workno": "7",
+      "department": "VE",
+      "job_title": "Administrativa"
+    }
+  },
+  {
+    "uuid": "45f5b9574837d68b40392ebd9eceb884383c3fdcd51882bb2ade01a91f80e2c2",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-26T18:38:56+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Bruno",
+      "last_name": "Lourenco",
+      "workno": "10",
+      "department": "VE",
+      "job_title": "Coordenador Manutenção"
+    }
+  },
+  {
+    "uuid": "cb592625b7c8f3ba2387fb5d4bd635db00ed6162f27529b65c4060cec30a949e",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-26T18:45:48+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cláudia ",
+      "last_name": "Fernandes",
+      "workno": "4",
+      "department": "VE",
+      "job_title": "Administrador"
+    }
+  },
+  {
+    "uuid": "29d30e925d49e4b08e2aca0ebc0cbf7079c52ddb9393c56676cd2938eee08cdc",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-27T09:09:23+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Bruno",
+      "last_name": "Lourenco",
+      "workno": "10",
+      "department": "VE",
+      "job_title": "Coordenador Manutenção"
+    }
+  },
+  {
+    "uuid": "a09ab42672da423ac304a9d8de6c60ea7ac0d94e2ba1527526ffb046e4c5acf0",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-27T09:17:40+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cristiana ",
+      "last_name": "Machado",
+      "workno": "7",
+      "department": "VE",
+      "job_title": "Administrativa"
+    }
+  },
+  {
+    "uuid": "495c379a59002b01192cbba3bd9a59c9f8bc04df17fc87412ce5bb0a602e1b41",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-27T09:17:42+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Duarte ",
+      "last_name": "Pestana",
+      "workno": "6",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "57924890c4331a2d17f8c101a303ae934b1591a59a3a1e966acfdad238dfa007",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-27T09:19:14+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Mauro ",
+      "last_name": "Baião",
+      "workno": "8",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "99dab6ab830efadf7d152189a221f15b5855fc74675f7dc02baf227911f109a2",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-27T09:25:29+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Humberto ",
+      "last_name": "Silva",
+      "workno": "5",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "2f898612c14ff1cff5897f9ce54cca90305f7fd2962264c5ead4eaed9927d40f",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-27T09:29:28+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cláudia ",
+      "last_name": "Fernandes",
+      "workno": "4",
+      "department": "VE",
+      "job_title": "Administrador"
+    }
+  },
+  {
+    "uuid": "d568d8543c59b84f752df6c88c92e877f8055ed8a9735c69bd9918ec5b1eb442",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-27T09:31:59+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Michael ",
+      "last_name": "Sales",
+      "workno": "9",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "9d07e3813628f9ec4cd0ba8f5672e7c2c2d60e00cf07ada598ce27f33157eb09",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-27T18:30:48+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Duarte ",
+      "last_name": "Pestana",
+      "workno": "6",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "e59ca6ead36dab36a2a74e28820ea4a6e4035a2c8eb9d4d15254b1bf4c5bfad3",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-27T18:30:52+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Michael ",
+      "last_name": "Sales",
+      "workno": "9",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "fd90f8ac435a5eb2560ce84058648d1a83c9b230dd18870ec39bf99fbb849f13",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-27T18:30:59+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Humberto ",
+      "last_name": "Silva",
+      "workno": "5",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "353458006e88913750984efe0d302e2d7692a452808335e8cec9bdb13d8d4812",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-27T18:31:11+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Mauro ",
+      "last_name": "Baião",
+      "workno": "8",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "c84a432e5cbef41ea6d89205d6a79295b859c833146231161037a19b0624d8ae",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-27T18:31:36+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cristiana ",
+      "last_name": "Machado",
+      "workno": "7",
+      "department": "VE",
+      "job_title": "Administrativa"
+    }
+  },
+  {
+    "uuid": "fc97709dacd51f6eab200666aa361e3284b4249cd751008b10130d0d18a11215",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-27T18:33:12+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Bruno",
+      "last_name": "Lourenco",
+      "workno": "10",
+      "department": "VE",
+      "job_title": "Coordenador Manutenção"
+    }
+  },
+  {
+    "uuid": "acf29c836e919a76d7f0c816bd12c151a58c0c2b8802c5652702a805240b20e9",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-27T18:33:32+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cláudia ",
+      "last_name": "Fernandes",
+      "workno": "4",
+      "department": "VE",
+      "job_title": "Administrador"
+    }
+  },
+  {
+    "uuid": "73e5e148707a024354c8d806f69afee54cb3a0880260ff721469a3ee84f44f5e",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-27T18:34:40+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Isabel ",
+      "last_name": "Vaz",
+      "workno": "3",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "780954bda85027d3ce18ecf0254339dfb0f926317429cc5b7520124e12b01d34",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-28T09:17:33+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Bruno",
+      "last_name": "Lourenco",
+      "workno": "10",
+      "department": "VE",
+      "job_title": "Coordenador Manutenção"
+    }
+  },
+  {
+    "uuid": "a4d8049c67224241c9225fb2e0aef2c5714d2a087cf43de9fa1d53f53225d34b",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-28T09:17:51+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cristiana ",
+      "last_name": "Machado",
+      "workno": "7",
+      "department": "VE",
+      "job_title": "Administrativa"
+    }
+  },
+  {
+    "uuid": "a96b1a19680e0858800f96b5ecbfc697723838520bb348cc7a28b104149833a3",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-28T09:31:48+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Michael ",
+      "last_name": "Sales",
+      "workno": "9",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "6e20d2a83868c81e00b93539c85b8d652ac6daf11794df74b9b4dfd25e322e71",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-28T09:32:48+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Humberto ",
+      "last_name": "Silva",
+      "workno": "5",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "2e9941b9d0746b428151da20c40f12430fc04cca193f4157945bf114ef216404",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-28T09:34:22+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cláudia ",
+      "last_name": "Fernandes",
+      "workno": "4",
+      "department": "VE",
+      "job_title": "Administrador"
+    }
+  },
+  {
+    "uuid": "447a520714b474bd6985f0071bfe2d99a64e53a3ff22b8deb4953f0002448ed1",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-28T09:37:36+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Mauro ",
+      "last_name": "Baião",
+      "workno": "8",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "2eaf1d98e305288c4556440cab43206e7569887d81f46b029ab4e228be3e2728",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-28T18:30:19+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Humberto ",
+      "last_name": "Silva",
+      "workno": "5",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "666487e6376a05ab95ca8301dd785a983742cab72d6ca60eb9cff2d3d78e073d",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-28T18:32:42+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Michael ",
+      "last_name": "Sales",
+      "workno": "9",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "514874f4d07752bb57148cdfb2bff1f1325ee882cff28568ac3720ad6a32bbd2",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-28T18:33:13+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cristiana ",
+      "last_name": "Machado",
+      "workno": "7",
+      "department": "VE",
+      "job_title": "Administrativa"
+    }
+  },
+  {
+    "uuid": "9a8426debee1dffa209839f1425ab28e192dd6434ed780b7eb7cfda1c3babe6a",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-28T18:33:18+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Mauro ",
+      "last_name": "Baião",
+      "workno": "8",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "8d18e8334b10eb8b3fb55bff0a8a59a9cd2f91abff30f10530e3befd1e071ede",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-28T19:01:16+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Bruno",
+      "last_name": "Lourenco",
+      "workno": "10",
+      "department": "VE",
+      "job_title": "Coordenador Manutenção"
+    }
+  },
+  {
+    "uuid": "08b556a5cf2e09d2c3993bfa68072e9a86300a332434350c6a260347644dcd3d",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-28T19:02:44+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cláudia ",
+      "last_name": "Fernandes",
+      "workno": "4",
+      "department": "VE",
+      "job_title": "Administrador"
+    }
+  },
+  {
+    "uuid": "f5986347520e3be10b11c4e71259154b9a7cd81bdc399f7af36c818c1d602dd6",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-29T08:50:43+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Bruno",
+      "last_name": "Lourenco",
+      "workno": "10",
+      "department": "VE",
+      "job_title": "Coordenador Manutenção"
+    }
+  },
+  {
+    "uuid": "3614000bef749d90db94284ce88b0c85e60bb5c3d1089bad39b4947a1659985e",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-29T09:07:42+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cristiana ",
+      "last_name": "Machado",
+      "workno": "7",
+      "department": "VE",
+      "job_title": "Administrativa"
+    }
+  },
+  {
+    "uuid": "ebf418aa17e25514eb8fa4624f0598e929006ab6467ac29ce8fccc6481889bc1",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-29T09:25:18+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Duarte ",
+      "last_name": "Pestana",
+      "workno": "6",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "59969d5722092d849259e8484282e98a81e290ba88df78948d7da5990e397d76",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-29T09:26:52+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Mauro ",
+      "last_name": "Baião",
+      "workno": "8",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "922b93593fbd5db0028498df872b983947bee79e982d8f2ea3021d3fdcbc2271",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-29T09:31:39+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cláudia ",
+      "last_name": "Fernandes",
+      "workno": "4",
+      "department": "VE",
+      "job_title": "Administrador"
+    }
+  },
+  {
+    "uuid": "b5d58775f8b5a46a50c64c0597a1c2def2d41929c821761056bb61a0663a318d",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-29T09:33:34+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Humberto ",
+      "last_name": "Silva",
+      "workno": "5",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "71ab4b9554f58dd97a70291d46d5df815af104173282c0e9731c0c23c964dd10",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-29T09:51:00+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Michael ",
+      "last_name": "Sales",
+      "workno": "9",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "4db48ca380da4f9c136afc5eaac32a54395692d3f5abce3166705e1e0b93fa81",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-29T09:55:59+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Isabel ",
+      "last_name": "Vaz",
+      "workno": "3",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "a7ece15f4605af502a9692bff0745f7915544c8921e5dfa07ffe20aa2996e864",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-29T15:32:53+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Duarte ",
+      "last_name": "Pestana",
+      "workno": "6",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "bca761a0d94f693e8b121b65423ca020d9ae7b72d66b57179d4023968e24f0c5",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-29T18:31:42+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Michael ",
+      "last_name": "Sales",
+      "workno": "9",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "2dec6e96b9f89cfad82f2ad7024753a82987ecb1377b3d6bf8d9003bfa6318b7",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-29T18:32:12+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Mauro ",
+      "last_name": "Baião",
+      "workno": "8",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "b310591e69ebb9e4d6f917d0d798326e0228089eb8776f488be6b2bf14921065",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-29T18:32:25+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Bruno",
+      "last_name": "Lourenco",
+      "workno": "10",
+      "department": "VE",
+      "job_title": "Coordenador Manutenção"
+    }
+  },
+  {
+    "uuid": "23f43aa2a0690a380a33cb5d907a46d221c153db8b5e1091399ff3535fa65ec9",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-29T18:33:04+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Isabel ",
+      "last_name": "Vaz",
+      "workno": "3",
+      "department": "VE",
+      "job_title": "Administrativo"
+    }
+  },
+  {
+    "uuid": "0efd965d51bab61bbfe62a9b3d44011d7236ab1e05b8ef75f131c5c7fa82f7af",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-29T18:33:18+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cristiana ",
+      "last_name": "Machado",
+      "workno": "7",
+      "department": "VE",
+      "job_title": "Administrativa"
+    }
+  },
+  {
+    "uuid": "049d6a2a24a48acae42084e2763439ca275125ef72fe0eb4d030bc6b9343b5aa",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-29T18:53:32+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cláudia ",
+      "last_name": "Fernandes",
+      "workno": "4",
+      "department": "VE",
+      "job_title": "Administrador"
+    }
+  },
+  {
+    "uuid": "6a50538dc442308ba041673671f5ad729a31d7e9d0c3d608a38ba47026989e29",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-30T09:02:36+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cristiana ",
+      "last_name": "Machado",
+      "workno": "7",
+      "department": "VE",
+      "job_title": "Administrativa"
+    }
+  },
+  {
+    "uuid": "70fb4dea400141506015f33fb86daca0980038193ed4094877558564b43a4d33",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-30T09:08:16+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Bruno",
+      "last_name": "Lourenco",
+      "workno": "10",
+      "department": "VE",
+      "job_title": "Coordenador Manutenção"
+    }
+  },
+  {
+    "uuid": "7b5b1e11cd87f21f62c93e70bd2418adde0d57d83f9b1e0004381a0bf41c00ce",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-30T09:31:51+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Humberto ",
+      "last_name": "Silva",
+      "workno": "5",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "186552eb35bd9a9d89eb9d450e2c1682a0dc7ae3dd4ee8f0ea435518627b40fe",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-30T09:32:11+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Michael ",
+      "last_name": "Sales",
+      "workno": "9",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "82c304860c7c082064aa4b8598b5919399098f849e1a11db2116e3e87b8f3d0d",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-30T09:32:26+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cláudia ",
+      "last_name": "Fernandes",
+      "workno": "4",
+      "department": "VE",
+      "job_title": "Administrador"
+    }
+  },
+  {
+    "uuid": "4919435dfee9c609e64cb399f9a98fea473bfdc6f963c651d7ea205946aeacca",
+    "source": 0,
+    "checktype": 0,
+    "checktime": "2026-10-30T10:09:02+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Mauro ",
+      "last_name": "Baião",
+      "workno": "8",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "3a72959a85f083d44bb2ae4bb5eafe4652253175c3906fa8f7b3e8ed884e9284",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-30T18:30:38+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Humberto ",
+      "last_name": "Silva",
+      "workno": "5",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "d54aed5acdfef4cefb85d1cbf58c46e7019a857828300f03069dbe191858afa5",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-30T18:30:53+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Michael ",
+      "last_name": "Sales",
+      "workno": "9",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  },
+  {
+    "uuid": "97b9e2cd8fa7b7a829c1f55a3ebf5bedef73fd32e6d7c357f6b70de135e3c4a8",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-30T18:31:45+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cristiana ",
+      "last_name": "Machado",
+      "workno": "7",
+      "department": "VE",
+      "job_title": "Administrativa"
+    }
+  },
+  {
+    "uuid": "1f1a44160ca6af2ab01bde2318b3feb5a5098cae7074c86a7d65644be3818630",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-30T18:31:59+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Bruno",
+      "last_name": "Lourenco",
+      "workno": "10",
+      "department": "VE",
+      "job_title": "Coordenador Manutenção"
+    }
+  },
+  {
+    "uuid": "961a4bf16611b9b6823b2a29b33aeff07ba42573046608f21833c5a3ef9d8ab2",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-30T18:36:49+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Cláudia ",
+      "last_name": "Fernandes",
+      "workno": "4",
+      "department": "VE",
+      "job_title": "Administrador"
+    }
+  },
+  {
+    "uuid": "ebe0c4929d5734b921f347643327c15bea57cdc6efc74b099d488f26769d9f54",
+    "source": 0,
+    "checktype": 1,
+    "checktime": "2026-10-30T18:36:55+00:00",
+    "address": "",
+    "device": {
+      "serial_number": "0680200025200045",
+      "name": "W1PRO"
+    },
+    "employee": {
+      "first_name": "Mauro ",
+      "last_name": "Baião",
+      "workno": "8",
+      "department": "VE",
+      "job_title": "Manutenção"
+    }
+  }
+]
