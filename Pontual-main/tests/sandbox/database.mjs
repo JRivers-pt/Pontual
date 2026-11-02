@@ -6,6 +6,8 @@ import { PrismaClient } from '@prisma/client';
 export async function isolatedDatabase() {
     const connectionString = process.env.PATCH_TEST_DATABASE_URL;
     if (process.env.RUN_ISOLATED_PG_TESTS !== 'true' || !connectionString) throw new Error('EXPLICIT_ISOLATED_DATABASE_REQUIRED');
+    const sourceSchema = process.env.PATCH_TEST_SOURCE_SCHEMA;
+    if (!/^pontual_fixture_[a-f0-9]{12}$/.test(sourceSchema || '')) throw new Error('EXPLICIT_FIXTURE_SCHEMA_REQUIRED');
     if (new URL(connectionString).hostname.includes('-pooler.')) throw new Error('DIRECT_CONNECTION_REQUIRED');
     const schema = 'pontual_sandbox_' + randomBytes(6).toString('hex');
     const admin = new Client({ connectionString });
@@ -20,13 +22,13 @@ export async function isolatedDatabase() {
         await admin.query(`CREATE SCHEMA "${schema}"`); created = true;
         for (const table of ['User','Employee','Schedule','EmployeeSchedule','AttendanceLog','AuditLog']) {
             // Definitions only, never customer rows. All subsequent model SQL is schema-qualified.
-            await admin.query(`CREATE TABLE "${schema}"."${table}" (LIKE public."${table}" INCLUDING ALL)`);
+            await admin.query(`CREATE TABLE "${schema}"."${table}" (LIKE "${sourceSchema}"."${table}" INCLUDING ALL)`);
         }
         await admin.query(`CREATE TYPE "${schema}"."Role" AS ENUM ('ADMIN','CLIENT')`);
         await admin.query(`ALTER TABLE "${schema}"."User" ALTER COLUMN "role" DROP DEFAULT`);
         await admin.query(`ALTER TABLE "${schema}"."User" ALTER COLUMN "role" TYPE "${schema}"."Role" USING "role"::text::"${schema}"."Role"`);
         await admin.query(`ALTER TABLE "${schema}"."User" ALTER COLUMN "role" SET DEFAULT 'CLIENT'::"${schema}"."Role"`);
-        await admin.query(`SET search_path TO "${schema}", public`);
+        await admin.query(`SET search_path TO "${schema}"`);
         await admin.query(fs.readFileSync(new URL('../../prisma/changes/20261030_enrollment_queue.sql',import.meta.url),'utf8'));
         const url = new URL(connectionString); url.searchParams.set('schema',schema);url.searchParams.set('connection_limit','6');
         let query = '';

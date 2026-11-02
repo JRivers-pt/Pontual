@@ -1,4 +1,4 @@
-import { USB_SUPREMA_TEMPLATE_TYPE } from "@/lib/fingerprint-format";
+import { USB_SUPREMA_TEMPLATE_TYPE, validateSupremaTemplate } from "@/lib/fingerprint-format";
 
 export type Scanner = { url: string; name: string };
 
@@ -30,14 +30,18 @@ export async function captureUsbFingerprint(scanner: Scanner) {
     });
     if (!response.ok) throw new Error(`O agente USB respondeu com erro HTTP ${response.status}.`);
     const data = await response.json();
-    if (typeof data.template !== "string" || !data.template.trim()) {
+    if (String(data.retcode) !== "1" || typeof data.template !== "string" || !data.template.trim()) {
         throw new Error(`O agente respondeu sem capturar uma impressão digital (código ${data.retcode ?? "não indicado"}). Mantenha o dedo no leitor e tente novamente.`);
     }
+    try { validateSupremaTemplate(data.template); }
+    catch { throw new Error("O agente devolveu uma impressão digital inválida ou incompleta. Reinicie a captura e tente novamente."); }
     return { template: data.template, quality: typeof data.score === "number" ? data.score : null,
         image: typeof data.image?.data === "string" ? `data:image/jpeg;base64,${data.image.data}` : null };
 }
 
 export async function verifyUsbFingerprintPair(scanner: Scanner, template0: string, template1: string) {
+    validateSupremaTemplate(template0);
+    validateSupremaTemplate(template1);
     // Native USB Agent expects form-encoded fields, not a JSON document.
     const response = await fetch(`${scanner.url}/api/Verify`, {
         method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },

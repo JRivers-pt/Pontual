@@ -27,6 +27,9 @@ async function ensureFingerprintAvailable(call, biostarUrl, headers, template, u
     const message = String(result?.body?.Response?.message || '').trim().replace(/[.]+$/, '');
     if (result?.status === 500 && String(result.body?.Response?.code) === '1201' &&
         message === 'Failed to identify fingerprint') return;
+    // BioStar 2.9.12 also returns 1205 for a valid sample against an empty index.
+    // Its generic message does not establish matching health; never treat it as permission to write.
+    if (String(result?.body?.Response?.code) === '1205') throw new Error('DUPLICATE_CHECK_UNAVAILABLE');
     if (result?.status !== 200 || String(result.body?.Response?.code) !== '0') throw new Error('DUPLICATE_CHECK_FAILED');
     const owner = [result.body.User?.user_id, result.body.User?.id,
         result.body.ServerMatching?.user_id, result.body.ServerMatching?.User?.user_id,

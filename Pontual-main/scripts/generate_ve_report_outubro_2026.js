@@ -211,8 +211,6 @@ td { padding: 5px 6px; border: 1px solid #e2e8f0; text-align: center; font-size:
                 dur = parseMinutes(s2) - parseMinutes(e1);
                 if (dur > 360) {
                     dur -= 60;
-                    obs = 'Falta break de almoço / Dedução 1h';
-                    obsCsv = obs;
                 }
             } else if (pc === 1) {
                 const pMin = parseMinutes(valid[0].timeStr);
@@ -241,19 +239,16 @@ td { padding: 5px 6px; border: 1px solid #e2e8f0; text-align: center; font-size:
             }
 
             const isWk = d.isWeekend;
+            const wasAdjusted = valid.some(p => p.isAdjusted);
             const rowStyle = (isWk && e1 === '-') ? 'style="background:#f1f5f9;color:#94a3b8;"' : '';
             const almoco = (s1 !== '-' || e2 !== '-') ? `${s1} - ${e2}` : '-';
             const obsSpan = obs ? `<span class="obs">${htmlSafe(obs)}</span>` : '';
 
-            // Se for do período de 26 a 30 de Outubro, registrar indicador de ajuste DST
-            const wasAdjusted = valid.some(p => p.isAdjusted);
-            const dstIndicator = wasAdjusted ? `<span class="dst-tag" title="Picagem ajustada em -1h (compensação DST)">-1h DST</span>` : '';
-
             tableRowsHtml += `<tr ${rowStyle}>
                 <td>${d.dateStr}</td>
-                <td>${e1 !== '-' ? e1 + (wasAdjusted && e1 !== '-' ? dstIndicator : '') : '-'}</td>
+                <td>${e1}</td>
                 <td>${almoco}</td>
-                <td>${s2 !== '-' ? s2 + (wasAdjusted && s2 !== '-' ? dstIndicator : '') : '-'}</td>
+                <td>${s2}</td>
                 <td>${duration}</td>
                 <td>${ot}</td>
                 <td>${obsSpan}</td>
@@ -268,7 +263,7 @@ td { padding: 5px 6px; border: 1px solid #e2e8f0; text-align: center; font-size:
                 s2,
                 duration,
                 ot,
-                obs + (wasAdjusted ? ' [Ajuste -1h DST aplicado]' : '')
+                obs
             ]);
 
             daysDetails.push({

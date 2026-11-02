@@ -6,6 +6,7 @@ import { bindRemoteIdentity, enrollmentTerminals, lockEnrollment } from "@/lib/e
 export const dynamic = "force-dynamic";
 const errorMessages: Record<string, string> = {
     FINGERPRINT_PAIR_REQUIRED: "A biometria requer recaptura com duas leituras do mesmo dedo.",
+    DUPLICATE_CHECK_UNAVAILABLE: "Não foi possível verificar se a digital já existe no BioStar. Rever o serviço central antes de reenviar.",
     PROTECTED_ACCOUNT: "O ID corresponde a uma conta protegida no BioStar. Rever o mapeamento.",
     USER_ID_COLLISION: "O ID BioStar já pertence a outro registo. Rever o mapeamento.",
     USER_MAPPING_REQUIRED: "É necessário configurar o ID BioStar deste colaborador.",

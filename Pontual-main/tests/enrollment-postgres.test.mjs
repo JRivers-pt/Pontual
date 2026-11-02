@@ -5,6 +5,7 @@ import vm from 'node:vm';
 import { randomBytes } from 'node:crypto';
 import { createRequire } from 'node:module';
 import * as fingerprintFormat from '../school-agent/fingerprint-format.mjs';
+import { syntheticTemplate } from './synthetic-fingerprint.mjs';
 const require = createRequire(import.meta.url);
 const enabled = process.env.RUN_ISOLATED_PG_TESTS === 'true';
 const it = (name, fn) => test(name, { skip: !enabled }, fn);
@@ -58,7 +59,7 @@ async function runLegacyCardPassAgent(syntheticRows) {
     await Promise.race([finished, new Promise((_, reject) => setTimeout(() => reject(new Error('Synthetic CardPass3 agent did not finish')), 3000))]);
     return { submitted, savedState, queryText, queryCursor };
 }
-const pair = fingerprintFormat.encodeFingerprintPair('synthetic-first', 'synthetic-second');
+const pair = fingerprintFormat.encodeFingerprintPair(syntheticTemplate(1), syntheticTemplate(2));
 async function add(workno = '0908') {
     const employee = await prisma.employee.create({ data: { userId: schoolId, workno, name: 'Synthetic ' + workno, fingerprintTemplate: pair, numFingerprints: 1 } });
     await prisma.$transaction(tx => sync.enqueueEnrollment(tx, schoolId, employee));
@@ -70,6 +71,8 @@ const receipt = (job, extra = {}) => request({ id: job.id, revision: job.revisio
 before(async () => {
     if (!enabled) return;
     if (!process.env.PATCH_TEST_DATABASE_URL || !/^pontual_patch_[a-f0-9]{12}$/.test(schema)) throw new Error('ISOLATED_DATABASE_CONFIGURATION_REQUIRED');
+    const sourceSchema = process.env.PATCH_TEST_SOURCE_SCHEMA;
+    if (!/^pontual_fixture_[a-f0-9]{12}$/.test(sourceSchema || '')) throw new Error('EXPLICIT_FIXTURE_SCHEMA_REQUIRED');
     if (new URL(process.env.PATCH_TEST_DATABASE_URL).hostname.includes('-pooler.')) throw new Error('DIRECT_CONNECTION_REQUIRED_FOR_SCHEMA_ISOLATION');
     const { Client } = require('pg');
     const { PrismaClient } = require('@prisma/client');
@@ -79,13 +82,13 @@ before(async () => {
     schemaCreated = true;
     // Schema definitions only: no customer rows are copied into the isolated namespace.
     for (const table of ['User', 'Employee', 'Schedule', 'EmployeeSchedule', 'AttendanceLog', 'AuditLog']) {
-        await admin.query(`CREATE TABLE "${schema}"."${table}" (LIKE public."${table}" INCLUDING ALL)`);
+        await admin.query(`CREATE TABLE "${schema}"."${table}" (LIKE "${sourceSchema}"."${table}" INCLUDING ALL)`);
     }
     await admin.query(`CREATE TYPE "${schema}"."Role" AS ENUM ('ADMIN','CLIENT')`);
     await admin.query(`ALTER TABLE "${schema}"."User" ALTER COLUMN "role" DROP DEFAULT`);
     await admin.query(`ALTER TABLE "${schema}"."User" ALTER COLUMN "role" TYPE "${schema}"."Role" USING "role"::text::"${schema}"."Role"`);
     await admin.query(`ALTER TABLE "${schema}"."User" ALTER COLUMN "role" SET DEFAULT 'CLIENT'::"${schema}"."Role"`);
-    await admin.query(`SET search_path TO "${schema}", public`);
+    await admin.query(`SET search_path TO "${schema}"`);
     await admin.query(fs.readFileSync(new URL('../prisma/changes/20261030_enrollment_queue.sql', import.meta.url), 'utf8'));
     const url = new URL(process.env.PATCH_TEST_DATABASE_URL);
     url.searchParams.set('schema', schema);
@@ -151,6 +154,21 @@ it('PostgreSQL: a single legacy sample is rejected before any write', async () =
     assert.equal(await prisma.employee.count(), 0);
     assert.equal(await prisma.enrollmentTask.count(), 0);
 });
+for (const [label, sample] of [['malformed base64', '!!!not-base64!!!'], ['truncated sample', 'AA==']]) {
+    it(`PostgreSQL: ${label} cannot create or replace an employee biometric pair`, async () => {
+        const invalid = JSON.stringify({ format: 'suprema-pair-v1', templateType: 2001, template0: syntheticTemplate(1), template1: sample });
+        const result = await employees.POST(request({ workno: '0908', name: 'Invalid synthetic', fingerprintTemplate: invalid }));
+        assert.equal(result.status, 400);
+        assert.equal(await prisma.employee.count(), 0);
+        assert.equal(await prisma.enrollmentTask.count(), 0);
+        const original = await add();
+        const beforeTasks = await prisma.enrollmentTask.findMany({ orderBy: { terminalId: 'asc' } });
+        const edit = await employees.PUT(request({ workno: '0908', name: 'Must not change', fingerprintTemplate: invalid }));
+        assert.equal(edit.status, 400);
+        assert.deepEqual(await prisma.employee.findUnique({ where: { id: original.id } }), original);
+        assert.deepEqual(await prisma.enrollmentTask.findMany({ orderBy: { terminalId: 'asc' } }), beforeTasks);
+    });
+}
 it('PostgreSQL: a foreign schedule rolls back employee and queue', async () => {
     const schedule = await prisma.schedule.create({ data: { userId: 'other-school', name: 'Foreign schedule' } });
     const result = await employees.POST(request({ workno: '0908', name: 'Synthetic', scheduleId: schedule.id }));
@@ -274,6 +292,21 @@ it('PostgreSQL: leading zeros do not create a second identity for the same emplo
     assert.equal((await employees.POST(request({ workno: '0908', name: 'Synthetic' }))).status, 200);
     assert.equal((await employees.POST(request({ workno: '0000908', name: 'Duplicate alias' }))).status, 409);
     assert.equal(await prisma.employee.count(), 1);
+});
+it('PostgreSQL: Sunday and invalid dates remain rejected while Thursday UID mapping works', async () => {
+    await add();
+    await prisma.$transaction(tx => sync.bindRemoteIdentity(tx, schoolId, '0908', '1000908'));
+    const events = [
+        { workno: '1000908', checktime: '2026-11-01T08:00:00Z', checktype: 0, rawEventId: 'synthetic-sunday' },
+        { workno: '1000908', checktime: 'invalid-date', checktype: 0, rawEventId: 'synthetic-invalid-date' },
+        { workno: '1000908', checktime: '2026-10-29T08:00:00Z', checktype: 0, rawEventId: 'synthetic-thursday' },
+    ];
+    for (let attempt = 0; attempt < 2; attempt++) assert.equal((await punches.POST(request({ punches: events }))).status, 200);
+    const rows = await prisma.attendanceLog.findMany();
+    assert.equal(rows.length, 1);
+    assert.equal(rows[0].rawEventId, 'synthetic-thursday');
+    assert.equal(rows[0].workno, '0908');
+    assert.equal(rows[0].checktype, 0);
 });
 it('PostgreSQL: an unknown CMB schedule is rejected without partial creation', async () => {
     assert.equal((await employees.POST(request({ workno: '0908', name: 'Synthetic', scheduleCode: 'H99' }))).status, 400);

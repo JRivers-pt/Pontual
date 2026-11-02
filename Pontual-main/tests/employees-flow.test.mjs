@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import { createRequire } from 'node:module';
 import * as format from '../school-agent/fingerprint-format.mjs';
+import { syntheticTemplate } from './synthetic-fingerprint.mjs';
 const require = createRequire(import.meta.url);
 const ts = require('typescript');
 // Executes the real component's handlers and hooks without a DOM. It does not claim browser/hardware coverage.
@@ -45,7 +46,7 @@ function component({ store = [], listFailure = false, list, save, capture, verif
         if(name==='@/lib/enrollment-status')return {enrollmentStatusText:()=> 'Envio pendente'};
         if(name==='@/lib/usb-scanner')return {
             findUsbScanner:async()=>({url:'http://localhost:8082',name:'BioMini Plus2'}),
-            captureUsbFingerprint:capture || (async()=>({template:`sample-${++scans}`,quality:80,image:null})),
+            captureUsbFingerprint:capture || (async()=>({template:syntheticTemplate(++scans),quality:80,image:null})),
             verifyUsbFingerprintPair:verify || (async()=>{}),
         };
         if(name==='next/link')return {__esModule:true,default:'Link'};

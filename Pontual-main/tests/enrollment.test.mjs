@@ -12,6 +12,7 @@ import https from 'node:https';
 import { once } from 'node:events';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { syntheticTemplate } from './synthetic-fingerprint.mjs';
 
 const require = createRequire(import.meta.url);
 const ts = require('typescript');
@@ -23,7 +24,7 @@ function loadTs(path, extras = {}) {
     vm.runInNewContext(source, context);
     return { api: context.exports, context };
 }
-const employee = { workno: '0908', name: 'Example', active: true, cardNumber: null, fingerprintTemplate: encodeFingerprintPair('synthetic-first', 'synthetic-second') };
+const employee = { workno: '0908', name: 'Example', active: true, cardNumber: null, fingerprintTemplate: encodeFingerprintPair(syntheticTemplate(1), syntheticTemplate(2)) };
 const config = { cloudUrl: 'https://cloud.invalid', token: 'synthetic', biostarUrl: 'https://biostar.invalid',
     login: 'service', password: 'synthetic', terminals: ['1', '2'], userMap: { '0908': '908' }, accessGroups: ['7'], userGroup: '1' };
 const job = { id: 'job', workno: '0908', terminalId: '1', revision: 'revision', leaseToken: 'lease', remoteUserId: '908', managementTag: 'PTL-' + 'a'.repeat(24), active: true, employee };
@@ -43,7 +44,7 @@ function transport({ failure, missing = false, stale = false, missingCode = 404,
             : url.endsWith('/api/users') ? 'CREATE' : url.includes('/api/devices/') ? 'READ_DEVICE' : 'READ';
         if (operation === failure) return { status: 200, body: { Response: { code: '999' } } };
         if (operation === 'DUPLICATE_CHECK') {
-            assert.deepEqual(options.body, { ServerMatching: { template: 'synthetic-first' } });
+            assert.deepEqual(options.body, { ServerMatching: { template: syntheticTemplate(1) } });
             if (duplicateFailure) return { status: duplicateFailure.status, body: duplicateFailure.body };
             const owner = duplicateOwner ?? (exists && fingerprintCount > 0 ? uid : null);
             if (!owner) return { status: 500, body: { Response: { code: '1201', message: 'Failed to identify fingerprint.' } } };
@@ -80,7 +81,7 @@ test('each task exports only to its own terminal', async () => {
     assert.equal(await processJob(config, job, t.call), 'EXPORTED');
     const duplicateCall = t.calls.find(c => c.url.endsWith('/api/server_matching/identify_finger'));
     assert.equal(duplicateCall.method, 'POST');
-    assert.deepEqual(duplicateCall.body, { ServerMatching: { template: 'synthetic-first' } });
+    assert.deepEqual(duplicateCall.body, { ServerMatching: { template: syntheticTemplate(1) } });
     const exportCall = t.calls.find(c => c.url.includes('/export?'));
     assert.deepEqual(exportCall.body.DeviceCollection.rows, [{ id: '1' }]);
 });
@@ -89,6 +90,23 @@ test('an unregistered fingerprint is accepted only for the exact BioStar no-matc
     assert.equal(await processJob(config, job, t.call), 'EXPORTED');
     assert.equal(t.calls.filter(c => c.url.endsWith('/api/server_matching/identify_finger')).length, 1);
 });
+for (const [label, body, expected] of [
+    ['same owner', { UserCollection: { rows: [{ user_id: '908' }] } }, null],
+    ['different owner', { UserCollection: { rows: [{ user_id: '777' }] } }, /FINGERPRINT_ALREADY_ENROLLED/],
+    ['empty result', { UserCollection: { rows: [] } }, /DUPLICATE_CHECK_RESPONSE_INVALID/],
+    ['multiple owners', { UserCollection: { rows: [{ user_id: '908' }, { user_id: '777' }] } }, /DUPLICATE_CHECK_RESPONSE_INVALID/],
+    ['conflicting fields', { User: { user_id: '777' }, UserCollection: { rows: [{ user_id: '908' }] } }, /DUPLICATE_CHECK_RESPONSE_INVALID/],
+]) {
+    test(`installed BioStar duplicate response UserCollection: ${label}`, async () => {
+        const t = transport();
+        const call = (url, options) => url.endsWith('/api/server_matching/identify_finger')
+            ? Promise.resolve({ status: 200, body: { Response: { code: '0' }, ...body } }) : t.call(url, options);
+        if (expected) {
+            await assert.rejects(processJob(config, { ...job }, call), expected);
+            assert.equal(t.calls.some(c => c.method === 'PUT' || c.url.includes('/export?')), false);
+        } else assert.equal(await processJob(config, { ...job }, call), 'EXPORTED');
+    });
+}
 test('duplicate lookup does not treat a matching message with a different BioStar code as available', async () => {
     const t = transport({ missing: true, missingCode: 400, duplicateFailure: { status: 500, body: { Response: { code: '9999', message: 'Failed to identify fingerprint.' } } } });
     await assert.rejects(processJob(config, { ...job, remoteUserId: null }, t.call), /DUPLICATE_CHECK_FAILED/);
@@ -107,6 +125,13 @@ for (const duplicateFailure of [
         const t = transport({ missing: true, missingCode: 400, duplicateFailure });
         await assert.rejects(processJob(config, { ...job, remoteUserId: null }, t.call), /DUPLICATE_CHECK_FAILED/);
         assert.equal(t.calls.some(c => c.method === 'PUT' || c.url.includes('/export?')), false);
+    });
+}
+for (const status of [200, 500, 503]) {
+    test(`BioStar 1205 at HTTP ${status} cannot authorize credential writes`, async () => {
+        const t = transport({ missing: true, missingCode: 400, duplicateFailure: { status, body: { Response: { code: '1205', message: 'not defined' } } } });
+        await assert.rejects(processJob(config, { ...job, remoteUserId: null }, t.call), /DUPLICATE_CHECK_UNAVAILABLE/);
+        assert.equal(t.calls.some(c => c.method === 'PUT' || c.url.endsWith('/api/users') || c.url.includes('/export?')), false);
     });
 }
 test('duplicate lookup fails closed when BioStar reports a match without its owner identity', async () => {
@@ -214,11 +239,40 @@ test('USB capture rejects retcode 0 and never invents quality', async () => {
         return { ok: true, json: async () => payload };
     } });
     await assert.rejects(api.captureUsbFingerprint({ url: 'http://localhost:8082' }), /código 0/);
-    payload = { template: 'synthetic', score: 0 };
+    payload = { retcode: '1', template: syntheticTemplate(1), score: 0 };
     assert.equal((await api.captureUsbFingerprint({ url: 'http://localhost:8082' })).quality, 0);
-    payload = { template: 'synthetic' };
+    payload = { retcode: '1', template: syntheticTemplate(1) };
     assert.equal((await api.captureUsbFingerprint({ url: 'http://localhost:8082' })).quality, null);
 });
+
+for (const retcode of ['0', 0, '-1', undefined]) {
+    test(`USB capture rejects failure/missing retcode ${String(retcode)} even with template bytes`, async () => {
+        const { api } = loadTs('../src/lib/usb-scanner.ts', { fetch: async () => ({ ok: true, json: async () => ({ retcode, template: syntheticTemplate(1) }) }) });
+        await assert.rejects(api.captureUsbFingerprint({ url: 'http://localhost:8082' }), /sem capturar/);
+    });
+}
+for (const [label, template] of [
+    ['malformed base64 accepted by vendor API', '!!!not-base64!!!'],
+    ['one-byte payload accepted by vendor API', 'AA=='],
+    ['383-byte truncated sample', syntheticTemplate(1, 383)],
+    ['whitespace corruption', syntheticTemplate(1) + '\n'],
+    ['misplaced padding', 'AAAA=AAA' + syntheticTemplate(1)],
+    ['oversized input', 'A'.repeat(65540)],
+]) {
+    test(`invalid biometric transport is rejected before worker requests: ${label}`, async () => {
+        const envelope = JSON.stringify({ format: 'suprema-pair-v1', templateType: 2001, template0: template, template1: syntheticTemplate(2) });
+        assert.throws(() => decodeFingerprintPair(envelope), /INVALID_FINGERPRINT/);
+        const t = transport();
+        await assert.rejects(processJob(config, { ...job, employee: { ...employee, fingerprintTemplate: envelope } }, t.call), /INVALID_FINGERPRINT/);
+        assert.equal(t.calls.length, 0);
+        let requests = 0;
+        const { api } = loadTs('../src/lib/usb-scanner.ts', { fetch: async () => { requests++; return { ok: true, json: async () => ({ retcode: '1', template }) }; } });
+        await assert.rejects(api.captureUsbFingerprint({ url: 'http://localhost:8082' }), /inválida ou incompleta/);
+        assert.equal(requests, 1);
+        await assert.rejects(api.verifyUsbFingerprintPair({ url: 'http://localhost:8082' }, syntheticTemplate(1), template), /INVALID_FINGERPRINT/);
+        assert.equal(requests, 1, 'invalid verification must not reach USB Agent');
+    });
+}
 
 function queueRoutes(db) {
     db.$transaction ||= async fn => fn(db);
@@ -310,13 +364,13 @@ test('HTTP 200 with failed DeviceResponse never counts as exported', async () =>
 });
 test('legacy single-sample templates require recapture rather than fabricating a second sample', async () => {
     assert.throws(() => decodeFingerprintPair('legacy-single-sample'), /FINGERPRINT_PAIR_REQUIRED/);
-    const pair = decodeFingerprintPair(encodeFingerprintPair('first', 'second'));
-    assert.equal(pair.template0, 'first');
-    assert.equal(pair.template1, 'second');
+    const pair = decodeFingerprintPair(encodeFingerprintPair(syntheticTemplate(1), syntheticTemplate(2)));
+    assert.equal(pair.template0, syntheticTemplate(1));
+    assert.equal(pair.template1, syntheticTemplate(2));
 });
 
 test('USB Suprema uses 2001 and rejects envelopes captured with the server format code', () => {
-    const pair = JSON.parse(encodeFingerprintPair('first', 'second'));
+    const pair = JSON.parse(encodeFingerprintPair(syntheticTemplate(1), syntheticTemplate(2)));
     assert.equal(pair.templateType, 2001);
     assert.throws(() => decodeFingerprintPair(JSON.stringify({ ...pair, templateType: 0 })), /FINGERPRINT_PAIR_REQUIRED/);
 });
@@ -338,14 +392,14 @@ test('USB verification follows native form protocol and preserves base64 charact
         assert.equal(options.method, 'POST');
         assert.match(options.headers['Content-Type'], /^application\/x-www-form-urlencoded/);
         const fields = new URLSearchParams(String(options.body));
-        assert.equal(fields.get('template1'), 'first+==');
-        assert.equal(fields.get('template2'), 'second/==');
+        assert.equal(fields.get('template1'), syntheticTemplate(1, 385));
+        assert.equal(fields.get('template2'), syntheticTemplate(2, 386));
         assert.equal(fields.get('template_type'), '2001');
         return { ok: true, json: async () => ({ retcode: result }) };
     } });
-    await api.verifyUsbFingerprintPair({ url: 'http://localhost:8082' }, 'first+==', 'second/==');
+    await api.verifyUsbFingerprintPair({ url: 'http://localhost:8082' }, syntheticTemplate(1, 385), syntheticTemplate(2, 386));
     result = 0;
-    await assert.rejects(api.verifyUsbFingerprintPair({ url: 'http://localhost:8082' }, 'first+==', 'second/=='), /mesmo dedo/);
+    await assert.rejects(api.verifyUsbFingerprintPair({ url: 'http://localhost:8082' }, syntheticTemplate(1, 385), syntheticTemplate(2, 386)), /mesmo dedo/);
 });
 test('new remote IDs resolve to employee numbers without modifying legacy mappings', () => {
     const { api } = loadTs('../src/lib/sync-identity.ts');
