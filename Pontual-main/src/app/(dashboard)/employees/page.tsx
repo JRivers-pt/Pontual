@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo, useRef } from "react"
 import Link from "next/link"
 import { findUsbScanner, captureUsbFingerprint, verifyUsbFingerprintPair } from "@/lib/usb-scanner"
-import { encodeFingerprintPair } from "@/lib/fingerprint-format"
+import { encodeFingerprintPair, encodeMultiFingerprint, decodeFingerprintTemplates } from "@/lib/fingerprint-format"
 import { enrollmentStatusText, type EnrollmentStatus } from "@/lib/enrollment-status"
 import {
     Users,
@@ -154,6 +154,11 @@ export default function EmployeesPage() {
     const [scanImage, setScanImage] = useState<string | null>(null)
     const [scannerDeviceName, setScannerDeviceName] = useState<string>("BioMini Plus 2")
     const [firstCapture, setFirstCapture] = useState<{ template: string; quality: number | null; url: string } | null>(null)
+    const [activeFingerTab, setActiveFingerTab] = useState<0 | 1>(0)
+    const [enrolledFingers, setEnrolledFingers] = useState<{
+        0?: { template0: string; template1: string; quality: number | null; image: string | null }
+        1?: { template0: string; template1: string; quality: number | null; image: string | null }
+    }>({})
     const captureEpoch = useRef(0)
     const [savedEmployee, setSavedEmployee] = useState("")
     const cancelCapture = () => {
@@ -237,6 +242,8 @@ export default function EmployeesPage() {
         setFormScheduleCode("H9")
         setFormActive(true)
         setFormFingerprint(null)
+        setEnrolledFingers({})
+        setActiveFingerTab(0)
         setScanSuccess(false)
         setScanQuality(null)
         setScanImage(null)
@@ -258,6 +265,8 @@ export default function EmployeesPage() {
         setFormActive(emp.active)
         setFormFingerprint(emp.numFingerprints > 0 ? "EXISTS" : null)
         setScanSuccess(emp.numFingerprints > 0)
+        setEnrolledFingers({})
+        setActiveFingerTab(0)
         setScanQuality(null)
         setErrorMsg(null)
         setSuccessMsg(null)
@@ -286,14 +295,41 @@ export default function EmployeesPage() {
                 return
             }
             if (firstCapture.url !== scanner.url) throw new Error("A ligação ao agente mudou. Reinicie a captura para obter duas leituras no mesmo agente.")
-            await verifyUsbFingerprintPair(scanner, firstCapture.template, capture.template)
+                        await verifyUsbFingerprintPair(scanner, firstCapture.template, capture.template)
             if (epoch !== captureEpoch.current) return
-            setFormFingerprint(encodeFingerprintPair(firstCapture.template, capture.template))
-            setScanQuality(firstCapture.quality !== null && capture.quality !== null ? Math.min(firstCapture.quality, capture.quality) : null)
+
+            // Validação de salvaguarda: garantir que o Dedo 2 não é o mesmo dedo que o Dedo 1
+            const otherFinger = enrolledFingers[activeFingerTab === 0 ? 1 : 0]
+            if (otherFinger) {
+                let isDuplicateFinger = false
+                try {
+                    await verifyUsbFingerprintPair(scanner, otherFinger.template0, capture.template)
+                    isDuplicateFinger = true
+                } catch {
+                    // Esperado: dedos diferentes não devem coincidir
+                }
+                if (isDuplicateFinger) {
+                    throw new Error("O segundo dedo não pode ser o mesmo que o primeiro. Coloque um dedo diferente (ex: indicador da outra mão) para servir de suplente.")
+                }
+            }
+            const finalQuality = firstCapture.quality !== null && capture.quality !== null ? Math.min(firstCapture.quality, capture.quality) : null
+            const updatedFingers = {
+                ...enrolledFingers,
+                [activeFingerTab]: {
+                    template0: firstCapture.template,
+                    template1: capture.template,
+                    quality: finalQuality,
+                    image: capture.image
+                }
+            }
+            setEnrolledFingers(updatedFingers)
+            const fingerList = [updatedFingers[0], updatedFingers[1]].filter(Boolean) as { template0: string; template1: string }[]
+            setFormFingerprint(fingerList.length > 0 ? encodeMultiFingerprint(fingerList) : null)
+            setScanQuality(finalQuality)
             setScanImage(capture.image)
             setScanSuccess(true)
             setFirstCapture(null)
-            setSuccessMsg("Duas leituras verificadas. Clique em Guardar Colaborador para concluir o registo.")
+            setSuccessMsg(`Leituras do Dedo ${activeFingerTab + 1} verificadas com sucesso (${fingerList.length} ${fingerList.length === 1 ? 'dedo registado' : 'dedos registados'}). Guarde o colaborador para concluir.`)
         } catch (error) {
             if (epoch !== captureEpoch.current) return
             setErrorMsg(error instanceof Error ? error.message : "Erro na captura biométrica.")
@@ -1010,6 +1046,34 @@ export default function EmployeesPage() {
 
                             {scannerDiagnostic && <p role="status" className="text-xs text-amber-700">{scannerDiagnostic}</p>}
                             <p className="text-xs text-neutral-500">Faça duas leituras do mesmo dedo e guarde o colaborador. O envio aos terminais é acompanhado na lista pelo serviço central.</p>
+                            {/* Selector de Dedos (Principal / Suplente) */}
+                            <div className="flex gap-2 border-b border-neutral-200 pb-2">
+                                <button
+                                    type="button"
+                                    onClick={() => { cancelCapture(); setActiveFingerTab(0); }}
+                                    className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 ${
+                                        activeFingerTab === 0
+                                            ? "bg-blue-600 text-white shadow-sm"
+                                            : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+                                    }`}
+                                >
+                                    <span>🖐️ Dedo 1 (Principal)</span>
+                                    {enrolledFingers[0] && <Check className="h-3 w-3 text-emerald-300" />}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => { cancelCapture(); setActiveFingerTab(1); }}
+                                    className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 ${
+                                        activeFingerTab === 1
+                                            ? "bg-blue-600 text-white shadow-sm"
+                                            : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+                                    }`}
+                                >
+                                    <span>🖐️ Dedo 2 (Suplente)</span>
+                                    {enrolledFingers[1] && <Check className="h-3 w-3 text-emerald-300" />}
+                                </button>
+                            </div>
+
                             {/* Live Fingerprint Capture Action */}
                             <div className="flex items-center gap-3 pt-1">
                                 <Button
@@ -1029,7 +1093,13 @@ export default function EmployeesPage() {
                                     ) : (
                                         <>
                                             <Fingerprint className="h-4 w-4 mr-2 text-blue-600" />
-                                            {firstCapture ? "Capturar segunda leitura do mesmo dedo" : formFingerprint ? "Recapturar Impressão Digital" : "Capturar Impressão Digital via USB"}
+                                            {firstCapture
+                                                ? "Capturar segunda leitura do mesmo dedo"
+                                                : enrolledFingers[activeFingerTab]
+                                                ? `Recapturar Impressão Digital (Dedo ${activeFingerTab + 1})`
+                                                : formFingerprint === "EXISTS"
+                                                ? `Recapturar Impressão Digital (Dedo ${activeFingerTab + 1})`
+                                                : `Capturar Impressão Digital (Dedo ${activeFingerTab + 1}) via USB`}
                                         </>
                                     )}
                                 </Button>

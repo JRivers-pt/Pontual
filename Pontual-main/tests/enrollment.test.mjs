@@ -5,7 +5,7 @@ import vm from 'node:vm';
 import { createRequire } from 'node:module';
 import { requireSuccess, processJob, runOnce, loadConfig } from '../school-agent/enrollment-agent.mjs';
 import * as fingerprintFormat from '../school-agent/fingerprint-format.mjs';
-const { encodeFingerprintPair, decodeFingerprintPair } = fingerprintFormat;
+const { encodeFingerprintPair, encodeMultiFingerprint, decodeFingerprintPair, decodeFingerprintTemplates } = fingerprintFormat;
 import { matchesCertificatePin, pinnedBioStarRequest } from '../school-agent/pinned-transport.mjs';
 import { createHash, X509Certificate } from 'node:crypto';
 import https from 'node:https';
@@ -44,7 +44,7 @@ function transport({ failure, missing = false, stale = false, missingCode = 404,
             : url.endsWith('/api/users') ? 'CREATE' : url.includes('/api/devices/') ? 'READ_DEVICE' : 'READ';
         if (operation === failure) return { status: 200, body: { Response: { code: '999' } } };
         if (operation === 'DUPLICATE_CHECK') {
-            assert.deepEqual(options.body, { ServerMatching: { template: syntheticTemplate(1) } });
+            assert.ok(typeof options.body?.ServerMatching?.template === 'string');
             if (duplicateFailure) return { status: duplicateFailure.status, body: duplicateFailure.body };
             const owner = duplicateOwner ?? (exists && fingerprintCount > 0 ? uid : null);
             if (!owner) return { status: 500, body: { Response: { code: '1201', message: 'Failed to identify fingerprint.' } } };
@@ -606,3 +606,46 @@ for (const [name, state, pattern] of [
         assert.match(api.enrollmentStatusText(state, '0908'), pattern);
     });
 }
+
+test('multi-fingerprint format: encoding single finger returns standard pair', () => {
+    const single = encodeMultiFingerprint([{ template0: syntheticTemplate(1), template1: syntheticTemplate(2) }]);
+    const parsed = JSON.parse(single);
+    assert.equal(parsed.format, 'suprema-pair-v1');
+    assert.equal(decodeFingerprintTemplates(single).length, 1);
+});
+
+test('multi-fingerprint format: encoding two fingers returns multi-finger format', () => {
+    const multi = encodeMultiFingerprint([
+        { template0: syntheticTemplate(1), template1: syntheticTemplate(2) },
+        { template0: syntheticTemplate(3), template1: syntheticTemplate(4) }
+    ]);
+    const parsed = JSON.parse(multi);
+    assert.equal(parsed.format, 'suprema-multifinger-v1');
+    assert.equal(parsed.fingers.length, 2);
+    const decoded = decodeFingerprintTemplates(multi);
+    assert.equal(decoded.length, 2);
+    assert.equal(decoded[0].template0, syntheticTemplate(1));
+    assert.equal(decoded[1].template0, syntheticTemplate(3));
+});
+
+test('multi-fingerprint: processJob exports both fingers and checks both with identify_finger', async () => {
+    const multiTemplate = encodeMultiFingerprint([
+        { template0: syntheticTemplate(1), template1: syntheticTemplate(2) },
+        { template0: syntheticTemplate(3), template1: syntheticTemplate(4) }
+    ]);
+    const multiEmployee = { ...employee, fingerprintTemplate: multiTemplate };
+    const multiJob = { ...job, employee: multiEmployee };
+    const t = transport();
+    const result = await processJob(config, multiJob, t.call);
+    assert.equal(result, 'EXPORTED');
+
+    // Verify identify_finger was called for BOTH fingers
+    const idCalls = t.calls.filter(c => c.url.endsWith('/api/server_matching/identify_finger'));
+    assert.equal(idCalls.length, 2);
+    assert.equal(idCalls[0].body.ServerMatching.template, syntheticTemplate(1));
+    assert.equal(idCalls[1].body.ServerMatching.template, syntheticTemplate(3));
+
+    // Verify PUT /api/users payload contains both fingers
+    const updateCall = t.calls.find(c => c.method === 'PUT' && c.url.includes('/api/users/'));
+    assert.equal(updateCall.body.User.fingerprint_templates.length, 2);
+});

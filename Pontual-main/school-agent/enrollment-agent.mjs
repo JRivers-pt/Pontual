@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
-import { decodeFingerprintPair } from './fingerprint-format.mjs';
+import { decodeFingerprintPair, decodeFingerprintTemplates } from './fingerprint-format.mjs';
 import { pinnedBioStarRequest } from './pinned-transport.mjs';
 
 // Defaults extracted from the installed BioStar 2 user-creation UI.
@@ -47,6 +47,7 @@ export function loadConfig(env = process.env) {
         terminals: (env.BIOSTAR_TERMINAL_IDS || '').split(',').map(s => s.trim()).filter(Boolean),
         userMap: JSON.parse(env.BIOSTAR_USER_MAP_JSON || '{}'),
         allowNumericIds: env.BIOSTAR_ALLOW_NUMERIC_IDS === 'true',
+        allowLegacyUpdate: env.BIOSTAR_ALLOW_LEGACY_UPDATE === 'true',
         accessGroups: (env.BIOSTAR_ACCESS_GROUP_IDS || '').split(',').map(s => s.trim()).filter(Boolean),
         userGroup: env.BIOSTAR_USER_GROUP_ID || '1',
         allowNoAccessGroups: env.BIOSTAR_ALLOW_NO_ACCESS_GROUPS === 'true',
@@ -96,7 +97,7 @@ export async function processJob(config, job, call = request) {
     if (!userId || !/^\d+$/.test(String(userId))) throw new Error('USER_MAPPING_REQUIRED');
     if (!Number.isSafeInteger(Number(userId)) || Number(userId) < 1 || Number(userId) > 4294967295) throw new Error('USER_MAPPING_REQUIRED');
     if (job.active && !job.employee) throw new Error('EMPLOYEE_MISSING');
-    const fingerprint = job.active && job.employee?.fingerprintTemplate ? decodeFingerprintPair(job.employee.fingerprintTemplate) : null;
+    const fingerprints = job.active && job.employee?.fingerprintTemplate ? decodeFingerprintTemplates(job.employee.fingerprintTemplate) : null;
     const cloudHeaders = { 'x-school-token': config.token };
     const fence = async () => {
         const result = await call(`${config.cloudUrl}/api/sync/enrollments`, {
@@ -126,12 +127,15 @@ export async function processJob(config, job, call = request) {
         return found;
     };
     try {
-        if (fingerprint) {
+        if (fingerprints?.length) {
             const setting = requireSuccess(await call(`${config.biostarUrl}/api/v2/fingerprintFormat`, { headers }), 'READ_FORMAT').Setting;
             if (String(setting?.fingerprint_format) !== '0') throw new Error('TEMPLATE_FORMAT_MISMATCH');
         }
         // Existing device credentials are a separate second-phase migration, never replace them blindly.
-        if (explicitId && !job.remoteUserId && await deviceUser()) throw new Error('LEGACY_USER_IMPORT_REQUIRED');
+        if (explicitId && !job.remoteUserId && await deviceUser()) {
+            if (!config.allowLegacyUpdate) throw new Error('LEGACY_USER_IMPORT_REQUIRED');
+            job.resolvedUserId = String(explicitId);
+        }
         const url = `${config.biostarUrl}/api/users/${encodeURIComponent(userId)}`;
         const existing = await call(url, { headers });
         let exists = false;
@@ -148,8 +152,10 @@ export async function processJob(config, job, call = request) {
         }
 
         await fence();
-        if (job.active && fingerprint) {
-            await ensureFingerprintAvailable(call, config.biostarUrl, headers, fingerprint.template0, userId);
+        if (job.active && fingerprints?.length) {
+            for (const finger of fingerprints) {
+                await ensureFingerprintAvailable(call, config.biostarUrl, headers, finger.template0, userId);
+            }
         }
         if (exists) job.resolvedUserId = String(userId);
         if (!exists && job.active) {
@@ -173,7 +179,7 @@ export async function processJob(config, job, call = request) {
         if (exists) {
             await fence();
             const User = job.active ? { name: job.employee.name, disabled: 'false',
-                ...(fingerprint ? { fingerprint_templates: [fingerprint] }
+                ...(fingerprints?.length ? { fingerprint_templates: fingerprints }
                     : job.clearFingerprint ? { fingerprint_templates: [] } : {}) }
                 : { disabled: 'true' };
             // An explicit removal clears old templates rather than leaving a stale credential active.
@@ -189,7 +195,7 @@ export async function processJob(config, job, call = request) {
             if (job.active) {
                 if (!actual || String(actual.disabled) !== 'false') throw new Error('DEVICE_READBACK_FAILED');
                 if (String(actual.updated_count) !== String(updatedUser.updated_count)) throw new Error('DEVICE_READBACK_FAILED');
-                if (fingerprint && (!Number.isSafeInteger(Number(actual.fingerprint_templates_count)) || Number(actual.fingerprint_templates_count) < 1)) throw new Error('DEVICE_READBACK_FAILED');
+                if (fingerprints?.length && (!Number.isSafeInteger(Number(actual.fingerprint_templates_count)) || Number(actual.fingerprint_templates_count) < fingerprints.length)) throw new Error('DEVICE_READBACK_FAILED');
                 if (job.clearFingerprint && Number(actual.fingerprint_templates_count) !== 0) throw new Error('DEVICE_READBACK_FAILED');
             } else if (actual && (String(actual.disabled) !== 'true' || String(actual.updated_count) !== String(updatedUser.updated_count))) throw new Error('DEVICE_READBACK_FAILED');
         }

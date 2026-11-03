@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { enqueueEnrollment, enqueueRemoval, enrollmentTerminals } from "@/lib/enrollment-sync";
-import { decodeFingerprintPair } from "@/lib/fingerprint-format";
+import { decodeFingerprintPair, decodeFingerprintTemplates } from "@/lib/fingerprint-format";
 import { normalizeWorkno } from "@/lib/workno";
 
 async function getEffectiveUserId(sessionUserId: string) {
@@ -268,7 +268,7 @@ export const POST = auth(async (req) => {
                 scheduleCode: scheduleCode ? String(scheduleCode).trim().replace(/^H0(\d)$/, 'H$1') : null,
                 scheduleName: scheduleName ? String(scheduleName).trim() : null,
                 fingerprintTemplate: fingerprintTemplate || null,
-                numFingerprints: fingerprintTemplate ? 1 : 0
+                numFingerprints: fingerprintTemplate ? (decodeFingerprintTemplates(fingerprintTemplate).length || 1) : 0
             }
         });
 
@@ -386,7 +386,7 @@ export const PUT = auth(async (req) => {
         if (scheduleName !== undefined) updateData.scheduleName = scheduleName ? String(scheduleName).trim() : null;
         if (fingerprintTemplate !== undefined) {
             updateData.fingerprintTemplate = fingerprintTemplate || null;
-            updateData.numFingerprints = fingerprintTemplate ? 1 : 0;
+            updateData.numFingerprints = fingerprintTemplate ? (decodeFingerprintTemplates(fingerprintTemplate).length || 1) : 0;
         }
 
         const updated = await prisma.$transaction(async tx => {
