@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "test": "node --test tests/enrollment.test.mjs tests/employees-flow.test.mjs tests/reporting.test.mjs tests/project-contract.test.mjs",
+    "test": "node --test tests/enrollment.test.mjs tests/employees-flow.test.mjs tests/reporting.test.mjs tests/project-contract.test.mjs tests/password-change.test.mjs tests/multifinger-integration.test.mjs",
     "test:integration": "node tests/run-postgres.mjs",
     "test:sandbox": "node tests/run-sandbox.mjs",
     "typecheck": "tsc --noEmit --incremental false",

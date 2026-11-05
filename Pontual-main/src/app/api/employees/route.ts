@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { enqueueEnrollment, enqueueRemoval, enrollmentTerminals } from "@/lib/enrollment-sync";
-import { decodeFingerprintPair, decodeFingerprintTemplates } from "@/lib/fingerprint-format";
+import { decodeFingerprintPair, decodeFingerprintTemplates, encodeMultiFingerprint } from "@/lib/fingerprint-format";
 import { normalizeWorkno } from "@/lib/workno";
 
 async function getEffectiveUserId(sessionUserId: string) {
@@ -359,7 +359,8 @@ export const PUT = auth(async (req) => {
             scheduleCode,
             scheduleName,
             scheduleId,
-            fingerprintTemplate
+            fingerprintTemplate,
+            targetFingerIndex
         } = body;
 
         if (!workno) {
@@ -384,9 +385,46 @@ export const PUT = auth(async (req) => {
         if (active !== undefined) updateData.active = Boolean(active);
         if (scheduleCode !== undefined) updateData.scheduleCode = scheduleCode ? String(scheduleCode).trim().replace(/^H0(\d)$/, 'H$1') : null;
         if (scheduleName !== undefined) updateData.scheduleName = scheduleName ? String(scheduleName).trim() : null;
-        if (fingerprintTemplate !== undefined) {
-            updateData.fingerprintTemplate = fingerprintTemplate || null;
-            updateData.numFingerprints = fingerprintTemplate ? (decodeFingerprintTemplates(fingerprintTemplate).length || 1) : 0;
+                if (fingerprintTemplate !== undefined) {
+            if (!fingerprintTemplate) {
+                updateData.fingerprintTemplate = null;
+                updateData.numFingerprints = 0;
+            } else {
+                let finalTemplate = fingerprintTemplate;
+                if (typeof targetFingerIndex === 'number' && targetFingerIndex === 1) {
+                    const existingEmployee = await prisma.employee.findUnique({
+                        where: { userId_workno: { userId, workno: formattedWorkno } },
+                        select: { fingerprintTemplate: true }
+                    });
+                    if (existingEmployee?.fingerprintTemplate) {
+                        try {
+                            const existingFingers = decodeFingerprintTemplates(existingEmployee.fingerprintTemplate);
+                            const newFinger = decodeFingerprintPair(fingerprintTemplate);
+                            finalTemplate = encodeMultiFingerprint([existingFingers[0], newFinger]);
+                        } catch {
+                            // Fallback to provided template
+                        }
+                    }
+                } else if (typeof targetFingerIndex === 'number' && targetFingerIndex === 0) {
+                    const existingEmployee = await prisma.employee.findUnique({
+                        where: { userId_workno: { userId, workno: formattedWorkno } },
+                        select: { fingerprintTemplate: true }
+                    });
+                    if (existingEmployee?.fingerprintTemplate) {
+                        try {
+                            const existingFingers = decodeFingerprintTemplates(existingEmployee.fingerprintTemplate);
+                            if (existingFingers.length > 1) {
+                                const newFinger = decodeFingerprintPair(fingerprintTemplate);
+                                finalTemplate = encodeMultiFingerprint([newFinger, existingFingers[1]]);
+                            }
+                        } catch {
+                            // Fallback
+                        }
+                    }
+                }
+                updateData.fingerprintTemplate = finalTemplate;
+                updateData.numFingerprints = decodeFingerprintTemplates(finalTemplate).length || 1;
+            }
         }
 
         const updated = await prisma.$transaction(async tx => {

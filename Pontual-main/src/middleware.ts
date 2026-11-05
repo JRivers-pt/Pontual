@@ -9,6 +9,7 @@ export default auth((req) => {
     const { nextUrl } = req
     const isLoggedIn = !!req.auth?.user
     const userRole = (req.auth?.user as any)?.role
+    const mustChangePassword = !!(req.auth?.user as any)?.mustChangePassword
 
     // 1. Domain Redirect Strategy
     // Strictly enforce www.pontualidade.pt in production
@@ -29,20 +30,36 @@ export default auth((req) => {
     // 2. Authentication & Route Guard Strategy
     const isOnLogin = nextUrl.pathname === "/login"
     const isOnAdmin = nextUrl.pathname.startsWith("/admin")
+    const isOnPasswordChange = nextUrl.pathname === "/change-password"
 
     // Protected application routes
     const isProtectedRoute =
         nextUrl.pathname === "/" ||
         nextUrl.pathname.startsWith("/reports") ||
         nextUrl.pathname.startsWith("/timesheet") ||
+        nextUrl.pathname.startsWith("/employees") ||
+        nextUrl.pathname.startsWith("/devices") ||
         nextUrl.pathname.startsWith("/schedules") ||
         nextUrl.pathname.startsWith("/corrections") ||
         isOnAdmin
 
     // Unauthenticated user accessing any protected route -> redirect to /login
-    if (isProtectedRoute && !isLoggedIn) {
+    if ((isProtectedRoute || isOnPasswordChange) && !isLoggedIn) {
         const loginUrl = new URL("/login", req.url)
         return NextResponse.redirect(loginUrl)
+    }
+
+    // Mandatory first-login password change protection
+    if (isLoggedIn && mustChangePassword) {
+        if (!isOnPasswordChange) {
+            return NextResponse.redirect(new URL("/change-password", req.url))
+        }
+        return NextResponse.next()
+    }
+
+    // Authenticated user with no pending password change visiting /change-password -> redirect to dashboard
+    if (isLoggedIn && !mustChangePassword && isOnPasswordChange) {
+        return NextResponse.redirect(new URL("/", req.url))
     }
 
     // Authenticated user accessing /login -> redirect to dashboard

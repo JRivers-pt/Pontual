@@ -31,6 +31,9 @@ model User {
   parentUser   User?    @relation("UserSubUsers", fields: [parentUserId], references: [id], onDelete: Cascade)
   subUsers     User[]   @relation("UserSubUsers")
 
+  // First Login Security / Password change requirement
+  mustChangePassword Boolean @default(false)
+
   // Biometric Provider ("ANVIZ" or "SUPREMA")
   biometricProvider String? @default("ANVIZ")
   

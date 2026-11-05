@@ -155,6 +155,7 @@ export default function EmployeesPage() {
     const [scannerDeviceName, setScannerDeviceName] = useState<string>("BioMini Plus 2")
     const [firstCapture, setFirstCapture] = useState<{ template: string; quality: number | null; url: string } | null>(null)
     const [activeFingerTab, setActiveFingerTab] = useState<0 | 1>(0)
+    const [existingFingerCount, setExistingFingerCount] = useState<number>(0)
     const [enrolledFingers, setEnrolledFingers] = useState<{
         0?: { template0: string; template1: string; quality: number | null; image: string | null }
         1?: { template0: string; template1: string; quality: number | null; image: string | null }
@@ -360,14 +361,37 @@ export default function EmployeesPage() {
         saveInFlight.current = true
         setSaving(true)
         try {
-            const payload = {
+                        let targetFingerIndex: number | undefined = undefined;
+            let templateToSend: string | undefined = undefined;
+
+            if (formFingerprint && formFingerprint !== "EXISTS") {
+                const captured0 = enrolledFingers[0];
+                const captured1 = enrolledFingers[1];
+
+                if (captured0 && captured1) {
+                    templateToSend = encodeMultiFingerprint([captured0, captured1]);
+                } else if (captured1 && !captured0 && modalMode === "edit" && existingFingerCount >= 1) {
+                    templateToSend = encodeMultiFingerprint([captured1]);
+                    targetFingerIndex = 1;
+                } else if (captured0 && !captured1 && modalMode === "edit" && existingFingerCount >= 2) {
+                    templateToSend = encodeMultiFingerprint([captured0]);
+                    targetFingerIndex = 0;
+                } else if (captured0) {
+                    templateToSend = encodeMultiFingerprint([captured0]);
+                } else if (captured1) {
+                    templateToSend = encodeMultiFingerprint([captured1]);
+                }
+            }
+
+            const payload: any = {
                 workno: formWorkno.trim(),
                 name: formName.trim(),
                 cardNumber: formCardNumber.trim() || null,
                 scheduleCode: formScheduleCode,
                 scheduleName: scheduleName,
                 active: formActive,
-                fingerprintTemplate: formFingerprint && formFingerprint !== "EXISTS" ? formFingerprint : undefined
+                fingerprintTemplate: templateToSend !== undefined ? templateToSend : (formFingerprint && formFingerprint !== "EXISTS" ? formFingerprint : undefined),
+                ...(targetFingerIndex !== undefined ? { targetFingerIndex } : {})
             }
 
             const method = modalMode === "create" ? "POST" : "PUT"
@@ -1058,7 +1082,11 @@ export default function EmployeesPage() {
                                     }`}
                                 >
                                     <span>🖐️ Dedo 1 (Principal)</span>
-                                    {enrolledFingers[0] && <Check className="h-3 w-3 text-emerald-300" />}
+                                    {enrolledFingers[0] ? (
+                                        <Check className="h-3 w-3 text-emerald-300" />
+                                    ) : modalMode === "edit" && existingFingerCount >= 1 ? (
+                                        <span className="text-[10px] font-mono bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 px-1.5 py-0.5 rounded">Gravado</span>
+                                    ) : null}
                                 </button>
                                 <button
                                     type="button"
@@ -1070,9 +1098,21 @@ export default function EmployeesPage() {
                                     }`}
                                 >
                                     <span>🖐️ Dedo 2 (Suplente)</span>
-                                    {enrolledFingers[1] && <Check className="h-3 w-3 text-emerald-300" />}
+                                    {enrolledFingers[1] ? (
+                                        <Check className="h-3 w-3 text-emerald-300" />
+                                    ) : modalMode === "edit" && existingFingerCount >= 2 ? (
+                                        <span className="text-[10px] font-mono bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 px-1.5 py-0.5 rounded">Gravado</span>
+                                    ) : modalMode === "edit" && existingFingerCount === 1 ? (
+                                        <span className="text-[10px] font-mono bg-amber-500/20 text-amber-800 dark:text-amber-300 px-1.5 py-0.5 rounded">+ Adicionar</span>
+                                    ) : null}
                                 </button>
                             </div>
+
+                            {modalMode === "edit" && activeFingerTab === 1 && existingFingerCount === 1 && !enrolledFingers[1] && (
+                                <p className="text-[11px] text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 p-2 rounded-lg border border-amber-200 dark:border-amber-900/40">
+                                    💡 <strong>Dedo 1 já registado.</strong> Coloque um segundo dedo (ex: indicador da outra mão) no leitor para adicionar como suplente.
+                                </p>
+                            )}
 
                             {/* Live Fingerprint Capture Action */}
                             <div className="flex items-center gap-3 pt-1">
@@ -1097,8 +1137,12 @@ export default function EmployeesPage() {
                                                 ? "Capturar segunda leitura do mesmo dedo"
                                                 : enrolledFingers[activeFingerTab]
                                                 ? `Recapturar Impressão Digital (Dedo ${activeFingerTab + 1})`
-                                                : formFingerprint === "EXISTS"
-                                                ? `Recapturar Impressão Digital (Dedo ${activeFingerTab + 1})`
+                                                : modalMode === "edit" && activeFingerTab === 1 && existingFingerCount === 1
+                                                ? "Capturar Dedo 2 (Suplente) via USB"
+                                                : modalMode === "edit" && activeFingerTab === 0 && existingFingerCount >= 1
+                                                ? "Substituir Impressão Digital (Dedo 1)"
+                                                : modalMode === "edit" && activeFingerTab === 1 && existingFingerCount >= 2
+                                                ? "Substituir Impressão Digital (Dedo 2)"
                                                 : `Capturar Impressão Digital (Dedo ${activeFingerTab + 1}) via USB`}
                                         </>
                                     )}

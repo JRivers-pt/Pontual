@@ -17,9 +17,19 @@ export const authConfig = {
         authorized({ auth, request: { nextUrl } }) {
             const isLoggedIn = !!auth?.user
             const userRole = (auth?.user as any)?.role
-            const isOnDashboard = nextUrl.pathname === "/" || nextUrl.pathname.startsWith("/reports")
+            const mustChangePassword = !!(auth?.user as any)?.mustChangePassword
+            const isOnDashboard = nextUrl.pathname === "/" || nextUrl.pathname.startsWith("/reports") || nextUrl.pathname.startsWith("/employees") || nextUrl.pathname.startsWith("/devices") || nextUrl.pathname.startsWith("/timesheet") || nextUrl.pathname.startsWith("/schedules") || nextUrl.pathname.startsWith("/corrections")
             const isOnAdmin = nextUrl.pathname.startsWith("/admin")
             const isOnLogin = nextUrl.pathname.startsWith("/login")
+            const isOnPasswordChange = nextUrl.pathname === "/change-password"
+
+            if (isLoggedIn && mustChangePassword && !isOnPasswordChange) {
+                return Response.redirect(new URL("/change-password", nextUrl))
+            }
+
+            if (isLoggedIn && !mustChangePassword && isOnPasswordChange) {
+                return Response.redirect(new URL("/", nextUrl))
+            }
 
             if (isOnAdmin) {
                 if (isLoggedIn && userRole === "ADMIN") return true
@@ -31,13 +41,23 @@ export const authConfig = {
                 return false // Redirect unauthenticated users to login page
             } else if (isOnLogin) {
                 if (isLoggedIn) {
+                    if (mustChangePassword) {
+                        return Response.redirect(new URL("/change-password", nextUrl))
+                    }
                     return Response.redirect(new URL("/", nextUrl))
                 }
                 return true
             }
             return true
         },
-        jwt: async ({ token, user }) => {
+        jwt: async ({ token, user, trigger, session }) => {
+            // Allow manual session update (e.g. after changing password)
+            if (trigger === "update" && session) {
+                if (typeof session.mustChangePassword === "boolean") {
+                    token.mustChangePassword = session.mustChangePassword;
+                }
+            }
+
             // Store user data in token on sign in
             if (user) {
                 token.sub = user.id;
@@ -49,6 +69,7 @@ export const authConfig = {
                 token.parentUserId = (user as any).parentUserId ?? null;
                 token.isMaster = (user as any).isMaster ?? true;
                 token.isCmbMaster = (user as any).isCmbMaster ?? false;
+                token.mustChangePassword = (user as any).mustChangePassword ?? false;
             }
             return token;
         },
@@ -64,6 +85,7 @@ export const authConfig = {
                 (session.user as any).parentUserId = token.parentUserId ?? null;
                 (session.user as any).isMaster = token.isMaster ?? true;
                 (session.user as any).isCmbMaster = token.isCmbMaster ?? false;
+                (session.user as any).mustChangePassword = token.mustChangePassword ?? false;
             }
             return session;
         }

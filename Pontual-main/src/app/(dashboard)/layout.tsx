@@ -17,6 +17,10 @@ export default async function DashboardLayout({
     redirect("/login");
   }
 
+  if ((session.user as any)?.mustChangePassword) {
+    redirect("/change-password");
+  }
+
   return (
     <div className="flex min-h-screen bg-neutral-50 dark:bg-neutral-950">
       {/* Desktop Sidebar */}
@@ -35,7 +39,7 @@ export default async function DashboardLayout({
             </div>
             <div className="flex items-center gap-2">
               <span className="font-extrabold text-base sm:text-lg text-neutral-900 dark:text-white">Pontualidade</span>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-cyan-300 border border-blue-200 dark:border-blue-900/40 font-semibold">
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:cyan-300 border border-blue-200 dark:border-blue-900/40 font-semibold">
                 Cloud v2.4
               </span>
             </div>

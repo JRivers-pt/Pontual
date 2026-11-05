@@ -78,6 +78,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                         parentUserId: user.parentUserId,
                         isMaster: isMaster,
                         isCmbMaster: isCmbMaster,
+                        mustChangePassword: user.mustChangePassword ?? false,
                     };
                 }
 
