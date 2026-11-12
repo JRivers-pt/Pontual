@@ -132,9 +132,13 @@ export async function processJob(config, job, call = request) {
             if (String(setting?.fingerprint_format) !== '0') throw new Error('TEMPLATE_FORMAT_MISMATCH');
         }
         // Existing device credentials are a separate second-phase migration, never replace them blindly.
-        if (explicitId && !job.remoteUserId && await deviceUser()) {
-            if (!config.allowLegacyUpdate) throw new Error('LEGACY_USER_IMPORT_REQUIRED');
-            job.resolvedUserId = String(explicitId);
+        let legacyDeviceRecord = null;
+        if (explicitId && !job.remoteUserId) {
+            legacyDeviceRecord = await deviceUser();
+            if (legacyDeviceRecord) {
+                if (!config.allowLegacyUpdate) throw new Error('LEGACY_USER_IMPORT_REQUIRED');
+                job.resolvedUserId = String(explicitId);
+            }
         }
         const url = `${config.biostarUrl}/api/users/${encodeURIComponent(userId)}`;
         const existing = await call(url, { headers });
@@ -146,7 +150,7 @@ export async function processJob(config, job, call = request) {
             if (body.User.login_id || String(body.User.permission?.id) === '1') throw new Error('PROTECTED_ACCOUNT');
             // A matching name alone does not establish ownership. Recover only our disabled placeholder
             // after a lost create response; confirmed cloud bindings survive normal edits and renames.
-            if (!job.remoteUserId && (body.User.name !== job.managementTag || String(body.User.disabled) !== 'true')) throw new Error('USER_ID_COLLISION');
+            if (!job.remoteUserId && !job.resolvedUserId && (body.User.name !== job.managementTag || String(body.User.disabled) !== 'true')) throw new Error('USER_ID_COLLISION');
         } else if (existing.status !== 404 && !(existing.status === 400 && String(existing.body?.Response?.code) === '201')) {
             throw new Error('READ_USER_FAILED');
         }
@@ -158,6 +162,11 @@ export async function processJob(config, job, call = request) {
             }
         }
         if (exists) job.resolvedUserId = String(userId);
+        if (!exists && job.active && job.resolvedUserId && legacyDeviceRecord && !fingerprints?.length && !job.clearFingerprint &&
+            Number(legacyDeviceRecord.fingerprint_templates_count) > 0 && String(legacyDeviceRecord.disabled) === 'false') {
+            // Preserve existing hardware templates for reconciled legacy users when no new biometric capture was provided.
+            return 'EXPORTED';
+        }
         if (!exists && job.active) {
             if (!/^PTL-[a-f0-9]{24}$/.test(job.managementTag || '')) throw new Error('INVALID_MANAGEMENT_TAG');
             if (!config.accessGroups.length && !config.allowNoAccessGroups) throw new Error('ACCESS_GROUPS_REQUIRED');
